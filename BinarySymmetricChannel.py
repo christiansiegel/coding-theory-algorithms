@@ -1,6 +1,7 @@
 import numpy as np
 import math
 
+
 class BinarySymmetricChannel:
     """Binary Symmetric Channel
 
@@ -17,10 +18,9 @@ class BinarySymmetricChannel:
     def __init__(self):
         pass
 
-    __order = float(2)
+    __order = 2.0
     __print_output = True
-    __ProbabilityMatrix = np.array([[0, 0],
-                                    [0, 0]]).astype(float)
+    __ProbabilityMatrix = np.zeros([2, 2], float)
 
     def SetProbabilityMatrix(self, ProbabilityMatrix):
         """
@@ -45,13 +45,13 @@ class BinarySymmetricChannel:
         """
         self.__print_output = flag
 
-    @staticmethod
+
     def Entropy(self):
         """
         Calculates the entropy of the probability matrix
         :return:
         """
-        return
+        return 0.0
 
     def PostprioriEntropy(self):
         """
@@ -61,16 +61,22 @@ class BinarySymmetricChannel:
 
         # Get the backwards probability matrix
         BackwardsProp = self.BackwardsProbability()
-        ResultVector = np.empty(np.size(BackwardsProp, 1), float)
+        HorizontalSize = np.size(BackwardsProp, 0)
+        VerticalSize = np.size(BackwardsProp, 1)
+        ResultVector = np.zeros(VerticalSize)
+        # print(ResultVector)
+        # print(VerticalSize)
+        # print(HorizontalSize)
 
         # Calculate the post priory by summing each row of values from the backwards probability
         # Each value gets summed as value + log2(1/value)
-        for i in range(0, np.size(BackwardsProp, 1)):
-            for j in range(0, np.size(BackwardsProp, 0)):
+        for i in range(0, VerticalSize):
+            for j in range(0, HorizontalSize):
                 ResultVector[j] += BackwardsProp[i, j] * np.log2(1.0 / BackwardsProp[i, j])
 
         return ResultVector
 
+    @property
     def CalcOutputSymbolVector(self):
         """
         Calculates each P(X_i/Y_j) and returns it as a vector
@@ -79,14 +85,15 @@ class BinarySymmetricChannel:
         # Get the size of the horizontal axis
         Size = np.size(self.__ProbabilityMatrix, 0)
         # Create an empty array for storage
-        Result = np.empty(Size, float)
+        Result = np.zeros(Size, float)
 
         # Calculate each output probability
         for i in range(0, Size):
-            Result[i] = self.__ProbabilityMatrix[0, i] * 1.0 / float(self.__order) + \
-                        self.__ProbabilityMatrix[1, i] * 1.0 / float(self.__order)
-        if self.__print_output:
-            print(Result)
+            Result[i] = self.__ProbabilityMatrix[0, i] * (1.0 / float(self.__order)) + \
+                        self.__ProbabilityMatrix[1, i] * (1.0 / float(self.__order))
+
+        # if self.__print_output:
+            # print(Result)
 
         return Result
 
@@ -98,11 +105,24 @@ class BinarySymmetricChannel:
         """
         HorizontalSize = np.size(self.__ProbabilityMatrix, 0)
         VerticalSize = np.size(self.__ProbabilityMatrix, 1)
-        ResultMatrix = np.empty([HorizontalSize, VerticalSize])
+        ResultMatrix = np.zeros([HorizontalSize, VerticalSize],float)
 
-        OutputSymbols = self.CalcOutputSymbolVector()
-        for i in range(0, HorizontalSize):  # Iterate through x
-            for j in range(0, VerticalSize):  # Iterate through y
+        OutputSymbols = self.CalcOutputSymbolVector
+        for i in range(0, VerticalSize):  # Iterate through x
+            for j in range(0, HorizontalSize):  # Iterate through y
                 # (P(y_j/x_i) * P(x_i))/ P(y_j)
-                ResultMatrix[i, j] = (self.__ProbabilityMatrix[i, j] * 1.0 / float(self.__order)) / OutputSymbols[j]
+                ResultMatrix[i, j] = (self.__ProbabilityMatrix[i, j] * (1.0 / self.__order)) / OutputSymbols[j]
+
         return ResultMatrix
+
+if __name__ == '__main__':
+
+    np.set_printoptions(precision=4)
+    Code = BinarySymmetricChannel()
+    Code.SetPrintOutput(True)
+    prob = np.array([[3.0/5.0, 2.0/5.0],
+                     [1.0/5.0, 4.0/5.0]])
+
+    # Test probability array
+    Code.SetProbabilityMatrix(prob)
+    print(Code.PostprioriEntropy())
