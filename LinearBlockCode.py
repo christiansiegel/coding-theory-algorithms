@@ -1,4 +1,4 @@
-from numpy import *
+import numpy as np
 import math
 
 def HtoG(H):
@@ -8,12 +8,13 @@ def HtoG(H):
     Returns:
         Generator Matrix G
     """
-    n = shape(H)[1]
-    k = n - shape(H)[0]
+    n = np.shape(H)[1]
+    k = n - np.shape(H)[0]
     P = HtoP(H)
-    Ik = eye(k)
-    G = concatenate((P, Ik), axis=1)
+    Ik = np.eye(k)
+    G = np.concatenate((P, Ik), axis=1)
     return G.astype(int)
+
 
 def GtoH(G):
     """Convert a Generator Matrix in systematic form to a Parity Check Matrix.
@@ -22,13 +23,14 @@ def GtoH(G):
     Returns:
         Parity Check Matrix H
     """
-    k = shape(G)[0]
-    n = shape(G)[1]
+    k = np.shape(G)[0]
+    n = np.shape(G)[1]
     P = GtoP(G)
-    PT = transpose(P)
-    Ik = eye(n-k)
-    H = concatenate((Ik, PT), axis=1)
+    PT = np.transpose(P)
+    Ik = np.eye(n - k)
+    H = np.concatenate((Ik, PT), axis=1)
     return H.astype(int)
+
 
 def GtoP(G):
     """Extract the submatrix P from a Generator Matrix in systematic form.
@@ -37,10 +39,11 @@ def GtoP(G):
     Returns:
         Submatrix P of G.
     """
-    k = shape(G)[0]
-    n = shape(G)[1]
-    P = G[:k, :n-k]
+    k = np.shape(G)[0]
+    n = np.shape(G)[1]
+    P = G[:k, :n - k]
     return P.astype(int)
+
 
 def HtoP(H):
     """Extract the submatrix P from a Parity Check Matrix in systematic form.
@@ -49,11 +52,12 @@ def HtoP(H):
     Returns:
         Submatrix P of G.
     """
-    n = shape(H)[1]
-    k = n - shape(H)[0]
-    PK = H[:,n-k:n]
-    P = transpose(PK)
+    n = np.shape(H)[1]
+    k = n - np.shape(H)[0]
+    PK = H[:, n - k:n]
+    P = np.transpose(PK)
     return P.astype(int)
+
 
 def matrixMultiplicationEquations(M, aSymbol, bSymbol):
     """Symbolic matrix multiplication.
@@ -72,22 +76,23 @@ def matrixMultiplicationEquations(M, aSymbol, bSymbol):
         bSymbol = 'b'
 
         Resulting String:
-            a0 = b1 ⊕ b2
-            a1 = b0 ⊕ b1 ⊕ b2
-            a2 = b0 ⊕ b2
+            a0 = b1 + b2
+            a1 = b0 + b1 + b2
+            a2 = b0 + b2
     """
-    k = shape(M)[0]
-    n = shape(M)[1]
+    k = np.shape(M)[0]
+    n = np.shape(M)[1]
     equations = ''
     for i in range(0, n):
         s = aSymbol + str(i) + ' = '
         m = []
         for j in range(0, k):
-            if M[j,i] == 1:
+            if M[j, i] == 1:
                 m.append(bSymbol + str(j))
         s += " \u2295 ".join(m)
         equations += '\n' + s
     return equations
+
 
 def w(v):
     """Hamming weight of a vector (slide 52)
@@ -96,7 +101,8 @@ def w(v):
     Returns:
         Hamming weight of the vector
     """
-    return count_nonzero(v)
+    return np.count_nonzero(v)
+
 
 def d(v1, v2):
     """Hamming distance of two vectors (slide 53)
@@ -106,9 +112,10 @@ def d(v1, v2):
     Returns:
         Hamming distance of the vectors
     """
-    return w((v1+v2)%2)
+    return w((v1 + v2) % 2)
 
-def intToArray(i,length=0):
+
+def intToArray(i, length=0):
     """Convert an unsigned integer to a binary array.
     Args:
         i: unsigned integer
@@ -116,12 +123,13 @@ def intToArray(i,length=0):
     Returns:
         binary array
     """
-    if(length > 0):
-        s = binary_repr(i, width=length)
+    if length > 0:
+        s = np.binary_repr(i, width=length)
     else:
-        s = binary_repr(i)
-    m = fromstring(s,'u1') - ord('0')
+        s = np.binary_repr(i)
+    m = np.fromstring(s, 'u1') - ord('0')
     return m
+
 
 def arrayToString(a):
     """Convert an array of integer numbers to a string.
@@ -135,12 +143,15 @@ def arrayToString(a):
         s += str(int(a[i]))
     return s
 
-def nCr(n,k):
+
+def nCr(n, k):
     """binomial coefficient
     https://en.wikipedia.org/wiki/Binomial_coefficient
     """
     f = math.factorial
-    return f(n) / f(k) / f(n-k)
+    return f(n) / f(k) / f(n - k)
+
+
 
 class LinearBlockCode:
     """Linear Block Code
@@ -152,17 +163,17 @@ class LinearBlockCode:
         __G: The Generator Matrix of the Linear Block Code
     """
 
-    __G = empty([0,0])
+    __G = np.empty([0, 0])
 
     def k(self):
         """Message length in bits.
         """
-        return shape(self.__G)[0]
+        return np.shape(self.__G)[0]
 
     def n(self):
         """Codeword length in bits.
         """
-        return shape(self.__G)[1]
+        return np.shape(self.__G)[1]
 
     def R(self):
         """Coding rate (R = k/n).
@@ -208,7 +219,7 @@ class LinearBlockCode:
         Returns:
             codeword
         """
-        c = m.dot(self.__G)%2
+        c = m.dot(self.__G) % 2
         return c.astype(int)
 
     def s(self, r):
@@ -218,16 +229,16 @@ class LinearBlockCode:
         Returns:
             Syndrome vector
         """
-        HT = transpose(self.H())
-        s = r.dot(HT)%2
+        HT = np.transpose(self.H())
+        s = r.dot(HT) % 2
         return s.astype(int)
 
     def M(self):
         """Matrix of all messages.
         """
         k = self.k()
-        M = empty([2**k, k])
-        for i in range(0, 2**k):
+        M = np.empty([2 ** k, k])
+        for i in range(0, 2 ** k):
             M[i] = intToArray(i, k)
         return M.astype(int)
 
@@ -236,8 +247,8 @@ class LinearBlockCode:
         """
         n = self.n()
         k = self.k()
-        C = empty([2**k, n])
-        for i in range(0, 2**k):
+        C = np.empty([2 ** k, n])
+        for i in range(0, 2 ** k):
             m = intToArray(i, k)
             c = self.c(m)
             C[i] = c
@@ -271,8 +282,8 @@ class LinearBlockCode:
         """
         PU = 0
         n = self.n()
-        for i in range(1, n+1):
-            PU += self.Ai(i) * p**i * (1-p)**(n-i)
+        for i in range(1, n + 1):
+            PU += self.Ai(i) * p ** i * (1 - p) ** (n - i)
         return PU
 
     def Pe(self, p):
@@ -283,8 +294,8 @@ class LinearBlockCode:
         Pe = 0
         n = self.n()
         t = self.t()
-        for i in range(t+1, n+1):
-            Pe += nCr(n, i) * p**i * (1-p)**(n-i)
+        for i in range(t + 1, n + 1):
+            Pe += nCr(n, i) * p ** i * (1 - p) ** (n - i)
         return Pe
 
     def Ai(self, i):
@@ -305,9 +316,9 @@ class LinearBlockCode:
             array with number of codewords having weight i (i = array index)
         """
         n = self.n()
-        A = empty([n])
+        A = np.empty([n])
         for i in range(0, n):
-            A[i] = self.Ai(i+1)
+            A[i] = self.Ai(i + 1)
         return A.astype(int)
 
     def printMessageCodewordTable(self):
@@ -329,7 +340,7 @@ class LinearBlockCode:
     def printSyndromeVectorEquations(self):
         """Print the syndrome vector equations.
         """
-        HT = transpose(self.H())
+        HT = np.transpose(self.H())
         equations = matrixMultiplicationEquations(HT, 's', 'r')
         print(equations)
 
@@ -340,10 +351,10 @@ class LinearBlockCode:
         """
         n = self.n()
         print('e0 e1 e2 ... -> weight')
-        for i in range(0, 2**n):
+        for i in range(0, 2 ** n):
             e = intToArray(i, n)
             s = self.s(e)
-            if array_equal(s, array([0,0,1])):
+            if np.array_equal(s, np.array([0, 0, 1])):
                 print(e, '->', w(e))
 
     def printStandardArray(self):
@@ -357,32 +368,34 @@ class LinearBlockCode:
 
         firstLine = True
 
-        for j in range(0, 2**n):
+        for j in range(0, 2 ** n):
             e = intToArray(j, n)
-            if(w(e) <= t):
+            if (w(e) <= t):
                 line = ''
-                for i in range(0, 2**k):
+                for i in range(0, 2 ** k):
                     m = intToArray(i, k)
                     c = self.c(m)
-                    ce_sum = (c+e)%2
+                    ce_sum = (c + e) % 2
                     line += arrayToString(ce_sum)
-                    if i is 0:  line += ' | '
-                    else:       line += ' '
+                    if i is 0:
+                        line += ' | '
+                    else:
+                        line += ' '
                 print(line)
                 if firstLine:
                     firstLine = False
-                    print('-' * ((2**k)*(n+1)+1))
+                    print('-' * ((2 ** k) * (n + 1) + 1))
 
     def correctableErrorPatterns(self):
         """Array of all correctable error patterns.
         """
-        E = empty([2**shape(self.H())[0], self.n()])
+        E = np.empty([2 ** np.shape(self.H())[0], self.n()])
         n = self.n()
         t = self.t()
         count = 0
-        for i in range(0, 2**n):
+        for i in range(0, 2 ** n):
             e = intToArray(i, n)
-            if(w(e) <= t):
+            if (w(e) <= t):
                 s = self.s(e)
                 E[count] = e
                 count += 1
@@ -486,7 +499,7 @@ class LinearBlockCode:
         print()
         self.printDecodingTable()
 
-#if __name__ == '__main__':
+# if __name__ == '__main__':
 #    G = array([ [1,1,0,1,0,0,0],
 #                [0,1,1,0,1,0,0],
 #                [1,1,1,0,0,1,0],
