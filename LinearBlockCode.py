@@ -128,6 +128,7 @@ def intToArray(i, length=0):
     else:
         s = np.binary_repr(i)
     m = np.fromstring(s, 'u1') - ord('0')
+    m = np.flipud(m)
     return m
 
 
