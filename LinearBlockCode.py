@@ -169,12 +169,12 @@ class LinearBlockCode:
     def k(self):
         """Message length in bits.
         """
-        return np.shape(self.__G)[0]
+        return np.shape(self.G())[0]
 
     def n(self):
         """Codeword length in bits.
         """
-        return np.shape(self.__G)[1]
+        return np.shape(self.G())[1]
 
     def R(self):
         """Coding rate (R = k/n).
@@ -196,13 +196,13 @@ class LinearBlockCode:
     def P(self):
         """Submatrix P of the generator matrix in systematic form.
         """
-        P = GtoP(self.__G)
+        P = GtoP(self.G())
         return P.astype(int)
 
     def H(self):
         """Parity Check Matrix of the Linear Block Code.
         """
-        H = GtoH(self.__G)
+        H = GtoH(self.G())
         return H.astype(int)
 
     def setH(self, H):
@@ -220,7 +220,7 @@ class LinearBlockCode:
         Returns:
             codeword
         """
-        c = m.dot(self.__G) % 2
+        c = m.dot(self.G()) % 2
         return c.astype(int)
 
     def s(self, r):
@@ -500,12 +500,13 @@ class LinearBlockCode:
         print()
         self.printDecodingTable()
 
-# if __name__ == '__main__':
-#    G = array([ [1,1,0,1,0,0,0],
-#                [0,1,1,0,1,0,0],
-#                [1,1,1,0,0,1,0],
-#                [1,0,1,0,0,0,1]])
-#
-#    code = LinearBlockCode()
-#    code.setG(G)
-#    code.printInfo()
+"""
+if __name__ == '__main__':
+    G = np.array([[1,1,0,1,0,0,0],
+                  [0,1,1,0,1,0,0],
+                  [1,1,1,0,0,1,0],
+                  [1,0,1,0,0,0,1]])
+    code = LinearBlockCode()
+    code.setG(G)
+    code.printInfo()
+"""
