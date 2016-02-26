@@ -24,6 +24,7 @@ def constructGF2(p, verbose = True):
     Returns:
         Elements of the GF in polynomial representation.
     """
+    print(p)
     elements = []
     m = degree(p)
     a_high = p[:m] # see slide 12 Solution
@@ -170,11 +171,11 @@ class ExtendedGaloisField:
     Based on the the Galois Field lecture (2016-18-02).
 
     Attributes:
-        __p: Primitive polynomial pi(X) the GF is based on.
-        __cachedElements: All elements of the GF in polynomial representation
+        _p: Primitive polynomial pi(X) the GF is based on.
+        _cachedElements: All elements of the GF in polynomial representation
     """
-    __p = np.zeros(1)
-    __cachedElements = []
+    _p = np.zeros(1)
+    _cachedElements = []
 
     def __init__(self, p):
         """Create Galois Field GF(2^m)
@@ -183,13 +184,13 @@ class ExtendedGaloisField:
         Args:
             p: Primitive polynomial pi(X) the GF is based on.
         """
-        self.__p = p
-        self.__cachedElements = constructGF2(self.p(), False)
+        self._p = p
+        self._cachedElements = constructGF2(self.p(), False)
 
     def p(self):
         """Primitive polynomial pi(X) the GF is based on.
         """
-        return self.__p.astype(int)
+        return self._p.astype(int)
 
     def m(self):
         """GF(2^m) -> returns m
@@ -216,12 +217,12 @@ class ExtendedGaloisField:
     def numberOfNonZeroElements(self):
         """Number of non-zero elements in the GF.
         """
-        return len(self.__cachedElements) - 1
+        return len(self._cachedElements) - 1
 
     def getAllElements(self):
         """All elements of the GF in polynomial representation.
         """
-        return self.__cachedElements
+        return self._cachedElements
 
     def resolveElementIndex(self, i):
         """E.g. GF(2^m) has 2**m-1=15 non-zero elements.
@@ -237,7 +238,7 @@ class ExtendedGaloisField:
         """Element alpha^i in polynomial representation.
         """
         i = self.resolveElementIndex(i)
-        return self.__cachedElements[i + 1]
+        return self._cachedElements[i + 1]
 
     def subsituteAlpha(self, p, i):
         """Subsitutes alpha^i in given polynomial and returns result.
@@ -332,3 +333,10 @@ class ExtendedGaloisField:
         print()
         print('-> For further simplification of minimal polynomials see book p. 349.')
         print()
+
+class GaloisField(ExtendedGaloisField):
+    """Galois Field GF(2)
+    """
+    def __init__(self):
+        self._p = np.array([1,1])
+        self._cachedElements = constructGF2(self.p(), False)

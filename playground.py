@@ -1,7 +1,7 @@
 from BinarySymmetricChannel import BinarySymmetricChannel
 from LinearBlockCode import LinearBlockCode
 from CyclicCode import CyclicCode
-from GaloisFields import ExtendedGaloisField
+from GaloisFields import ExtendedGaloisField, GaloisField
 import numpy as np
 
 if __name__ == '__main__':
