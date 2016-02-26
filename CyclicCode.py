@@ -231,14 +231,20 @@ class CyclicCode(LinearBlockCode):
     def printg(self):
         print(polyToString(self.g()))
 
-    def n(self):
+    def n(self): # override
         return self.__n
 
-    def k(self):
+    def k(self): # override
         return self.n() - degree(self.g())
 
-    def G(self, systematic = True, verbose = False):
+    def G(self, systematic = True, verbose = False): # override
         return gToG(self.g(), self.n(), systematic, verbose)
+
+    def setG(self): # override
+        assert False, "setG() not usable with cyclic codes."
+
+    def setH(self): # override
+        assert False, "setH() not usable with cyclic codes."
 
     def shift(self, c, i = 1):
         """Cyclic right shift of c using division (slide 11)
@@ -249,7 +255,7 @@ class CyclicCode(LinearBlockCode):
         ci = modPoly(XiCX, Xn1) # i times shifted c
         return padEnd(ci, self.n())
 
-    def c(self, m, systematic = True):
+    def c(self, m, systematic = True): # override
         """encode message polynomial m
         Args:
             m: message polynomial
@@ -260,7 +266,7 @@ class CyclicCode(LinearBlockCode):
         c = encode(m, self.g(), systematic)
         return padEnd(c, self.n())
 
-    def printMessageCodewordTable(self, systematic = True):
+    def printMessageCodewordTable(self, systematic = True): # override
         """Print all messages and their corresponding codewords.
         Args:
             systematic: print codewords in systematic form (default: True)
@@ -287,6 +293,3 @@ class CyclicCode(LinearBlockCode):
             # S1(X) = XS(X) mod g(X)
             S = modPoly(multPoly(X(1), S), self.g())
         return S
-
-#if __name__ == '__main__':
-#    pass
