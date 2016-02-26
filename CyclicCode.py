@@ -1,5 +1,6 @@
 from LinearBlockCode import LinearBlockCode
 import numpy as np
+import GaloisFields as gf
 
 """
 IMPORTANT:
@@ -91,12 +92,6 @@ def modPoly(a, b):
     r = divisionResults[1] # remainder
     return np.flipud(r.c % 2).astype(int)
 
-def degree(p):
-    """Returns degree of polynomial (highest exponent).
-    """
-    poly = np.poly1d(np.flipud(p))
-    return poly.order
-
 def X(i):
     """Create single coefficient polynomial with degree i: X^i
     """
@@ -110,7 +105,7 @@ def encode(m, g, systematic = True):
     ATTENTION: Dangling zeros in returned codeword are cut away.
     """
     if systematic:
-        r = degree(g) # r = n - k
+        r = gf.degree(g) # r = n - k
         Xr = X(r) # X^(n-k)
         XrmX = multPoly(Xr, m) # X^(n-k) * m(X)
         p = modPoly(XrmX, g) # p(X) = (X^(n-k) * m(X)) mod g(X)
@@ -130,7 +125,7 @@ def gToG(g, n, systematic = True, verbose = False):
     Returns:
         Generator Matrix
     """
-    k = n - degree(g)
+    k = n - gf.degree(g)
     g = padEnd(g, n)
     G = np.empty([k, n])
     for i in range(0, k):
@@ -180,7 +175,7 @@ def printAllCyclicCodes(factorPolynomials):
     print()
 
     numberCodes = 2**(len(factorPolynomials)) - 2
-    n = degree(product)
+    n = gf.degree(product)
     print('There are', numberCodes, 'different cyclic codes of length', n, 'as')
     print('we can find', numberCodes, 'different generator polynomials that are')
     print('the factors of', polyToString(product))
@@ -198,9 +193,12 @@ def printAllCyclicCodes(factorPolynomials):
                     gp = multPoly(gp, factorPolynomials[j])
                 s += '(' + polyToString(factorPolynomials[j]) + ')'
 
-        print('Ccyc(' + str(n) + ', ' + str(degree(gp)) + ') <- g' + str(i+1) + ' = ' + s + ' = ' + polyToString(gp))
+        print('Ccyc(' + str(n) + ', ' + str(gf.degree(gp)) + ') <- g' + str(i+1) + ' = ' + s + ' = ' + polyToString(gp))
 
 def padEnd(p, length):
+    assert p.size <= length, \
+        "padEnd() failed because polynomial is longer than given size."
+
     p = np.pad(p, (0, length-p.size), 'constant', constant_values=0)
     return p
 
@@ -220,8 +218,8 @@ class CyclicCode(LinearBlockCode):
     def __init__(self, g, n):
         assert g[0] == 1, \
             "g0 must equal to 1"
-        assert n >= degree(g), \
-            "n=%i must be >= degree(g)=%i" % (n, degree(g))
+        assert n >= gf.degree(g), \
+            "n=%i must be >= degree(g)=%i" % (n, gf.degree(g))
         self.__g = g[:n]; #auto remove too much dangling zeros
         self.__n = n;
 
@@ -235,7 +233,7 @@ class CyclicCode(LinearBlockCode):
         return self.__n
 
     def k(self): # override
-        return self.n() - degree(self.g())
+        return self.n() - gf.degree(self.g())
 
     def G(self, systematic = True, verbose = False): # override
         return gToG(self.g(), self.n(), systematic, verbose)
