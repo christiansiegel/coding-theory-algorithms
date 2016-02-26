@@ -499,14 +499,3 @@ class LinearBlockCode:
         print('-> Decoding Table:')
         print()
         self.printDecodingTable()
-
-"""
-if __name__ == '__main__':
-    G = np.array([[1,1,0,1,0,0,0],
-                  [0,1,1,0,1,0,0],
-                  [1,1,1,0,0,1,0],
-                  [1,0,1,0,0,0,1]])
-    code = LinearBlockCode()
-    code.setG(G)
-    code.printInfo()
-"""
