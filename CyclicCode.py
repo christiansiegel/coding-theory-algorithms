@@ -1,6 +1,7 @@
 from LinearBlockCode import LinearBlockCode
 import numpy as np
 import GaloisFields as gf
+import LinearBlockCode as lbc
 
 """
 IMPORTANT:
@@ -234,6 +235,9 @@ class CyclicCode(LinearBlockCode):
 
     def k(self): # override
         return self.n() - gf.degree(self.g())
+
+    def dmin(self): # override (LinearBlockCode dmin would work, but is slower)
+        return lbc.w(self.g())
 
     def G(self, systematic = True, verbose = False): # override
         return gToG(self.g(), self.n(), systematic, verbose)
