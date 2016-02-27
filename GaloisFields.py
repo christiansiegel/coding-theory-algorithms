@@ -24,7 +24,6 @@ def constructGF2(p, verbose = True):
     Returns:
         Elements of the GF in polynomial representation.
     """
-    print(p)
     elements = []
     m = degree(p)
     a_high = p[:m] # see slide 12 Solution
