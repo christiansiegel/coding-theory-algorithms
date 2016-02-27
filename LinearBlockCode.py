@@ -400,6 +400,7 @@ class LinearBlockCode:
                 s = self.s(e)
                 E[count] = e
                 count += 1
+        E = E[:count]
         return E.astype(int)
 
     def printDecodingTable(self):
