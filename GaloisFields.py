@@ -236,9 +236,24 @@ class ExtendedGaloisField:
 
     def getElement(self, i):
         """Element alpha^i in polynomial representation.
+        For negative exponents the zero element is returned.
         """
+        if i < 0:
+            return np.zeros(1).astype(int)
         i = self.resolveElementIndex(i)
         return self._cachedElements[i + 1]
+
+    def exponentOfElement(self, alpha):
+        """Find element alpha^i in GF an return its exponent i.
+        If element is the zero element or the element is not found the
+        exponent -1 is returned.
+        """
+        for index, item in enumerate(self.getAllElements()):
+            item = item[:degree(item)+1]
+            alpha = alpha[:degree(alpha)+1]
+            if np.array_equal(item, alpha):
+                return index - 1
+        return -1
 
     def subsituteAlpha(self, p, i):
         """Subsitutes alpha^i in given polynomial and returns result.
@@ -304,12 +319,12 @@ class ExtendedGaloisField:
     def conjugateRootGroups(self):
         """Calculate all conjugate groups and return them in a
         python array. E.g.
-        Conjugate roots: [1],[a, a^2, a^4, a^8],[a^3, a^6, a^9, a^12],...
-        Returned array: [[0],[0,2,4,8],[3,6,9,12],...]
+        Conjugate roots:  [0][1],[a, a^2, a^4, a^8],[a^3, a^6, a^9, a^12],...
+        Returned array: [[-1][0],[0,2,4,8],[3,6,9,12],...]
 
-        ATTENTION: Conjugate root group [0] is not included.
+        ATTENTION: Conjugate root group [0] is denoted as negative exponent.
         """
-        groups = []
+        groups = [[-1]]
         m = self.m()
         for i in range(0, 2**m-1):
             group = self.conjugateRoots(i)
@@ -318,21 +333,58 @@ class ExtendedGaloisField:
         return groups
 
     def printMinimalPolynomials(self):
+        """Print all conjugate root groups and their corresponding
+        minimal polynomial.
+        """
         print()
         print('Conjugate roots  ->  Minimal polynomials')
         print('----------------------------------------')
-        print('0 \t\t\u03A6(X) = X')
-
         for rootGroup in self.conjugateRootGroups():
             rootStr = ''
-            phiStr = '\t\t\u03A6(X) = '
             for root in rootGroup:
-                rootStr += '\u03B1^' + str(root) + ' '
-                phiStr += '(X + \u03B1^' + str(root) +')'
-            print(rootStr, phiStr)
+                if root == -1: # special case: 0 is denoted as negative exponent
+                    rootStr += '0'
+                else:
+                    rootStr += '\u03B1^' + str(root) + ' '
+            minPoly = self.minimalPolynomial(rootGroup)
+            print(rootStr, '\t\t\u03A6(X) =', cc.polyToString(minPoly))
         print()
-        print('-> For further simplification of minimal polynomials see book p. 349.')
-        print()
+
+    def minimalPolynomial(self, conjugateRoots):
+        """Generate minimal polynomial from conjugate root group.
+        Args:
+            conjugateRoots: Exponent of roots in a standard python array
+                            The zero element is denoted with the exponent -1.
+        """
+        # Better not ask how this works...but it does.
+        aexp = [-1]
+        for root in conjugateRoots:
+            aexpNew = [-1] * (len(aexp) + 1)
+            for i in range(0, len(aexp)):
+                rootExp = [root, -1]
+                for j in range(0, len(rootExp)):
+                    # add exponents (e.g. a^4 * a^5 = a^9)
+                    # threat zero elements -1 exponent as if it isn't there
+                    if aexp[i] >= 0 and rootExp[j] >= 0:
+                        newExp = rootExp[j] + aexp[i]
+                    elif rootExp[j] >= 0:
+                        newExp = rootExp[j]
+                    else:
+                        newExp = aexp[i]
+                    # binary addition of alphas in GF
+                    newpoly = cc.addPoly(\
+                        self.getElement(aexpNew[i+j]),\
+                        self.getElement(newExp))
+                    aexpNew[i+j] = self.exponentOfElement(newpoly)
+            aexpNew[i+j] = 0 #
+            aexp = aexpNew
+
+        #convert internal weird format to polynomial
+        polynomial = np.empty(len(aexp))
+        for i in range(0, polynomial.size):
+            polynomial[i] = aexp[i] + 1
+
+        return polynomial.astype(int)
 
 class GaloisField(ExtendedGaloisField):
     """Galois Field GF(2)
