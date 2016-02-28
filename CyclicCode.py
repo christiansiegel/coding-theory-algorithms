@@ -40,17 +40,17 @@ def polyToString(p, variable = 'X'):
     """
     s = ''
     for i in range(0, p.size):
-        if p[i] > 0:
+        if np.count_nonzero(p[i]) > 0:
             if s != '':
                 s += ' + '
             if i == 0:
                 s += str(p[i])
             elif i == 1:
-                if p[i] > 1:
+                if p[i] != 1:
                     s += str(p[i]) + '*'
                 s += variable
             else:
-                if p[i] > 1:
+                if p[i] != 1:
                     s += str(p[i]) + '*'
                 s += variable + '^' + str(i)
     if s == '':
