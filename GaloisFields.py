@@ -269,7 +269,7 @@ class ExtendedGaloisField:
             result = cc.addPoly(result, alpha)
         return result.astype(int)
 
-    def roots(self, p):
+    def roots(self, p, allRoots = True):
         """Subsitutes all elements of the GF into polynomial p to
         find roots and returns them in a standard python array.
         (slide 14)
@@ -284,7 +284,10 @@ class ExtendedGaloisField:
             palpha = self.subsituteAlpha(p, i)
             if np.count_nonzero(palpha) == 0:
                 roots.append(i)
-        return roots
+        if allRoots:
+            return roots
+        else:
+            return self.removeConjugateRoots(roots)
 
     def conjugateRoots(self, i, verbose = False):
         """
@@ -314,6 +317,18 @@ class ExtendedGaloisField:
                 break
         if verbose: print()
         return sorted(roots)
+
+    def removeConjugateRoots(self, roots):
+        """Remove all conjugate roots from given roots list and leave only
+        lowest root.
+        """
+        result = roots
+        for root in roots:
+            conjugateRoots = self.conjugateRoots(root)
+            for conjugateRoot in conjugateRoots[1:]: # don't remove first root
+                if conjugateRoot in result:
+                    result.remove(conjugateRoot)
+        return result
 
     def conjugateRootGroups(self):
         """Calculate all conjugate groups and return them in a
