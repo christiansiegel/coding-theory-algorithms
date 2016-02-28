@@ -209,29 +209,29 @@ class CyclicCode(LinearBlockCode):
     Based on the the Cyclic Codes lecture (2016-18-02).
 
     Attributes:
-        __g: The Generator Polynomial of the Cyclic Code
-        __n: Code length
+        _g: The Generator Polynomial of the Cyclic Code
+        _n: Code length
     """
 
-    __g = np.empty([0])
-    __n = 0
+    _g = np.empty([0])
+    _n = 0
 
     def __init__(self, g, n):
         assert g[0] == 1, \
             "g0 must equal to 1"
         assert n >= gf.degree(g), \
             "n=%i must be >= degree(g)=%i" % (n, gf.degree(g))
-        self.__g = g[:n]; #auto remove too much dangling zeros
-        self.__n = n;
+        self._g = g[:n]; #auto remove too much dangling zeros
+        self._n = n;
 
     def g(self):
-        return self.__g.astype(int)
+        return self._g.astype(int)
 
     def printg(self):
         print(polyToString(self.g()))
 
     def n(self): # override
-        return self.__n
+        return self._n
 
     def k(self): # override
         return self.n() - gf.degree(self.g())
