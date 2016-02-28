@@ -346,7 +346,7 @@ class ExtendedGaloisField:
                 else:
                     rootStr += '\u03B1^' + str(root) + ' '
             minPoly = self.minimalPolynomial(rootGroup)
-            print(rootStr, '\t\t\u03A6(X) =', cc.polyToString(minPoly))
+            print(rootStr, '\t', cc.polyToString(minPoly))
         print()
 
     def minimalPolynomial(self, conjugateRoots):
