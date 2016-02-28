@@ -89,7 +89,7 @@ def matrixMultiplicationEquations(M, aSymbol, bSymbol):
         for j in range(0, k):
             if M[j, i] == 1:
                 m.append(bSymbol + str(j))
-        s += " \u2295 ".join(m)
+        s += u' \u2295 '.join(m)
         equations += '\n' + s
     return equations
 
