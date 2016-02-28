@@ -254,11 +254,11 @@ class ExtendedGaloisField:
                 return index - 1
         return -1
 
-    def subsituteAlpha(self, p, i):
-        """Subsitutes alpha^i in given polynomial and returns result.
+    def substituteAlpha(self, p, i):
+        """Substitutes alpha^i in given polynomial and returns result.
         Args:
-            p: polynomial alpha should be subsituted in
-            i: exponent of alpha to be subsituted (alpha^i)
+            p: polynomial alpha should be substituted in
+            i: exponent of alpha to be substituted (alpha^i)
         """
         result = np.zeros(degree(p))
         for j in range(0, degree(p) + 1): # iterate all coefficients
@@ -270,7 +270,7 @@ class ExtendedGaloisField:
         return result.astype(int)
 
     def roots(self, p, allRoots = True):
-        """Subsitutes all elements of the GF into polynomial p to
+        """Substitutes all elements of the GF into polynomial p to
         find roots and returns them in a standard python array.
         (slide 14)
         Args:
@@ -281,7 +281,7 @@ class ExtendedGaloisField:
         roots = []
         number = self.numberOfNonZeroElements()
         for i in range(0, number):
-            palpha = self.subsituteAlpha(p, i)
+            palpha = self.substituteAlpha(p, i)
             if np.count_nonzero(palpha) == 0:
                 roots.append(i)
         if allRoots:
