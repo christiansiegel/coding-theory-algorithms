@@ -344,7 +344,8 @@ class ExtendedGaloisField:
                 if root == -1: # special case: 0 is denoted as negative exponent
                     rootStr += '0'
                 else:
-                    rootStr += '\u03B1^' + str(root) + ' '
+                    rootStr += '\u03B1^' + str(root) + ', '
+            rootStr = rootStr[:-2] # remove last comma
             minPoly = self.minimalPolynomial(rootGroup)
             print(rootStr, '\t', cc.polyToString(minPoly))
         print()
