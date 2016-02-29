@@ -1,7 +1,7 @@
-from LinearBlockCode import LinearBlockCode
 import numpy as np
-import GaloisFields as gf
 import LinearBlockCode as lbc
+from GaloisFields import GF2, X, degree
+from LinearBlockCode import LinearBlockCode
 
 """
 IMPORTANT:
@@ -28,91 +28,19 @@ def shift(v, i = 1):
     """
     return np.roll(v, i)
 
-def polyToString(p, variable = 'X'):
-    """Returns polynomial in string representation.
-    E.g. [0,1,0,3] -> "X + 3*X^3"
-
-    Args:
-        v: polynomial
-        variable: variable used in string
-    Returns:
-        Polynomial p in string representation.
-    """
-    s = ''
-    for i in range(0, p.size):
-        if np.count_nonzero(p[i]) > 0:
-            if s != '':
-                s += ' + '
-            if i == 0:
-                s += str(p[i])
-            elif i == 1:
-                if p[i] != 1:
-                    s += str(p[i]) + '*'
-                s += variable
-            else:
-                if p[i] != 1:
-                    s += str(p[i]) + '*'
-                s += variable + '^' + str(i)
-    if s == '':
-        s = '0'
-    return s
-
-def addPoly(a, b):
-    """Add two polynomials; GF(2)
-    (slide 7)
-    """
-    pa = np.poly1d(np.flipud(a))
-    pb = np.poly1d(np.flipud(b))
-    return np.flipud(np.poly1d(pa + pb).c % 2)
-
-def multPoly(a, b):
-    """Multiply two polynomials; GF(2)
-    (slide 7)
-    """
-    pa = np.poly1d(np.flipud(a))
-    pb = np.poly1d(np.flipud(b))
-    return np.flipud(np.poly1d(pa * pb).c % 2)
-
-def divPoly(a, b):
-    """Divide two polynomials; GF(2) -> returns quotient
-    (slide 8)
-    """
-    pa = np.poly1d(np.flipud(a))
-    pb = np.poly1d(np.flipud(b))
-    divisionResults = pa / pb
-    q = divisionResults[0] # quotient
-    return np.flipud(q.c % 2).astype(int)
-
-def modPoly(a, b):
-    """Divide two polynomials; GF(2) -> returns remainder
-    (slide 8)
-    """
-    pa = np.poly1d(np.flipud(a))
-    pb = np.poly1d(np.flipud(b))
-    divisionResults = pa / pb
-    r = divisionResults[1] # remainder
-    return np.flipud(r.c % 2).astype(int)
-
-def X(i):
-    """Create single coefficient polynomial with degree i: X^i
-    """
-    X = np.zeros(i+1)
-    X[i] = 1
-    return X.astype(int)
-
 def encode(m, g, systematic = True):
     """Encoding of cyclic code (in systematic form)
     (slide 23)
     ATTENTION: Dangling zeros in returned codeword are cut away.
     """
     if systematic:
-        r = gf.degree(g) # r = n - k
+        r = degree(g) # r = n - k
         Xr = X(r) # X^(n-k)
-        XrmX = multPoly(Xr, m) # X^(n-k) * m(X)
-        p = modPoly(XrmX, g) # p(X) = (X^(n-k) * m(X)) mod g(X)
-        c = addPoly(p, XrmX) # c(X) = p(X) + (X^(n-k) * m(X))
+        XrmX = GF2.multPoly(Xr, m) # X^(n-k) * m(X)
+        p = GF2.modPoly(XrmX, g) # p(X) = (X^(n-k) * m(X)) mod g(X)
+        c = GF2.addPoly(p, XrmX) # c(X) = p(X) + (X^(n-k) * m(X))
     else:
-        c = multPoly(m, g)
+        c = GF2.multPoly(m, g)
     return c.astype(int)
 
 def gToG(g, n, systematic = True, verbose = False):
@@ -126,7 +54,7 @@ def gToG(g, n, systematic = True, verbose = False):
     Returns:
         Generator Matrix
     """
-    k = n - gf.degree(g)
+    k = n - degree(g)
     g = padEnd(g, n)
     G = np.empty([k, n])
     for i in range(0, k):
@@ -170,16 +98,16 @@ def printAllCyclicCodes(factorPolynomials):
         if i == 0:
             product = factorPolynomials[i]
         else:
-            product = multPoly(product, factorPolynomials[i])
-        s += '(' + polyToString(factorPolynomials[i]) + ') '
-    print(s + '= ' + polyToString(product))
+            product = GF2.multPoly(product, factorPolynomials[i])
+        s += '(' + GF2.polyToString(factorPolynomials[i]) + ') '
+    print(s + '= ' + GF2.polyToString(product))
     print()
 
     numberCodes = 2**(len(factorPolynomials)) - 2
-    n = gf.degree(product)
+    n = degree(product)
     print('There are', numberCodes, 'different cyclic codes of length', n, 'as')
     print('we can find', numberCodes, 'different generator polynomials that are')
-    print('the factors of', polyToString(product))
+    print('the factors of', GF2.polyToString(product))
     print(np.bitwise_and(1, 3))
 
     print('Code <- Generator polynomial')
@@ -191,10 +119,10 @@ def printAllCyclicCodes(factorPolynomials):
                 if s =='':
                     gp = factorPolynomials[j]
                 else:
-                    gp = multPoly(gp, factorPolynomials[j])
-                s += '(' + polyToString(factorPolynomials[j]) + ')'
+                    gp = GF2.multPoly(gp, factorPolynomials[j])
+                s += '(' + GF2.polyToString(factorPolynomials[j]) + ')'
 
-        print('Ccyc(' + str(n) + ', ' + str(gf.degree(gp)) + ') <- g' + str(i+1) + ' = ' + s + ' = ' + polyToString(gp))
+        print('Ccyc(' + str(n) + ', ' + str(degree(gp)) + ') <- g' + str(i+1) + ' = ' + s + ' = ' + GF2.polyToString(gp))
 
 def padEnd(p, length):
     assert p.size <= length, \
@@ -219,8 +147,8 @@ class CyclicCode(LinearBlockCode):
     def __init__(self, g, n):
         assert g[0] == 1, \
             "g0 must equal to 1"
-        assert n >= gf.degree(g), \
-            "n=%i must be >= degree(g)=%i" % (n, gf.degree(g))
+        assert n >= degree(g), \
+            "n=%i must be >= degree(g)=%i" % (n, degree(g))
         self._g = g[:n]; #auto remove too much dangling zeros
         self._n = n;
 
@@ -228,13 +156,13 @@ class CyclicCode(LinearBlockCode):
         return self._g.astype(int)
 
     def printg(self):
-        print(polyToString(self.g()))
+        print(GF2.polyToString(self.g()))
 
     def n(self): # override
         return self._n
 
     def k(self): # override
-        return self.n() - gf.degree(self.g())
+        return self.n() - degree(self.g())
 
     def dmin(self): # override (LinearBlockCode dmin would work, but is slower)
         return lbc.w(self.g())
@@ -252,9 +180,9 @@ class CyclicCode(LinearBlockCode):
         """Cyclic right shift of c using division (slide 11)
         """
         Xi = X(i) # X^i polynomial
-        XiCX = multPoly(Xi, c) # X^i * c(X) polynomial
-        Xn1 = addPoly(X(self.n()), X(0)) # X^n + 1 polynomial
-        ci = modPoly(XiCX, Xn1) # i times shifted c
+        XiCX = GF2.multPoly(Xi, c) # X^i * c(X) polynomial
+        Xn1 = GF2.addPoly(X(self.n()), X(0)) # X^n + 1 polynomial
+        ci = GF2.modPoly(XiCX, Xn1) # i times shifted c
         return padEnd(ci, self.n())
 
     def c(self, m, systematic = True): # override
@@ -277,7 +205,7 @@ class CyclicCode(LinearBlockCode):
         print('Messages -> Codewords')
         for m in M:
             c = self.c(m, systematic)
-            print(m, c, 'm(X) =', polyToString(m), '\tc(X) =', polyToString(c) )
+            print(m, c, 'm(X) =', GF2.polyToString(m), '\tc(X) =', GF2.polyToString(c) )
 
     def S(self, r):
         """Calculate Syndrome polynomial from receive or error polynomial.
@@ -286,12 +214,12 @@ class CyclicCode(LinearBlockCode):
         Returns:
             Syndrome polynomial
         """
-        return modPoly(r, self.g())
+        return GF2.modPoly(r, self.g())
 
     def shiftSyndrome(self, S, i = 1):
         """Shift syndrome i times (slide 35)
         """
         for i in range(0, i):
             # S1(X) = XS(X) mod g(X)
-            S = modPoly(multPoly(X(1), S), self.g())
+            S = GF2.modPoly(GF2.multPoly(X(1), S), self.g())
         return S
