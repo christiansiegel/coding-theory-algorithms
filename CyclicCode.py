@@ -164,8 +164,15 @@ class CyclicCode(LinearBlockCode):
     def k(self): # override
         return self.n() - degree(self.g())
 
-    def dmin(self): # override (LinearBlockCode dmin would work, but is slower)
-        return lbc.w(self.g())
+    def dmin(self, verbose = False): # override (LinearBlockCode dmin would work, but is slower)
+        dmin = lbc.w(self.g())
+        if verbose:
+            print()
+            print('Minimum Hamming distance (d_min) equals weight of generator polynomial g(X):')
+            print('g(X) =', GF2.polyToString(self.g()))
+            print('d_min =', dmin)
+            print()
+        return dmin
 
     def G(self, systematic = True, verbose = False): # override
         return gToG(self.g(), self.n(), systematic, verbose)
