@@ -367,6 +367,8 @@ class GaloisField:
         """
         if type(p) is int:
             p = np.array([p])
+        elif type(p) is str:
+            return p
         s = ''
 
         if reverse:
