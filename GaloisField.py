@@ -347,7 +347,12 @@ class GaloisField:
     def elementToString(self, a):
         """Returns element as string (e.g. 'a^5')
         """
-        return u'\u03B1^' + str(self.elementToExp(a))
+        if a == 0:
+            return '0'
+        elif a == 1:
+            return '1'
+        else:
+            return u'\u03B1^' + str(self.elementToExp(a))
 
     def polyToString(self, p, variable = 'X', reverse = False):
         """Returns polynomial in string representation.
