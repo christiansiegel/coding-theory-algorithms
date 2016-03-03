@@ -455,7 +455,7 @@ class GaloisField:
         """Calculate all conjugate groups and return them in a
         python array.
         """
-        groups = [[-1]]
+        groups = [[0]]
         m = self.m()
         for i in range(0, 2**m-1):
             group = self.conjugateRoots(i)
