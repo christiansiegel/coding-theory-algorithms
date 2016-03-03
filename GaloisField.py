@@ -405,7 +405,7 @@ class GaloisField:
         roots = []
         for element in range(1, self.q()):
             result = self.substituteElementIntoPoly(p, element)
-            if np.count_nonzero(result) == 0:
+            if result == 0:
                 roots.append(element)
         return roots
 
