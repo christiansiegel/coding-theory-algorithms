@@ -344,6 +344,15 @@ class GaloisField:
             result = self.addElements(result, tmp)
         return int(result)
 
+    def monicMultiplier(self, p):
+        """Returns multiplier element that is needed to make polynomial p
+        a monic polynomial.
+        """
+        coeff = p[-1] # get last coeff
+        exp_coeff = self.elementToExp(coeff)
+        exp_mult = (self.q() - 1) - exp_coeff
+        return self.elementFromExp(exp_mult)
+
     def elementToString(self, a):
         """Returns element as string (e.g. 'a^5')
         """
