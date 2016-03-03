@@ -1,6 +1,6 @@
 import numpy as np
 import LinearBlockCode as lbc
-from GaloisFields import GF2, X, degree
+from GaloisField import GF2, X, degree
 from LinearBlockCode import LinearBlockCode
 
 """
