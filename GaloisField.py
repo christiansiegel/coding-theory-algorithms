@@ -482,6 +482,7 @@ class GaloisField:
         print('Conjugate roots  ->  Minimal polynomials')
         print('----------------------------------------')
         for roots in self.conjugateRootGroups():
+            print(roots)
             rootStr = ''
             for root in roots:
                 rootStr += self.elementToString(root) + ', '
