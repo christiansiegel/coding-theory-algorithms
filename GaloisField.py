@@ -332,6 +332,17 @@ class GaloisField:
         """
         return self.divmodPoly(a, b)[1]
 
+    def derivePoly(self, p):
+        """Derive polynomial.
+        """
+        derivative = np.zeros(degree(p))
+        for i in range(1, degree(p)):
+            coeff = p[i]
+            coeff_exp = self.elementToExp(coeff)
+            coeff_new = self.elementFromExp(coeff_exp * i)
+            derivative[i-1] = coeff_new
+        return derivative
+
     def isFactor(self, p, factorPoly):
         """Check if polynomial factorPoly is a factor of polynomial p.
         (remainder == [0])
