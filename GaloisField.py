@@ -258,6 +258,8 @@ class GaloisField:
     def addPoly(self, a, b):
         """Add two polynomials in the GF.
         """
+        if type(a) is int: a = np.array([a])
+        if type(b) is int: a = np.array([b])
         summ_degree = max(degree(a), degree(b))
         summ = np.zeros(summ_degree + 1)
         for i in range(0, summ.size):
@@ -272,6 +274,8 @@ class GaloisField:
     def multPoly(self, a, b):
         """Multiply two polynomials in the GF.
         """
+        if type(a) is int: a = np.array([a])
+        if type(b) is int: a = np.array([b])
         product_max_degree = degree(a) + degree(b)
         product = np.zeros(product_max_degree + 1)
         for i in range(0, degree(a) + 1):
@@ -286,6 +290,8 @@ class GaloisField:
         remainder in python array. See divPoly() and modPoly() for only quotient
         and remainder respectively.
         """
+        if type(a) is int: a = np.array([a])
+        if type(b) is int: a = np.array([b])
         assert np.count_nonzero(b) > 0, "Division by zero!"
         if verbose:
             print()
