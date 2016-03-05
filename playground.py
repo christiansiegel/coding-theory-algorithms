@@ -1,7 +1,8 @@
 from BinarySymmetricChannel import BinarySymmetricChannel
+from GaloisField import GaloisField
 from LinearBlockCode import LinearBlockCode
 from CyclicCode import CyclicCode
-from GaloisField import GaloisField
+from BCHCode import BCHCode
 import numpy as np
 
 if __name__ == '__main__':
@@ -35,3 +36,9 @@ if __name__ == '__main__':
     print("roots of", GF16.polyToString(p), "in GF(2^4):")
     for root in GF16.roots(p):
         print(GF16.elementToString(root))
+
+    # BCHCode example:
+    pX = np.array([1,1,0,0,1]) #  1 + X + X^4
+    GF24 = GaloisField(pX)
+    t = 2
+    C_BCH = BCHCode(GF24, t, True)
