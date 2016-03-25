@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 from BinarySymmetricChannel import BinarySymmetricChannel
 from GaloisField import GaloisField
 from LinearBlockCode import LinearBlockCode
