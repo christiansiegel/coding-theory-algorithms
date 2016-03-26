@@ -258,18 +258,14 @@ class LinearBlockCode:
     def dmin(self):
         """Minimum distance of a linear block code (slide 55)
         """
-        dmin = 0;
+        dmin = self.n();
+
         M = self.M()
-        # Compare all bit variations in the code word matrix
-        for m1 in M:
-            c1 = self.c(m1)
-            for m2 in M:
-                c2 = self.c(m2);
-                # Do the comparison
-                distance = d(c1, c2)
-                # Update dmin
-                if dmin == 0 or (distance != 0 and distance < dmin):
-                    dmin = distance
+        for m in M:
+            c = self.c(m)
+            if w(c) != 0 and w(c) < dmin:
+                dmin = w(c)
+
         return dmin
 
     def errorDetectionCapability(self):
