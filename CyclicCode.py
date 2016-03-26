@@ -63,26 +63,31 @@ def gToG(g, n, systematic = True, verbose = False):
     # row additions to gain embedded identity matrix on right side
     # -> systematic form
     if systematic:
-        if verbose:
-            print('unsystematic:');
+        G = makeSystematic(G, verbose)
+
+    return G.astype(int)
+
+def makeSystematic(G, verbose = True):
+    k, n = G.shape
+    if verbose:
+        print('unsystematic:');
+        print(G.astype(int));
+        print()
+
+    # start with bottom row
+    for i in range(k-1, 0, -1):
+        if verbose: s = ''
+        # start with most right hand bit
+        for j in range(n-1, n-k-1, -1):
+            # eleminate bit if it does not belong to identity matrix
+            if G[i,j] == 1 and i != j-(n-k):
+                if verbose: s += ' + g' + str(k-n+j)
+                G[i,:] = (G[i,:] + G[k-n+j,:]) % 2
+
+        if verbose and s != '':
+            print('g' + str(i) + ' = g' + str(i) + s)
             print(G.astype(int));
             print()
-
-        # start with bottom row
-        for i in range(k-1, 0, -1):
-            if verbose: s = ''
-            # start with most right hand bit
-            for j in range(n-1, n-k-1, -1):
-                # eleminate bit if it does not belong to identity matrix
-                if G[i,j] == 1 and i != j-(n-k):
-                    if verbose: s += ' + g' + str(k-n+j)
-                    G[i,:] = (G[i,:] + G[k-n+j,:]) % 2
-
-            if verbose and s != '':
-                print('g' + str(i) + ' = g' + str(i) + s)
-                print(G.astype(int));
-                print()
-
     return G.astype(int)
 
 def printAllCyclicCodes(factorPolynomials):
