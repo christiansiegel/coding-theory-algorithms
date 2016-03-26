@@ -209,7 +209,7 @@ class BCHCode(CyclicCode):
             print('The Euclidean algorithm is applied by constructing the ' + \
                   'following table:')
 
-        ri, ti = self.HCF(X(2 * self.t()), S, verbose)
+        ri, ti = GF.HCF(X(2 * self.t()), S, verbose)
 
         lamb = GF.monicMultiplier(ti)
 
@@ -276,74 +276,6 @@ class BCHCode(CyclicCode):
             print()
             print('Code vector:')
             print('c = r + e = ' + str(c))
-
-
-
-
-    def HCF(self, A, B, verbose = False):
-        """Calculate the highest common factor (HCF) of two polynomials numbers
-        using the Euclidean Algorithm.
-        (slide 24)
-        Returns:
-            ri, ti
-        """
-        GF = self.GF()
-
-        if verbose:
-            print()
-            print('i     r_i = r_(i−2) − q_i * r_(i−1)      q_i       t_i = t_(i−2) − t_i * t_(i−1)')
-            print('--------------------------------------------------------------------------------')
-
-        if degree(A) < degree(B): # A has to be >= B
-            tmp = A
-            A = B
-            B = tmp
-
-        i = -1
-        while True:
-            # init values for i = -1 and i = 0
-            if i == -1:
-                ri = A
-                ti = np.zeros(1)
-                qi = '-'
-            elif i == 0:
-                ri = B
-                ti = np.ones(1)
-                qi = '-'
-            else:
-            # recursive calculations
-                qi = GF.divPoly(ri_minus2, ri_minus1)
-                ri = GF.addPoly(ri_minus2, GF.multPoly(qi, ri_minus1)) # = ri_minus2 % ri_minus1
-                ti = GF.addPoly(ti_minus2, GF.multPoly(qi, ti_minus1))
-
-            # optional print
-            if verbose:
-                print(i, '\t', GF.polyToString(ri), \
-                         '\t', GF.polyToString(qi), \
-                         '\t', GF.polyToString(ti))
-
-            # break condition?
-            if degree(ri) < degree(ti):
-                if verbose:
-                    print()
-                    print('When the degree of the polynomial in column r_i(X) is lower than the')
-                    print('degree of the polynomial in column t_i(X), the recursion is halted.')
-                    print('In this case:')
-                    print('  r_' + str(i) + '(X) = ' + GF.polyToString(ri))
-                    print('  t_' + str(i) + '(X) = ' + GF.polyToString(ti))
-                    print()
-                return ri, ti
-
-            # store previous two values
-            if i >= 0:
-                ri_minus2 = ri_minus1
-                ti_minus2 = ti_minus1
-            if i >= -1:
-                ri_minus1 = ri
-                ti_minus1 = ti
-
-            # increase i
-            i += 1
 
 
     def printInfo(self):
