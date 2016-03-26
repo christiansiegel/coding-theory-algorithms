@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-
 import numpy as np
 from CyclicCode import CyclicCode
 from GaloisField import X, degree
@@ -18,15 +17,15 @@ def g(GF, t, verbose = True):
     i_list = list(range(1, (2*t)+1, 2)) # only odd roots 1 <= i <= 2t
 
     if verbose:
-        print()
+        print("")
         print('Generator polynomial g(X) of BCH code with t = ' + str(t) + ':')
-        print()
+        print("")
         print('Assuming \u03B1 is a primitive element in GF(2^' + str(GF.m()) + '), ')
         print('the generator polynomial g(X) has the odd roots: \u03B1^i, i = 1, 3, ..., 2t')
         print('Assuming \u03A6i(X) is the minimal polynomial of \u03B1^i, then')
         print('g(X) can be expressed by the lowest common multiple (LCM) of the')
         print('minimal polynomials:')
-        print()
+        print("")
         # g(X) = LCM{ϕ_1(X), ϕ_2(X), . . . , ϕ_2t(X)}
         s = 'g(X) = LCM{'
         for i in i_list:
@@ -40,7 +39,7 @@ def g(GF, t, verbose = True):
         phi = GF.minimalPolynomial(GF.conjugateRoots(root))
         g = GF.multPoly(g, phi)
         if verbose:
-            print('  \u03A6_' + str(i) + '(X) = ' + GF.polyToString(phi))
+            print('\u03A6_' + str(i) + '(X) = ' + GF.polyToString(phi))
 
     if verbose:
         print('g(X) = ' + GF.polyToString(g))
