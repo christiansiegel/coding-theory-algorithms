@@ -454,7 +454,7 @@ class LinearBlockCode:
         """
         print('Decoding received vector r =', r)
         s = self.s(r)
-        print('s = r * HT =', s)
+        print('s = r * H\' =', s)
         print('Look up the decoding table:')
         print()
         self.printDecodingTable()
