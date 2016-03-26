@@ -258,12 +258,18 @@ class LinearBlockCode:
     def dmin(self):
         """Minimum distance of a linear block code (slide 55)
         """
-        dmin = self.k();
+        dmin = 0;
         M = self.M()
-        for m in M:
-            c = self.c(m)
-            if w(c) != 0 and w(c) < dmin:
-                dmin = w(c)
+        # Compare all bit variations in the code word matrix
+        for m1 in M:
+            c1 = self.c(m1)
+            for m2 in M:
+                c2 = self.c(m2);
+                # Do the comparison
+                distance = d(c1, c2)
+                # Update dmin
+                if dmin == 0 or (distance != 0 and distance < dmin):
+                    dmin = distance
         return dmin
 
     def errorDetectionCapability(self):
@@ -476,27 +482,27 @@ class LinearBlockCode:
         print('-> Error Correction Capability (t):', self.t())
         print('-> Weight Distribution (A):        ', self.A())
         print('-> Generator Matrix (G):')
-        print()
+        print("")
         print(self.G())
-        print()
+        print("")
         print('-> Parity Check Matrix (H):')
-        print()
+        print("")
         print(self.H())
-        print()
+        print("")
         print('-> Message Codeword Table:')
-        print()
+        print("")
         self.printMessageCodewordTable()
-        print()
+        print("")
         print('-> Parity Check Equations:')
         self.printParityCheckEquations()
-        print()
+        print("")
         print('-> Syndrome Vector Equations:')
         self.printSyndromeVectorEquations()
-        print()
+        print("")
         print('-> Standard Array:')
-        print()
+        print("")
         self.printStandardArray()
-        print()
+        print("")
         print('-> Decoding Table:')
-        print()
+        print("")
         self.printDecodingTable()

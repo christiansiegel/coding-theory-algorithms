@@ -1,5 +1,6 @@
-import numpy as np
+# -*- coding: UTF-8 -*-
 
+import numpy as np
 """
 If not specified differently, all functions use
 the integer representation to denote elements in
