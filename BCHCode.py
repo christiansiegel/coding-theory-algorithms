@@ -133,7 +133,7 @@ class BCHCode(CyclicCode):
         """
         if systematic:
             # use inherited function
-            return super(BCH, self).H()
+            return super(BCHCode, self).H()
 
         # else use method on slide 15:
         n = self.n()
@@ -219,7 +219,7 @@ class BCHCode(CyclicCode):
         errorEvalutationPoly = GF.multPoly(lamb, ri);
 
         if verbose:
-            print(u'An element \u03BB \u2208 GF()' + str(GF.q()) + ') is conveniently selected to multiply')
+            print(u'An element \u03BB \u2208 GF(' + str(GF.q()) + ') is conveniently selected to multiply')
             print(u't_i(X) by, in order to convert it into a monic polynomial.')
             print(u'This value of \u03BB is \u03BB = ' + GF.elementToString(lamb))
             print('Therefore:')
@@ -277,6 +277,8 @@ class BCHCode(CyclicCode):
             print()
             print('Code vector:')
             print('c = r + e = ' + str(c))
+
+        return c.astype(int)
 
 
     def printInfo(self):
