@@ -6,6 +6,8 @@ from LinearBlockCode import LinearBlockCode
 from CyclicCode import CyclicCode
 from BCHCode import BCHCode
 import numpy as np
+import CyclicCode as cyccode
+from GaloisField import GF2
 
 def ExercisesChapter2():
     '''
@@ -55,8 +57,87 @@ def ExercisesChapter2():
     lbc1.setG(Generator1)
     lbc1.printInfo()
 
+def exam2011problem2():
+    lbc = LinearBlockCode()
+    H = np.array([[1,0,0,0,0,1,1,1],
+                  [0,1,0,0,1,1,1,0],
+                  [0,0,1,0,1,1,0,1],
+                  [0,0,0,1,1,0,1,1]])
+    lbc.setH(H)
+    lbc.printInfo()
+    r = np.array([0,1,1,1,0,1,1,0])
+    lbc.verboseSyndromeDecode(r)
+
+def exam2011problem3():
+    G = np.array([  [1,1,1,0,1,1,0,0,1,0,1,0,0,0,0],
+                    [0,1,1,1,0,1,1,0,0,1,0,1,0,0,0],
+                    [0,0,1,1,1,0,1,1,0,0,1,0,1,0,0],
+                    [0,0,0,1,1,1,0,1,1,0,0,1,0,1,0],
+                    [0,0,0,0,1,1,1,0,1,1,0,0,1,0,1]])
+
+    g = np.array([1,1,1,0,1,1,0,0,1,0,1])
+    X15 = np.array([1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1])
+    print(GF2.polyToString(GF2.divPoly(X15, g)))
+
+    G = cyccode.makeSystematic(G, True)
+
+    lbc = LinearBlockCode()
+    lbc.setG(G)
+    r = np.array([1,0,1,1,0])
+    c = lbc.c(r)
+    print(c)
+
+def exam2011problem4():
+    p = np.array([1,1,0,0,1])
+    GF16 = GaloisField(p)
+    GF16.printInfo()
+    t = 2
+    bch = BCHCode(GF16, t, True)
+    bch.printInfo()
+    r = np.array([0,0,0,1,1,1,1,1,1,1,0,0,0,1,1])
+    bch.S(r, True)
+
+    equation = np.array([1,1,1])
+    root1, root2 = GF16.roots(equation)
+    j1 = GF16.elementToExp(GF16.elementFromExp(-GF16.elementToExp(root1)))
+    j2 = GF16.elementToExp(GF16.elementFromExp(-GF16.elementToExp(root2)))
+    print(j1, j2)
+
+    c = bch.decode(r, True)
+    print(GF16.polyToString(c))
+
+def exam2014problem2():
+    #1
+    H = np.array([[1,0,0,0,1,1],
+                  [0,1,0,1,0,1],
+                  [0,0,1,1,1,0]])
+    lbc = LinearBlockCode()
+    lbc.setH(H)
+    print(lbc.G())
+    #2
+    Gdual = H
+    print(Gdual)
+    #3,4
+    lbcDual = LinearBlockCode()
+    lbcDual.setG(Gdual)
+    lbcDual.printInfo()
+
+def exam2014problem3():
+    g1 = np.array([1,0,0,1])
+    g2 = np.array([1,1,1,1])
+    r, t = GF2.HCF(g1, g2, True)
+    print(GF2.polyToString(t))
+
 if __name__ == '__main__':
-    ExercisesChapter2()
+
+    #g1 = np.array([1, 1, 1 ,1 ,0 ,0 ,1])
+    #g2 = np.array([1 ,0 ,1, 1, 0 ,1 ,1])
+    #r, t = GF2.HCF(g1, g2, True)
+    #print(GF2.divPoly(g1, t))
+    #ExercisesChapter2()
+    exam2011problem4()
+
+
 '''
     # LinearBlockCode example:
     G = np.array([[1,1,0,1,0,0,0],
