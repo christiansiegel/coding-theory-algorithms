@@ -332,6 +332,7 @@ class LinearBlockCode:
         for m in M:
             c = self.c(m)
             print(m, c)
+        print(c.shape())
 
     def printParityCheckEquations(self):
         """Print the parity check equations for the linear block (slide 39)
@@ -472,6 +473,7 @@ class LinearBlockCode:
         print('-> Linear Block Code Cb(', self.n(), ',', self.k(), ')')
         print('-> Message length (k):             ', self.k())
         print('-> Codeword length (n):            ', self.n())
+        print('-> Number of code vectors:         ', 2 ** self.k())
         print('-> Coding rate (R = k/n):          ', self.R())
         print('-> Minimum Distance (dmin):        ', self.dmin())
         print('-> Error Detection Capability:     ', self.errorDetectionCapability())
