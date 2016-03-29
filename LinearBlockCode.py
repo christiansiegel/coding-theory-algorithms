@@ -409,7 +409,7 @@ class LinearBlockCode:
         count = 0
         for i in range(0, 2 ** n):
             e = intToArray(i, n)
-            if (w(e) <= t):
+            if w(e) <= t and count < E.shape[0]:
                 s = self.s(e)
                 E[count] = e
                 count += 1
