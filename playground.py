@@ -165,11 +165,22 @@ def Exercise3_6():
     (b) Calculate the minimum Hamming distance of the code, and its errorcorrection
     capability.
     '''
-    g = np.array([1,1,0,1,1])
-    cc = CyclicCode(g, 7)
-    #cc.printg()
+
+def Exercise3_7():
+    print("Exercise 3.7")
+    '''
+    3.7 A binary linear cyclic block code with a code length of n = 14 has the generator
+        polynomial g(X) = 1 + X2 + X6.
+        (a) Determine the number of information and parity check bits in each code
+        vector.
+        (b) Determine the number of code vectors in the code.
+        (c) Determine the generator and parity check matrices of the code.
+        (d) Determine the minimum Hamming distance of the code.
+        (e) Determine the burst error-correction capability of the code.
+    '''
+    g = np.array([1,0,0,0,1,0,1])
+    cc = CyclicCode(g, 14)
     cc.printInfo()
-    cc.dminVerbose()
 
 def Exercise4_2():
     print("Exercise4_2")
@@ -311,6 +322,7 @@ if __name__ == '__main__':
     #Exercise3_2()
     #Exercise3_3()
     #Exercise3_6()
+    Exercise3_7()
     #Exercise4_2()
     Exercise4_3()
     #Exercise4_4()
