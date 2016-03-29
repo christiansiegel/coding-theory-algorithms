@@ -166,6 +166,11 @@ def Exercise3_6():
     (b) Calculate the minimum Hamming distance of the code, and its errorcorrection
     capability.
     '''
+    g = np.array([1,1,0,1,1])
+    cc = CyclicCode(g, 7)
+    #cc.printg()
+    cc.printInfo()
+    cc.dminVerbose()
 
 def exam2011problem2():
     lbc = LinearBlockCode()
@@ -246,11 +251,12 @@ if __name__ == '__main__':
     #print(GF2.divPoly(g1, t))
     #Exercise2_4()
     #Exercise2_5()
-    #Exercise2_6()
+    Exercise2_6()
     #Exercise2_7()
     #Exercise2_8()
     #Exercise3_2()
-    Exercise3_3()
+    #Exercise3_3()
+    #Exercise3_6()
     #exam2011problem4()
 
 
