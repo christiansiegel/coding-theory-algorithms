@@ -597,7 +597,7 @@ class GaloisField:
 
         if verbose:
             print()
-            print('i     r_i = r_(i−2) − q_i * r_(i−1)      q_i       t_i = t_(i−2) − t_i * t_(i−1)')
+            print('i  ||   r_i = r_(i−2) − q_i * r_(i−1)  ||    q_i   ||    t_i = t_(i−2) − t_i * t_(i−1)')
             print('--------------------------------------------------------------------------------')
 
         if degree(A) < degree(B): # A has to be >= B
@@ -624,9 +624,9 @@ class GaloisField:
 
             # optional print
             if verbose:
-                print(i, '\t', self.polyToString(ri), \
-                         '\t', self.polyToString(qi), \
-                         '\t', self.polyToString(ti))
+                print(i,'||', '\t', self.polyToString(ri), \
+                         '||','\t', self.polyToString(qi), \
+                         '||','\t', self.polyToString(ti))
 
             # break condition?
             if degree(ri) < degree(ti):
