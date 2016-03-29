@@ -255,18 +255,29 @@ class LinearBlockCode:
             C[i] = c
         return C.astype(int)
 
-    def dmin(self):
-        """Minimum distance of a linear block code (slide 55)
+    def dmin(self, Verbose = False):
+        """
+        Minimum distance of a linear block code (slide 55)
         """
         dmin = self.n();
-
         M = self.M()
+        if Verbose:
+            print("We start by selecting dmin = n")
+            print("dmin = ", dmin)
+            print("Iterate through the code table and compare the weight of each code vectors")
         for m in M:
             c = self.c(m)
             if w(c) != 0 and w(c) < dmin:
+                if Verbose: print("the weight of ", c , " is ",w(c), " < ",dmin, " we update dmin, dmin = ", w(c))
                 dmin = w(c)
+            else:
+                if Verbose:print("Vector ", c, " has a weight of ", w(c), " and isn't a better choice")
 
         return dmin
+
+    def dminVerbose(self):
+        self.dmin(True)
+
 
     def errorDetectionCapability(self):
         """Error Detection Capability of the Block Code (slide 60).
@@ -468,7 +479,7 @@ class LinearBlockCode:
         return c
 
     def printInfo(self):
-        """Prints complete Block Code Info
+        """Prints complete Block Code Info  
         """
         print('-> Linear Block Code Cb(', self.n(), ',', self.k(), ')')
         print('-> Message length (k):             ', self.k())

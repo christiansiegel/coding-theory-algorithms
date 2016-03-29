@@ -179,6 +179,9 @@ class CyclicCode(LinearBlockCode):
             print()
         return dmin
 
+    def dminVerbose(self):
+        self.dmin(True)
+
     def G(self, systematic = True, verbose = False): # override
         return gToG(self.g(), self.n(), systematic, verbose)
 
