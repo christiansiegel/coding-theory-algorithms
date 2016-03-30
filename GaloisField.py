@@ -146,6 +146,15 @@ class GaloisField:
     def q(self):
         return len(self._cachedPolyElements)
 
+    def dminOfPoly(self,poly):
+        # The roots create Φ_1,Φ_3,Φ_51
+        count =0
+        for index in range(0,len(poly)):
+            if poly[index] == 1:
+                count += 1
+
+        return count
+
     def printInfo(self):
         """Prints how the GF is constructed from the primitive
         polynomial pi(X).
@@ -496,6 +505,8 @@ class GaloisField:
         """Generate minimal polynomial from conjugate root group.
         Args:
             conjugateRoots: Exponent of roots in a standard python array.
+
+        BE AWARE THAT THE MINIMALPOLYNOMAILS RETURNED IS ONLY EVERY SECOND SO Φ_1,Φ_3,Φ_5 etc.
         """
         result = np.ones(1)
         for root in roots:

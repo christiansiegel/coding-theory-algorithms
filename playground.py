@@ -209,11 +209,20 @@ def Exercise4_4():
     to correct error patterns of size t = 3 or less.
     '''
     p = np.array([1,0,1,0,0,1])
-    #GF25 = GaloisField(p)
-    #roots = GF25.roots(p)
-    #print(roots)
-    #Generator = GF25.multPoly(GF25.multPoly(minpoly[3], minpoly[5]),minpoly[7])
-    #print(Generator)
+    GF25 = GaloisField(p)
+    GF25.printInfo()
+
+    roots =GF25.conjugateRootGroups()
+    print()
+    print("(",GF25.polyToString(GF25.minimalPolynomial(roots[2])), ") * (",
+          GF25.polyToString(GF25.minimalPolynomial(roots[3])),") * (",
+          GF25.polyToString(GF25.minimalPolynomial(roots[4])),")")
+    print()
+    # The roots create Φ_1,Φ_3,Φ_51
+    part1 = GF25.multPoly(GF25.minimalPolynomial(roots[2]), GF25.minimalPolynomial(roots[3]))
+    part2 = GF25.multPoly(part1, GF25.minimalPolynomial(roots[4]))
+    print(GF25.polyToString(part2))
+
 
 def Exercise4_5():
     print("Exercise4_5")
@@ -222,6 +231,14 @@ def Exercise4_5():
     able to correct error patterns of size t = 2 or less. Also, determine the value of
     k and the minimum Hamming distance of the code.
     '''
+    # Since t = 2 we only need two minimal polynomials to construct the generator.
+    p = np.array([1,0,1,0,0,1])
+    GF25 = GaloisField(p)
+
+    bch = BCHCode(GF25, 2, True)
+    bch.printInfo()
+
+
 
 def Exercise4_6():
     print("Exercise4_6")
@@ -230,6 +247,16 @@ def Exercise4_6():
     polynomial g(X) = (X + 1)(1 + X + X4)(1 + X + X2 + X3 + X4).
     (a) What is the minimum Hamming distance of the code?
     '''
+    p = np.array([1,1,0,0,1])
+    GF16 = GaloisField(p)
+    #GF16.printMinimalPolynomials()
+
+    roots =GF16.conjugateRootGroups()
+    part1 = GF16.multPoly(GF16.minimalPolynomial(roots[1]), GF16.minimalPolynomial(roots[2]))
+    part2 = GF16.multPoly(part1, GF16.minimalPolynomial(roots[3]))
+    print("Reduced generator polynomial: ", GF16.polyToString(part2))
+    print()
+    print("DMin is the number of exponents in the generator polynomial which is: ",GF16.dminOfPoly(part2))
 
 def Exercise4_9():
     print("Exercise4_9")
@@ -322,10 +349,12 @@ if __name__ == '__main__':
     #Exercise3_2()
     #Exercise3_3()
     #Exercise3_6()
-    Exercise3_7()
+    #Exercise3_7()
     #Exercise4_2()
-    Exercise4_3()
+    #Exercise4_3()
     #Exercise4_4()
+    #Exercise4_5()
+    Exercise4_6()
     #exam2011problem4()
 
 
