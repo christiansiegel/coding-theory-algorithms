@@ -3,128 +3,197 @@
 import numpy as np
 import math
 
+class BSC:
+    __P = np.zeros([2, 2], float)
+    __PX = np.zeros(2, float)
 
-class BinarySymmetricChannel:
-    """Binary Symmetric Channel
+    def __init__(self, PX, P):
+        self.__P = np.array(P).astype(float)
+        self.__PX = np.array(PX).astype(float)
 
-    Based on the the Binary Symmetric Channel lectures (date ---)
-    slides ---.
+    def PX(self, verbose = False):
+        PX = self.__PX
+        if verbose:
+            for i in range(0, PX.size):
+                print('P(X = ' + str(i) + ') = ' + str(PX[i]))
+        if verbose: print('')
+        return PX
 
-    Attributes:
-        :param: __order: Defaults to 2, order variable to make code able to handle non-binary inputs in the future
-        :param: __ProbabilityMatrix: The probability matrix of the Binary Symmetric Channel
-        :param: __print_output: If true, prints verbose output information
+    def PY(self, verbose = False):
+        PYX = self.PYX()
+        PX = self.PX()
 
-    """
+        if verbose:
+            print(u'P(yj) = \u2211i P(yj | xi) * P(xi)')
 
-    def __init__(self):
-        pass
+        PY = []
+        for j in range(0, PYX.shape[0]):
+            sumi = 0
+            for i in range(0, PYX.shape[1]):
+                sumi = sumi + PYX[j,i] * PX[i]
+            if verbose:
+                print('P(Y = ' + str(j) + ') = ' + str(sumi))
+            PY.append(sumi)
+        if verbose: print('')
+        return np.array(PY).astype(float)
 
-    __order = 2.0
-    __print_output = True
-    __ProbabilityMatrix = np.zeros([2, 2], float)
+    def PXY(self, verbose = False):
+        # Bayes theorem
+        PYX = self.PYX()
+        PX = self.PX()
+        PY = self.PY()
 
-    def SetProbabilityMatrix(self, ProbabilityMatrix):
-        """
-        Replaces the current __ProbabilityMatrix
-        :param ProbabilityMatrix: New Probability matrix
-        :return:
-        """
-        self.__ProbabilityMatrix = np.array(ProbabilityMatrix).astype(float)
+        PXY = np.zeros(np.transpose(PYX).shape)
 
-    def GetProbabilityMatrix(self):
-        """
-        Gets the ___ProbabilityMatrix
-        :return: ___ProbabilityMatrix
-        """
-        return self.__ProbabilityMatrix
+        for j in range(0, PYX.shape[0]):
+            for i in range(0, PYX.shape[1]):
+                PXY[i,j] = PYX[j,i] * PX[i] / PY[j]
+                if(verbose):
+                    print('P(X = ' + str(i) + ' | Y = ' + str(j) + ') = P(Y = ' + str(j) + ' | X = ' + str(i) + ') * P(X = ' + str(i) + ' ) /  P(Y = ' + str(j) + ') = ' + str(PXY[i,j]))
+        if verbose: print('')
+        return PXY
 
-    def SetPrintOutput(self, flag):
-        """
-        Sets if the code should print verbose output
-        :param flag: True prints verbose output
-        :return:
-        """
-        self.__print_output = flag
+    def PYX(self, verbose = False):
+        P = self.__P
 
+        if verbose:
+            for i in range(0, P.shape[0]):
+                for j in range(0, P.shape[1]):
+                    print('P(Y = ' + str(j) + ' | X = ' + str(i) + ') = ' + str(P[i,j]))
+        if verbose: print('')
+        return np.transpose(P)
 
-    def Entropy(self):
-        """
-        Calculates the entropy of the probability matrix
-        :return:
-        """
-        return 0.0
+    def HX(self, verbose = False):
+        PX = self.PX()
 
-    def PostprioriEntropy(self):
-        """
-        Calculates the post priori entropy of the probability matrix
-        :return:
-        """
+        printStr = u'H(X) = \u2211i P(xi) * log2 (1/P(xi)) = '
 
-        # Get the backwards probability matrix
-        BackwardsProp = self.BackwardsProbability()
-        HorizontalSize = np.size(BackwardsProp, 0)
-        VerticalSize = np.size(BackwardsProp, 1)
-        ResultVector = np.zeros(VerticalSize)
-        # print(ResultVector)
-        # print(VerticalSize)
-        # print(HorizontalSize)
+        H = 0
+        for i in range(0, PX.size):
+            printStr = printStr + str(PX[i]) + ' * log2(1/' + str(PX[i]) + ') + '
+            H = H + PX[i] * np.log2(1/PX[i])
+        printStr = printStr[:-2]
+        printStr = printStr + '= ' + str(H)
 
-        # Calculate the post priory by summing each row of values from the backwards probability
-        # Each value gets summed as value + log2(1/value)
-        for i in range(0, VerticalSize):
-            for j in range(0, HorizontalSize):
-                ResultVector[j] += BackwardsProp[i, j] * np.log2(1.0 / BackwardsProp[i, j])
+        if verbose:
+            print(printStr)
+            print('')
+        return H
 
-        return ResultVector
+    def HY(self, verbose = False):
+        PY = self.PY()
 
-    @property
-    def CalcOutputSymbolVector(self):
-        """
-        Calculates each P(X_i/Y_j) and returns it as a vector
-        :return:
-        """
-        # Get the size of the horizontal axis
-        Size = np.size(self.__ProbabilityMatrix, 0)
-        # Create an empty array for storage
-        Result = np.zeros(Size, float)
+        printStr = u'H(Y) = \u2211j P(yj) * log2 (1/P(yj)) = '
 
-        # Calculate each output probability
-        for i in range(0, Size):
-            Result[i] = self.__ProbabilityMatrix[0, i] * (1.0 / float(self.__order)) + \
-                        self.__ProbabilityMatrix[1, i] * (1.0 / float(self.__order))
+        H = 0
+        for j in range(0, PY.size):
+            printStr = printStr + str(PY[j]) + ' * log2(1/' + str(PY[j]) + ') + '
+            H = H + PY[j] * np.log2(1/PY[j])
+        printStr = printStr[:-2]
+        printStr = printStr + '= ' + str(H)
 
-        # if self.__print_output:
-            # print(Result)
+        if verbose:
+            print(printStr)
+            print('')
+        return H
 
-        return Result
+    def HXY(self, verbose = False):
+        PXY = self.PXY()
+        PY = self.PY()
 
-    def BackwardsProbability(self):
-        """
-        Calculates the backwards probability values of all input/output sets and stores them in a vector where
-        0 - Size/2 is x0 and Size/2 to Size is x1 sets.
-        :return:
-        """
-        HorizontalSize = np.size(self.__ProbabilityMatrix, 0)
-        VerticalSize = np.size(self.__ProbabilityMatrix, 1)
-        ResultMatrix = np.zeros([HorizontalSize, VerticalSize],float)
+        HXY = 0
+        for j in range(0, PXY.shape[1]):
+            for i in range(0, PXY.shape[0]):
+                if PXY[i,j] == 0: continue
+                HXY = HXY + PXY[i,j] * PY[j] * np.log2(1 / PXY[i,j])
 
-        OutputSymbols = self.CalcOutputSymbolVector
-        for i in range(0, VerticalSize):  # Iterate through x
-            for j in range(0, HorizontalSize):  # Iterate through y
-                # (P(y_j/x_i) * P(x_i))/ P(y_j)
-                ResultMatrix[i, j] = (self.__ProbabilityMatrix[i, j] * (1.0 / self.__order)) / OutputSymbols[j]
+        if(verbose):
+            print(u'H(X|Y) = \u2211i P(xi|yj) * P(yj) * log2[1/P(xi|yj)] = ' + str(HXY))
+            print('')
+        return HXY
 
-        return ResultMatrix
+    def HYX(self, verbose = False):
+        PYX = self.PYX()
+        PX = self.PX()
+
+        HYX = 0
+        for j in range(0, PYX.shape[0]):
+            for i in range(0, PYX.shape[1]):
+                if PYX[j,i] == 0: continue
+                HYX = HYX + PYX[j,i] * PX[i] * np.log2(1 / PYX[j,i])
+
+        if(verbose):
+            print(u'H(Y|X) = \u2211i P(yj|xi) * P(xi) * log2[1/P(yj|xi)] = ' + str(HYX))
+            print('')
+        return HYX
+
+    def Cs(self, verbose = True):
+        PX = self.__PX
+        P = 1 / PX.size
+        if(verbose):
+            print('Since the noise entropy H(Y|X) is independent of the source probabilities,')
+            print('then the channel capacity will be achieved when ')
+            for i in range(0, PX.size):
+                print('P(X='+str(i)+') = ' + str(P))
+            print('\nThen:')
+
+        backupPX = self.__PX
+        self.__PX = self.__PX * 0 + P # manipulate PX temporarely
+
+        PY = self.PY(True)
+
+        if(verbose):
+            print('Hence, there is Hmax(Y) = ')
+        HmaxY = self.HY(True)
+        HYX = self.HYX()
+        Cs = HmaxY - HYX
+        if verbose:
+            print('Cs = Imax(X,Y) = Hmax(Y) - H(Y|X) = ' + str(HmaxY) + ' - ' + str(HYX) + ' = ' + str(Cs))
+            print('')
+
+        self.__PX = backupPX # restore
+
+        return Cs
+
+    def ChannelEfficiency(self, verbose = True):
+        Cs = self.Cs(False)
+        IXY = bsc.HY() - bsc.HYX()
+        eta = IXY / Cs
+        if(verbose):
+            print(u'\u03B7 = I(X,Y) / Cs = ' + str(IXY) + ' / ' + str(Cs) + ' = ' + str(eta))
+            print('')
+        return eta
+
 
 if __name__ == '__main__':
 
-    np.set_printoptions(precision=4)
-    Code = BinarySymmetricChannel()
-    Code.SetPrintOutput(True)
-    prob = np.array([[3.0/5.0, 2.0/5.0],
-                     [1.0/5.0, 4.0/5.0]])
+    """
+    # Exam 2011 - 1
+    PX = [0.2, 0.8]
+    P = [[0.8, 0.1, 0.1],
+         [0.1, 0.1, 0.8]]
 
-    # Test probability array
-    Code.SetProbabilityMatrix(prob)
-    print(Code.PostprioriEntropy())
+    bsc = BSC(PX, P)
+    bsc.PX(True)
+    bsc.HX(True)
+    bsc.HY(True)
+    bsc.PYX(True)
+    bsc.PY(True)
+    bsc.PXY(True)
+    bsc.HXY(True)
+    bsc.HYX(True)
+
+    print('I(X,Y) = H(X) - H(X|Y) = ' + str(bsc.HX() - bsc.HXY()))
+    print('I(X,Y) = H(Y) - H(Y|X) = ' + str(bsc.HY() - bsc.HYX()))
+
+    bsc.Cs(True)
+    bsc.ChannelEfficiency()"""
+
+    # Exam 2015 - 1.4
+    PX = [1/3, 1/3, 1/3]
+    P = [[1/3, 1/3, 1/3, 0, 0],
+         [0, 1/3, 1/3, 1/3, 0],
+         [0, 0, 1/3, 1/3, 1/3]]
+    bsc = BSC(PX, P)
+    bsc.HXY(True)
+    bsc.Cs()
