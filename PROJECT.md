@@ -24,9 +24,11 @@ Work proceeds one step at a time, with user review before each commit.
    committed in `16b0188`; capacity optimization committed in `8f128d6`.
 4. **Formatting and linting — Ruff formatting committed in `6e7ac33`.**
    Routine lint cleanup committed in `9fe7c07`. Euclidean contracts and
-   independent edge-case tests committed in `e891a53`; Euclidean fixes await review.
-5. **Package structure.** Move implementation into a package, preserving old
-   imports with compatibility modules and keeping `playground.py` runnable.
+   independent edge-case tests committed in `e891a53`; Euclidean fixes committed
+   in `e33002a`.
+5. **Package structure — complete.** Move implementations into a source
+   package, preserving old imports with compatibility modules and keeping
+   `playground.py` runnable. Dependency installation remains unchanged.
 
 ## Baseline and validation
 
@@ -83,6 +85,10 @@ Work proceeds one step at a time, with user review before each commit.
   symbols and selected one- and two-error patterns. All expected-failure
   markers have been removed from BCH/RS tests. Ruff checks pass for the test files.
 - The project runs from the repository root without being installed as a package.
+- [Project layout](docs/project-layout.md) maps the six implementation modules
+  into `coding_theory_algorithms/`. Root compatibility modules share classes,
+  singleton fields, and module attributes. Fresh-process tests cover both
+  import orders and script entry points.
 - [Euclidean contracts](docs/euclidean-interface.md) distinguish integer GCD
   from the early-stopping polynomial decoder helper. Tests compare integers
   against `math.gcd` and verify polynomial known answers and modular identities
@@ -94,7 +100,22 @@ Work proceeds one step at a time, with user review before each commit.
   the codebase with the 200-character line-length target. Intentional unused
   playground imports retain their file-level exemption.
 
-## Euclidean fixes awaiting review
+## Completed package structure
+
+- Move six implementations into snake-case package modules and convert their
+  internal dependencies to relative imports. AST comparison confirms that
+  algorithm statements are unchanged beyond those import paths.
+- Keep the root filenames as compatibility entry points sharing their package
+  modules; preserve script execution. Keep playground imports intact.
+- Add fresh-process compatibility tests for class identity, module state,
+  import ordering, GF2 singleton identity, and known channel script results.
+- Add a short README import example and a detailed layout/compatibility document.
+  The uv configuration and lockfile are unchanged.
+- Validation: **317 tests passed with no warnings or expected failures**;
+  repository-wide Ruff lint and formatter checks pass. All six moved
+  implementation ASTs match the committed code apart from relative imports.
+
+## Completed fixes
 
 - Initialize Euclidean state explicitly in both functions, resolving the
   remaining undefined/unused-variable diagnostics.
@@ -107,8 +128,6 @@ Work proceeds one step at a time, with user review before each commit.
   check verbose zero-remainder output. Full lint and formatter checks pass.
 - Validation: **302 tests passed with no warnings or expected failures**,
   including all BCH/RS decoder regressions, with NumPy 2.5.4.
-
-## Completed fixes
 
 - Remove unused imports/root-list construction, rename the conjugation counter,
   and use numeric equality in standard-array printing. Preserve method calls

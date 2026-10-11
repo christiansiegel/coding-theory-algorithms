@@ -17,6 +17,10 @@ See [playground.py](playground.py) for an implementation of the following two ex
 Run with `python3 playground.py`.
 Please refer to the code comments for a detailed function description.
 
+Implementations live in `coding_theory_algorithms/`, for example
+`from coding_theory_algorithms.galois_field import GaloisField`.
+Existing imports such as `from GaloisField import GaloisField` still work.
+
 ## Development
 
 With [uv](https://docs.astral.sh/uv/) installed, run these commands from the
