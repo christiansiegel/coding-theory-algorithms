@@ -116,18 +116,18 @@ def d(v1, v2):
 
 
 def intToArray(i, length=0):
-    """Convert an unsigned integer to a binary array.
+    """Convert an unsigned integer to a least-significant-bit-first array.
     Args:
         i: unsigned integer
         length: padding to length (default: 0)
     Returns:
-        binary array
+        uint8 binary array, with zero-padding at the end if length is given.
     """
     if length > 0:
         s = np.binary_repr(i, width=length)
     else:
         s = np.binary_repr(i)
-    m = np.fromstring(s, 'u1') - ord('0')
+    m = np.frombuffer(s.encode('ascii'), dtype=np.uint8) - ord('0')
     m = np.flipud(m)
     return m
 
