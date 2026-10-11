@@ -57,6 +57,55 @@ def reference_evaluate(coefficients, value, modulus):
     return result
 
 
+def reference_binary_remainder(polynomial, divisor):
+    while polynomial and polynomial.bit_length() >= divisor.bit_length():
+        polynomial ^= divisor << (polynomial.bit_length() - divisor.bit_length())
+    return polynomial
+
+
+def reference_binary_classification(polynomial):
+    degree = polynomial.bit_length() - 1
+    if degree < 1:
+        return False, False
+    # A reducible polynomial has a monic factor of degree at most half its own.
+    for factor_degree in range(1, degree // 2 + 1):
+        for factor in range(1 << factor_degree, 1 << (factor_degree + 1)):
+            if reference_binary_remainder(polynomial, factor) == 0:
+                return False, False
+    # Compute the order of X in the quotient using integer polynomial values.
+    value = 1
+    for exponent in range(1, 1 << degree):
+        value = multiply_bits(value, 2, polynomial)
+        if value == 1:
+            return True, exponent == (1 << degree) - 1
+    return True, False
+
+
+@pytest.mark.parametrize(
+    "polynomial,expected",
+    [(0, (False, False)), (1, (False, False)), (0b10, (True, False)), (0b11, (True, True)), (0b101, (False, False)), (0b111, (True, True)), (0b10011, (True, True)), (0b11111, (True, False))],
+)
+def test_binary_classification_reference_known_answers(polynomial, expected):
+    assert reference_binary_classification(polynomial) == expected
+
+
+@pytest.mark.xfail(strict=True, reason="binary classification depends on receiver degree and mishandles constants")
+@pytest.mark.parametrize("method,index", [("irreducible", 0), ("primitive", 1)])
+def test_binary_polynomial_classification_independent_of_receiver(field_case, method, index, capsys):
+    field, _, _, _ = field_case
+    # Every binary polynomial of degree up to five, including constants/zero.
+    for polynomial in range(64):
+        coefficients = [(polynomial >> i) & 1 for i in range(max(1, polynomial.bit_length()))]
+        expected = reference_binary_classification(polynomial)[index]
+        for padding in [0, 2]:
+            argument = np.array(coefficients + [0] * padding)
+            before = argument.copy()
+            for verbose in [False, True]:
+                assert getattr(field, method)(argument, verbose) is expected, (method, field.m(), polynomial, padding)
+                assert bool(capsys.readouterr().out) == verbose
+                np.testing.assert_array_equal(argument, before)
+
+
 def test_nonzero_roots_against_independent_evaluation(field_case):
     field, modulus, bits, _ = field_case
     # Include constants, X, repeated roots, and every monic linear/quadratic.

@@ -37,9 +37,22 @@ the user authorizes committing a specific step without review.
    tests committed in `5688033`; fix committed in `4891160`. Linear-code
    probability contracts and tests committed in `85b18a4`; probability fix
    committed in `6321ee2`. Root-helper contracts and tests committed in
-   `5451be8`; root-helper fixes complete and authorized for commit without review.**
+   `5451be8`; root-helper fixes committed in `5369833`. Binary polynomial
+   classification tests and fixes are authorized for commit without review.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
+
+## Binary polynomial classification contracts and tests
+
+- Specify irreducibility and primitivity over GF(2), using the tested polynomial's
+  degree independently of the receiver field. Constants and zero return false;
+  X is irreducible but not primitive, and X+1 is both.
+- Independently classify all 64 binary polynomials of degree at most five using
+  bit-mask factorization and multiplicative order. Check all four receiver
+  fields, trailing zeros, input preservation, and quiet/verbose calls.
+- Eight known-answer checks validate the reference. Eight strict expected
+  failures record receiver-degree dependence and incorrect constant handling.
+  Production is unchanged.
 
 ## Completed root-helper fixes
 

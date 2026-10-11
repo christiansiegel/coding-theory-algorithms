@@ -63,6 +63,22 @@ contract. Caller-owned polynomials and root lists must be preserved.
 `minimalPolynomial()` expects one complete orbit; arbitrary or repeated roots
 have no established minimal-polynomial contract.
 
+## Binary polynomial classification
+
+`irreducible(p, verbose=False)` and `primitive(p, verbose=False)` classify a
+nonempty one-dimensional integer array of binary coefficients over GF(2).
+They use the degree of p, ignoring trailing zeros, and return Python booleans.
+Their answers do not depend on the receiver's defining polynomial or degree.
+These are binary-polynomial checks, even when called on an extension field.
+
+Zero and constant polynomials are neither irreducible nor primitive. A
+positive-degree polynomial is irreducible if it has no nonconstant proper
+factor over GF(2). It is primitive if it is irreducible and X modulo p has
+multiplicative order `2**degree(p)-1`. Thus X is irreducible but not primitive,
+and X+1 is both. Quiet calls print nothing; verbose calls explain the same
+boolean result. Inputs are preserved. Nonbinary or malformed inputs have no
+established validation contract.
+
 ## Independent verification
 
 Tests construct small fields GF(2), GF(4), GF(8), and GF(16). A reference uses
@@ -79,3 +95,8 @@ using independent evaluation. Orbit and minimal-polynomial tests use reference
 squaring and polynomial products. All root-helper regressions now pass,
 including complete GF(2) coverage and conjugate reduction that preserves inputs
 and supplied representatives.
+
+Binary classification tests enumerate all 64 polynomials of degree at most
+five, using independent bit-mask factorization and multiplicative-order checks.
+They exercise every receiver field, trailing-zero padding, and quiet/verbose
+calls. Strict expected failures record the degree-dependence and constant cases.
