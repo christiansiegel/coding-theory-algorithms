@@ -13,7 +13,6 @@ from .field_reference import (
     multiply_bits,
     reference_poly_division,
     reference_poly_product,
-    trim_polynomial,
 )
 
 
@@ -120,9 +119,6 @@ def test_bch_corrects_single_errors_at_every_position(capsys):
         for position in range(7):
             received = codeword[:]
             received[position] ^= 1
-            if position >= len(trim_polynomial(received)):
-                # Cancellation of the highest term has a separate regression.
-                continue
             decoded = code.decode(np.array(received), False)
             assert padded_bits(decoded, bits, 7) == codeword
     assert capsys.readouterr().out == ""
@@ -139,10 +135,6 @@ def test_bch_corrects_selected_two_error_patterns(capsys):
     assert capsys.readouterr().out == ""
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="decoder sizes the error vector by received degree rather than code length",
-)
 def test_bch_corrects_an_error_canceling_the_highest_term():
     modulus = 0b1011
     field, bits, _ = field_reference(modulus)
@@ -156,34 +148,37 @@ def test_bch_corrects_an_error_canceling_the_highest_term():
 
 
 @pytest.mark.parametrize("message", [[0, 0, 0, 0], [1, 0, 1, 0]])
-@pytest.mark.xfail(
-    strict=True,
-    reason="BCH decoder sends the zero syndrome into polynomial Euclid division",
-)
 def test_bch_decodes_error_free_codewords(message):
     modulus = 0b1011
     field, bits, _ = field_reference(modulus)
     code = BCHCode(field, 1)
     generator = generator_from_roots(modulus, bits, 1, binary=True)
     codeword = reference_encode(message, generator, modulus, 7)
-    assert padded_bits(code.decode(np.array(codeword), False), bits, 7) == codeword
+    received = np.array(codeword)
+    decoded = code.decode(received, False)
+    assert padded_bits(decoded, bits, 7) == codeword
+    decoded[0] ^= 1
+    np.testing.assert_array_equal(received, codeword)
 
 
-@pytest.mark.xfail(
-    strict=True, reason="BCH non-systematic H indexes an integer as if it were a vector"
-)
-def test_bch_binary_expanded_parity_check():
-    modulus = 0b1011
+@pytest.mark.parametrize("modulus, t", [(0b1011, 1), (0b10011, 2)])
+def test_bch_binary_expanded_parity_check(modulus, t):
     field, bits, _ = field_reference(modulus)
-    code = BCHCode(field, 1)
-    expected = np.array([[(bits[j + 1] >> i) & 1 for j in range(7)] for i in range(3)])
-    np.testing.assert_array_equal(code.H(False), expected)
+    code = BCHCode(field, t)
+    m = modulus.bit_length() - 1
+    n = len(bits) - 1
+    expected = np.array(
+        [
+            [(bits[1 + exponent * j % n] >> i) & 1 for j in range(n)]
+            for exponent in range(1, 2 * t, 2)
+            for i in range(m)
+        ]
+    )
+    check = code.H(False)
+    np.testing.assert_array_equal(check, expected)
+    np.testing.assert_array_equal(code.G() @ check.T % 2, np.zeros((code.k(), m * t)))
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="BCH generator multiplies repeated minimal factors rather than taking their LCM",
-)
 def test_bch_generator_deduplicates_conjugate_root_groups():
     modulus = 0b10011
     field, bits, _ = field_reference(modulus)
@@ -240,7 +235,7 @@ def test_rs_syndromes_for_all_gf4_received_vectors():
         )
 
 
-def test_rs_single_symbol_errors_except_highest_term_cancellation():
+def test_rs_corrects_all_single_symbol_errors_over_gf4():
     modulus = 0b111
     field, bits, labels = field_reference(modulus)
     code = RSCode(field, 1)
@@ -250,16 +245,10 @@ def test_rs_single_symbol_errors_except_highest_term_cancellation():
             for error in bits[1:]:
                 received = codeword[:]
                 received[position] ^= error
-                if position >= len(trim_polynomial(received)):
-                    # Cancellation of the highest term is tested separately.
-                    continue
                 decoded = code.decode(np.array([labels[v] for v in received]), False)
                 assert padded_bits(decoded, bits, 3) == codeword
 
 
-@pytest.mark.xfail(
-    strict=True, reason="RS inherits the decoder's received-degree allocation bug"
-)
 def test_rs_corrects_an_error_canceling_the_highest_term():
     field, bits, _ = field_reference(0b111)
     code = RSCode(field, 1)
@@ -268,9 +257,6 @@ def test_rs_corrects_an_error_canceling_the_highest_term():
     )
 
 
-@pytest.mark.xfail(
-    strict=True, reason="RS inherits the BCH decoder's zero-syndrome failure"
-)
 def test_rs_decodes_an_error_free_codeword():
     field, bits, _ = field_reference(0b111)
     code = RSCode(field, 1)

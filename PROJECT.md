@@ -10,7 +10,7 @@ Work proceeds one step at a time, with user review before each commit.
 2. **Interface conventions and mathematical tests — finite-field element API
    committed in `b8c90d8`; linear/cyclic interfaces committed in `2ec4697`;
    polynomial arithmetic committed in `f6be7a6`; BCH/RS contracts and tests
-   awaiting review.** Document
+   committed in `7b50bbc`.** Document
    representations,
    shapes, systematic matrix layout, and invalid-input behavior. Test finite
    fields first, then linear/cyclic codes, BCH/RS, and channel calculations using
@@ -18,7 +18,8 @@ Work proceeds one step at a time, with user review before each commit.
 3. **Bug fixes — finite-field element fixes committed in `1990701`; NumPy
    compatibility fix committed in `6292409`; binary symmetric channel fixes
    committed in `272be01`; cyclic-code fixes committed in `7e8bdc5`;
-   polynomial fixes committed in `8eb6b7b`.** BCH/RS defects remain below.
+   polynomial fixes committed in `8eb6b7b`.** BCH construction and shared
+   decoding fixes await review; remaining RS defects are listed below.
 4. **Formatting and linting.** Apply Ruff in a separate change.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
@@ -30,7 +31,7 @@ Work proceeds one step at a time, with user review before each commit.
 - NumPy requirement: `>=2.2,<3`. The compatibility fix was checked with 2.2.6
   and 2.5.4 on Python 3.13; the lockfile selects compatible versions for each
   Python version.
-- Run `uv run python -m pytest` for the initial seven tests. They protect six
+- Run `uv run python -m pytest` for the full suite. The initial seven tests protect six
   existing imports and selected numerical results in the two printed examples;
   they do not establish correctness across all algorithms or inputs.
 - [Finite-field contract](docs/finite-field-interface.md) and
@@ -65,26 +66,28 @@ Work proceeds one step at a time, with user review before each commit.
 - [BCH/RS contract](docs/bch-rs-interface.md) and `tests/test_bch_rs_codes.py`
   cover generators, independent encodings/syndromes, and small decoding cases.
   The arithmetic oracle was moved unchanged into `tests/field_reference.py`
-  for reuse. Confirmed BCH/RS bugs are strict expected-failure regressions;
-  the affected decoding cases are isolated from the passing loops.
-  Current local result: **253 passed, 11 expected failures**, with NumPy 2.5.4;
-  Ruff checks pass for the test files.
+  for reuse. BCH construction and shared decoding regressions now pass,
+  including all single-symbol errors in RS(3,1). Expanded parity checks cover
+  BCH(7,4) and BCH(15,7), including generator/check-matrix orthogonality.
+  Only RS encoding and distance regressions retain strict expected-failure
+  markers. Current local result: **261 passed, 4 expected failures**, with
+  NumPy 2.5.4. Ruff checks pass for the test files.
 - The project runs from the repository root without being installed as a package.
 - `uv run ruff check .` and `uv run ruff format --check .` expose existing source
   issues; passing them across the codebase is deferred to step 4.
 
+## Fixes awaiting review
+
+- Return a copy of an error-free BCH/RS codeword when all syndromes are zero,
+  avoiding division by zero in Euclid.
+- Allocate the decoder's error vector by code length, so an error that cancels
+  the highest nonzero received coefficient remains correctable.
+- Expand field labels into polynomial-basis bits in `BCHCode.H(False)`.
+- Include each conjugacy class once in BCH generator construction. For GF(16),
+  design t=5 now produces the degree-14 repetition-code generator.
+
 ## Confirmed issues to address
 
-- BCH/RS decoding sends zero syndromes through Euclid and raises on error-free
-  codewords instead of returning them.
-- The decoder allocates its error vector by received polynomial degree rather
-  than code length, so correction can index beyond the array when an error
-  cancels a codeword's highest nonzero coefficient.
-- `BCHCode.H(False)` tries to index an integer field label as a vector instead
-  of expanding it into polynomial-basis bits.
-- BCH generator construction multiplies minimal polynomials without
-  deduplicating conjugacy classes. For GF(16), design t=5 produces repeated
-  factors rather than the degree-14 repetition-code generator.
 - RS encoding uses inherited GF(2) arithmetic instead of its supplied field.
 - RS distance/correction radius use binary messages and matrix arithmetic,
   producing wrong symbol distance and syndrome counts for some fields.

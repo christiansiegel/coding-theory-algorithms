@@ -34,9 +34,14 @@ def g(GF, t, verbose = True):
         print(s)
 
     g = np.ones(1)
+    included_roots = set()
     for i in i_list:
         root = GF.elementFromExp(i)
-        phi = GF.minimalPolynomial(GF.conjugateRoots(root))
+        if root in included_roots:
+            continue # the minimal polynomial for this conjugacy class is included
+        conjugate_roots = GF.conjugateRoots(root)
+        included_roots.update(conjugate_roots)
+        phi = GF.minimalPolynomial(conjugate_roots)
         g = GF.multPoly(g, phi)
         if verbose:
             print('\u03A6_' + str(i) + '(X) = ' + GF.polyToString(phi))
@@ -143,7 +148,7 @@ class BCHCode(CyclicCode):
             Hcol = None # ni'th column vector of H
             for ti in range(1, 2*t, 2): # 1,3,5...2t-1
                 alpha = self.GF().elementFromExp(ti*ni) # (a^ti)^ni
-                alpha = alpha[np.newaxis].T # row -> column vector
+                alpha = self.GF().elementToPoly(alpha, size_m=True)[:, np.newaxis]
                 if Hcol is None:
                     Hcol = alpha
                 else:
@@ -205,6 +210,10 @@ class BCHCode(CyclicCode):
             print('r(X) = ' + self.GF().polyToString(r))
 
         S = self.S(r, verbose)
+        if np.count_nonzero(S) == 0:
+            if verbose:
+                print('All syndrome components are zero; returning the received codeword.')
+            return r.astype(int).copy()
 
         if verbose:
             print('The Euclidean algorithm is applied by constructing the ' + \
@@ -263,7 +272,7 @@ class BCHCode(CyclicCode):
                     ' / ' + GF.elementToString(res_o) + ' = ' + \
                     GF.elementToString(errorValue))
 
-        e = np.zeros(degree(r)+1)
+        e = np.zeros(self.n(), dtype=int)
         for i, errorLocation in enumerate(errorLocations):
             errorValue = errorValues[i]
             e[errorLocation] = errorValue

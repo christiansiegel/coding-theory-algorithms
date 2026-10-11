@@ -64,6 +64,7 @@ Passing cases cover BCH(7,4) and BCH(15,7) encodings, every binary received
 vector's BCH(7,4) syndromes, selected single-error BCH decodings and two-error
 BCH(15,7) patterns, RS generators
 over GF(4)/GF(8), every GF(4) received vector's RS(3,1) syndromes, and its
-single-symbol-error corrections except the isolated cancellation failure.
-Strict expected failures cover error-free decoding, canceled highest terms,
-BCH factor deduplication and expanded parity checks, and RS encoding/distance.
+single-symbol-error corrections at every position and for every nonzero error
+value. Regression tests also cover error-free decoding, canceled highest terms,
+BCH factor deduplication, and expanded parity checks over GF(8) and GF(16).
+Strict expected failures remain for RS encoding and distance.
