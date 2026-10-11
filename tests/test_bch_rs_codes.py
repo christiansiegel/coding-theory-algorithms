@@ -88,12 +88,8 @@ def test_bch_generator_and_all_encodings(modulus, t, capsys):
     assert code.t() == t
     for message in product([0, 1], repeat=code.k()):
         for systematic in [False, True]:
-            expected = reference_encode(
-                message, expected_generator, modulus, code.n(), systematic
-            )
-            np.testing.assert_array_equal(
-                code.c(np.array(message), systematic), expected
-            )
+            expected = reference_encode(message, expected_generator, modulus, code.n(), systematic)
+            np.testing.assert_array_equal(code.c(np.array(message), systematic), expected)
     assert capsys.readouterr().out == ""
 
 
@@ -103,9 +99,7 @@ def test_bch_syndromes_for_all_received_vectors(capsys):
     code = BCHCode(field, 1)
     for received in product([0, 1], repeat=7):
         expected = reference_syndrome(received, bits, modulus, 2)
-        np.testing.assert_array_equal(
-            code.S(np.array(received), False), [labels[v] for v in expected]
-        )
+        np.testing.assert_array_equal(code.S(np.array(received), False), [labels[v] for v in expected])
     assert capsys.readouterr().out == ""
 
 
@@ -167,13 +161,7 @@ def test_bch_binary_expanded_parity_check(modulus, t):
     code = BCHCode(field, t)
     m = modulus.bit_length() - 1
     n = len(bits) - 1
-    expected = np.array(
-        [
-            [(bits[1 + exponent * j % n] >> i) & 1 for j in range(n)]
-            for exponent in range(1, 2 * t, 2)
-            for i in range(m)
-        ]
-    )
+    expected = np.array([[(bits[1 + exponent * j % n] >> i) & 1 for j in range(n)] for exponent in range(1, 2 * t, 2) for i in range(m)])
     check = code.H(False)
     np.testing.assert_array_equal(check, expected)
     np.testing.assert_array_equal(code.G() @ check.T % 2, np.zeros((code.k(), m * t)))
@@ -207,12 +195,8 @@ def test_rs_encodes_every_message_in_small_codes(modulus, t, systematic, capsys)
     generator = generator_from_roots(modulus, bits, t, binary=False)
     minimum_weight = code.n()
     for message in product(range(len(bits)), repeat=code.k()):
-        expected = reference_encode(
-            [bits[v] for v in message], generator, modulus, code.n(), systematic
-        )
-        np.testing.assert_array_equal(
-            code.c(np.array(message), systematic), [labels[v] for v in expected]
-        )
+        expected = reference_encode([bits[v] for v in message], generator, modulus, code.n(), systematic)
+        np.testing.assert_array_equal(code.c(np.array(message), systematic), [labels[v] for v in expected])
         if systematic:
             assert expected[-code.k() :] == [bits[v] for v in message]
         weight = sum(v != 0 for v in expected)
@@ -235,9 +219,7 @@ def test_rs_syndromes_for_all_gf4_received_vectors():
     code = RSCode(field, 1)
     for received in product(range(4), repeat=3):
         expected = reference_syndrome([bits[v] for v in received], bits, modulus, 2)
-        np.testing.assert_array_equal(
-            code.S(np.array(received), False), [labels[v] for v in expected]
-        )
+        np.testing.assert_array_equal(code.S(np.array(received), False), [labels[v] for v in expected])
 
 
 def test_rs_corrects_all_single_symbol_errors_over_gf4():
@@ -257,17 +239,13 @@ def test_rs_corrects_all_single_symbol_errors_over_gf4():
 def test_rs_corrects_an_error_canceling_the_highest_term():
     field, bits, _ = field_reference(0b111)
     code = RSCode(field, 1)
-    assert (
-        padded_bits(code.decode(np.array([2, 2, 0]), False), bits, 3) == [bits[2]] * 3
-    )
+    assert padded_bits(code.decode(np.array([2, 2, 0]), False), bits, 3) == [bits[2]] * 3
 
 
 def test_rs_decodes_an_error_free_codeword():
     field, bits, _ = field_reference(0b111)
     code = RSCode(field, 1)
-    np.testing.assert_array_equal(
-        padded_bits(code.decode(np.array([2, 2, 2]), False), bits, 3), [bits[2]] * 3
-    )
+    np.testing.assert_array_equal(padded_bits(code.decode(np.array([2, 2, 2]), False), bits, 3), [bits[2]] * 3)
 
 
 @pytest.mark.parametrize("t", [1, 2])
@@ -281,12 +259,7 @@ def test_rs_gf8_syndromes_and_decoding_with_nonbinary_symbols(t, capsys):
         for systematic in [False, True]:
             np.testing.assert_array_equal(
                 code.c(np.array(message), systematic),
-                [
-                    labels[v]
-                    for v in reference_encode(
-                        [bits[v] for v in message], generator, modulus, 7, systematic
-                    )
-                ],
+                [labels[v] for v in reference_encode([bits[v] for v in message], generator, modulus, 7, systematic)],
             )
         # Include zero errors and the boundary positions, with distinct magnitudes.
         patterns = [[], [(0, 2)], [(6, 5)], [(3, 7)]]
@@ -298,8 +271,6 @@ def test_rs_gf8_syndromes_and_decoding_with_nonbinary_symbols(t, capsys):
                 received[position] ^= bits[error]
             received_labels = np.array([labels[v] for v in received])
             syndrome = reference_syndrome(received, bits, modulus, 2 * t)
-            np.testing.assert_array_equal(
-                code.S(received_labels, False), [labels[v] for v in syndrome]
-            )
+            np.testing.assert_array_equal(code.S(received_labels, False), [labels[v] for v in syndrome])
             assert padded_bits(code.decode(received_labels, False), bits, 7) == expected
     assert capsys.readouterr().out == ""

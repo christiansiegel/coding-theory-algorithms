@@ -28,12 +28,7 @@ def linear_case(request):
 
 def reference_encode(message, generator):
     # Each output bit is the parity of the selected generator-column entries.
-    return np.array(
-        [
-            sum(bit * row[j] for bit, row in zip(message, generator)) % 2
-            for j in range(generator.shape[1])
-        ]
-    )
+    return np.array([sum(bit * row[j] for bit, row in zip(message, generator)) % 2 for j in range(generator.shape[1])])
 
 
 def test_systematic_matrix_conversion(linear_case):
@@ -49,9 +44,7 @@ def test_systematic_matrix_conversion(linear_case):
 
 def test_encoding_and_enumeration(linear_case):
     code, generator, _, _ = linear_case
-    expected_messages = {
-        tuple(message) for message in product([0, 1], repeat=generator.shape[0])
-    }
+    expected_messages = {tuple(message) for message in product([0, 1], repeat=generator.shape[0])}
     expected_codewords = set()
     for message in expected_messages:
         expected = reference_encode(message, generator)
@@ -66,43 +59,30 @@ def test_encoding_and_enumeration(linear_case):
     assert {tuple(row) for row in code.M()} == expected_messages
     assert {tuple(row) for row in code.C()} == expected_codewords
     assert len(expected_codewords) == 2 ** code.k()
-    messages_in_order = [
-        [(i >> j) & 1 for j in range(code.k())] for i in range(2 ** code.k())
-    ]
+    messages_in_order = [[(i >> j) & 1 for j in range(code.k())] for i in range(2 ** code.k())]
     np.testing.assert_array_equal(code.M(), messages_in_order)
-    np.testing.assert_array_equal(
-        code.C(), [reference_encode(m, generator) for m in messages_in_order]
-    )
+    np.testing.assert_array_equal(code.C(), [reference_encode(m, generator) for m in messages_in_order])
 
 
 def test_distance_and_weight_distribution(linear_case):
     code, generator, _, minimum_distance = linear_case
-    histogram = Counter(
-        int(sum(reference_encode(message, generator)))
-        for message in product([0, 1], repeat=code.k())
-    )
+    histogram = Counter(int(sum(reference_encode(message, generator))) for message in product([0, 1], repeat=code.k()))
     assert code.dmin() == minimum_distance
     assert code.t() == (minimum_distance - 1) // 2
     assert code.errorDetectionCapability() == minimum_distance - 1
     assert code.Ai(0) == histogram[0] == 1
     # A() preserves the README's historical layout: weights 1 through n.
-    np.testing.assert_array_equal(
-        code.A(), [histogram[i] for i in range(1, code.n() + 1)]
-    )
+    np.testing.assert_array_equal(code.A(), [histogram[i] for i in range(1, code.n() + 1)])
 
 
 def test_all_correctable_errors_and_decoding(linear_case):
     code, generator, check, minimum_distance = linear_case
     radius = (minimum_distance - 1) // 2
     errors = [np.array(e) for e in product([0, 1], repeat=code.n()) if sum(e) <= radius]
-    assert {tuple(e) for e in code.correctableErrorPatterns()} == {
-        tuple(e) for e in errors
-    }
+    assert {tuple(e) for e in code.correctableErrorPatterns()} == {tuple(e) for e in errors}
     syndromes = set()
     for error in errors:
-        expected = np.array(
-            [sum(e * h for e, h in zip(error, row)) % 2 for row in check]
-        )
+        expected = np.array([sum(e * h for e, h in zip(error, row)) % 2 for row in check])
         np.testing.assert_array_equal(code.s(error), expected)
         syndromes.add(tuple(expected))
     assert len(syndromes) == len(errors)
@@ -116,9 +96,7 @@ def test_all_correctable_errors_and_decoding(linear_case):
 def test_decoder_rejects_a_syndrome_missing_from_the_table():
     code = LinearBlockCode()
     # The README (7,3) code covers only 8 of its 16 syndromes.
-    code.setG(
-        np.array([[1, 0, 1, 1, 1, 0, 0], [1, 1, 1, 0, 0, 1, 0], [0, 1, 1, 1, 0, 0, 1]])
-    )
+    code.setG(np.array([[1, 0, 1, 1, 1, 0, 0], [1, 1, 1, 0, 0, 1, 0], [0, 1, 1, 1, 0, 0, 1]]))
     received = np.array([1, 1, 0, 0, 0, 0, 0])
     with pytest.raises(KeyError):
         code.syndromeDecode(received)

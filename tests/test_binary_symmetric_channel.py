@@ -35,12 +35,8 @@ def test_capacity_known_formula_and_source_preservation(p, capsys):
 def test_efficiency_known_formula(x, p, capsys):
     channel = make_channel(x, p)
     output_zero_probability = x * (1 - p) + (1 - x) * p
-    expected = (binary_entropy(output_zero_probability) - binary_entropy(p)) / (
-        1 - binary_entropy(p)
-    )
-    np.testing.assert_allclose(
-        channel.PY(), [output_zero_probability, 1 - output_zero_probability]
-    )
+    expected = (binary_entropy(output_zero_probability) - binary_entropy(p)) / (1 - binary_entropy(p))
+    np.testing.assert_allclose(channel.PY(), [output_zero_probability, 1 - output_zero_probability])
     assert channel.HY() == pytest.approx(binary_entropy(output_zero_probability))
     assert channel.HYX() == pytest.approx(binary_entropy(p))
     before = channel.PX().copy()

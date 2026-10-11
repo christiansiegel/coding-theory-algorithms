@@ -65,9 +65,7 @@ def test_polynomial_syndromes_for_every_received_vector(cyclic_case):
 
 def test_distance_in_small_cyclic_examples(cyclic_case):
     code, _, g = cyclic_case
-    expected = min(
-        carryless_product(message, g).bit_count() for message in range(1, 1 << code.k())
-    )
+    expected = min(carryless_product(message, g).bit_count() for message in range(1, 1 << code.k()))
     assert code.dmin() == expected
     assert code.t() == (expected - 1) // 2
     assert code.errorDetectionCapability() == expected - 1
@@ -104,9 +102,7 @@ def test_shifted_polynomial_syndromes(cyclic_case):
         assert actual_value == remainder(received << amount, g)
 
 
-@pytest.mark.parametrize(
-    "method, expected", [("dmin", 2), ("t", 0), ("errorDetectionCapability", 1)]
-)
+@pytest.mark.parametrize("method, expected", [("dmin", 2), ("t", 0), ("errorDetectionCapability", 1)])
 def test_generator_weight_is_not_the_minimum_distance(method, expected):
     # g=1+X+X^2+X^3+X^4 divides X^15+1. Its weight is 5, but
     # (1+X)*g = 1+X^5 is a weight-2 codeword. No monomial is divisible by g.

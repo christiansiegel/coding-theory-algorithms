@@ -21,8 +21,9 @@ Work proceeds one step at a time, with user review before each commit.
    polynomial fixes committed in `8eb6b7b`; BCH construction and shared
    decoding fixes committed in `507b412`; RS encoding and distance fixes
    committed in `cb124be`.** General channel-capacity contract and tests
-   committed in `16b0188`; capacity optimization awaits review.
-4. **Formatting and linting.** Apply Ruff in a separate change.
+   committed in `16b0188`; capacity optimization committed in `8f128d6`.
+4. **Formatting and linting — Ruff formatting awaits review.** Format the
+   seven source files first. Resolve the remaining lint diagnostics separately.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
 
@@ -83,10 +84,27 @@ Work proceeds one step at a time, with user review before each commit.
   symbols and selected one- and two-error patterns. All expected-failure
   markers have been removed from BCH/RS tests. Ruff checks pass for the test files.
 - The project runs from the repository root without being installed as a package.
-- `uv run ruff check .` and `uv run ruff format --check .` expose existing source
-  issues; passing them across the codebase is deferred to step 4.
+- `uv run ruff format --check .` now passes across the codebase.
+  `uv run ruff check .` reports 45 remaining diagnostics: unused imports/locals,
+  ambiguous variable names, the `is 0` comparison, and Euclidean-loop variables.
+  These require a separate lint cleanup.
 
-## Fixes awaiting review
+## Formatting awaiting review
+
+- Apply Ruff with a 200-character line-length target to source and test files.
+  This keeps the conditional-probability explanation (186 characters including
+  indentation) and the efficiency print statement on one line.
+  No files, functions, or imports are
+  moved or removed.
+- Verify the executable AST against the committed source, normalizing only
+  Unicode-prefix metadata and docstring whitespace. Executable statements and
+  non-docstring string values are unchanged.
+- Run the existing suite and the repository-wide formatter check. Lint fixes
+  remain separate to keep this review focused on formatting.
+  Validation: **282 passed**, with the existing `is 0` SyntaxWarning;
+  `ruff format --check .` passes.
+
+## Completed fixes
 
 - Optimize finite discrete channel capacity with Blahut–Arimoto iterations,
   using log probabilities and omitting unreachable outputs. Preserve the
@@ -98,8 +116,6 @@ Work proceeds one step at a time, with user review before each commit.
 - Replace the previous uniform-source result for asymmetric channels. For
   `P = [[1, 0], [0.5, 0.5]]`, capacity is now approximately 0.321928 bits,
   and source `[0.6, 0.4]` has efficiency one.
-
-## Completed fixes
 
 - Encode RS messages with the supplied field's polynomial arithmetic.
 - Return the primitive RS minimum symbol distance `2t+1` and design radius t,

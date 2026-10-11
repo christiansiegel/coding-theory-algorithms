@@ -16,7 +16,8 @@ Moreover all function take coefficient arrays instead of Numpy polynomial
 objects as parameters.
 """
 
-def shift(v, i = 1):
+
+def shift(v, i=1):
     """Cyclic shift of a polynomial.
     (slide 3)
     Args:
@@ -27,22 +28,24 @@ def shift(v, i = 1):
     """
     return np.roll(v, i)
 
-def encode(m, g, systematic = True):
+
+def encode(m, g, systematic=True):
     """Encoding of cyclic code (in systematic form)
     (slide 23)
     ATTENTION: Dangling zeros in returned codeword are cut away.
     """
     if systematic:
-        r = degree(g) # r = n - k
-        Xr = X(r) # X^(n-k)
-        XrmX = GF2.multPoly(Xr, m) # X^(n-k) * m(X)
-        p = GF2.modPoly(XrmX, g) # p(X) = (X^(n-k) * m(X)) mod g(X)
-        c = GF2.addPoly(p, XrmX) # c(X) = p(X) + (X^(n-k) * m(X))
+        r = degree(g)  # r = n - k
+        Xr = X(r)  # X^(n-k)
+        XrmX = GF2.multPoly(Xr, m)  # X^(n-k) * m(X)
+        p = GF2.modPoly(XrmX, g)  # p(X) = (X^(n-k) * m(X)) mod g(X)
+        c = GF2.addPoly(p, XrmX)  # c(X) = p(X) + (X^(n-k) * m(X))
     else:
         c = GF2.multPoly(m, g)
     return c.astype(int)
 
-def gToG(g, n, systematic = True, verbose = False):
+
+def gToG(g, n, systematic=True, verbose=False):
     """Builds Generator Matrix G from given Generator Polynomial.
     (slide 25)
     Args:
@@ -57,7 +60,7 @@ def gToG(g, n, systematic = True, verbose = False):
     g = padEnd(g, n)
     G = np.empty([k, n])
     for i in range(0, k):
-        G[i,:] = shift(g, i)
+        G[i, :] = shift(g, i)
 
     # row additions to gain embedded identity matrix on right side
     # -> systematic form
@@ -66,28 +69,32 @@ def gToG(g, n, systematic = True, verbose = False):
 
     return G.astype(int)
 
-def makeSystematic(G, verbose = True):
+
+def makeSystematic(G, verbose=True):
     k, n = G.shape
     if verbose:
-        print('unsystematic:');
-        print(G.astype(int));
+        print("unsystematic:")
+        print(G.astype(int))
         print()
 
     # start with bottom row
-    for i in range(k-1, 0, -1):
-        if verbose: s = ''
+    for i in range(k - 1, 0, -1):
+        if verbose:
+            s = ""
         # start with most right hand bit
-        for j in range(n-1, n-k-1, -1):
+        for j in range(n - 1, n - k - 1, -1):
             # eleminate bit if it does not belong to identity matrix
-            if G[i,j] == 1 and i != j-(n-k):
-                if verbose: s += ' + g' + str(k-n+j)
-                G[i,:] = (G[i,:] + G[k-n+j,:]) % 2
+            if G[i, j] == 1 and i != j - (n - k):
+                if verbose:
+                    s += " + g" + str(k - n + j)
+                G[i, :] = (G[i, :] + G[k - n + j, :]) % 2
 
-        if verbose and s != '':
-            print('g' + str(i) + ' = g' + str(i) + s)
-            print(G.astype(int));
+        if verbose and s != "":
+            print("g" + str(i) + " = g" + str(i) + s)
+            print(G.astype(int))
             print()
     return G.astype(int)
+
 
 def printAllCyclicCodes(factorPolynomials):
     """Generates all cyclic codes that can be created from
@@ -96,44 +103,45 @@ def printAllCyclicCodes(factorPolynomials):
     Args:
         factorPolynomials: factor polynomials in a python array
     """
-    s = ''
+    s = ""
     product = np.array([])
     for i in range(0, len(factorPolynomials)):
         if i == 0:
             product = factorPolynomials[i]
         else:
             product = GF2.multPoly(product, factorPolynomials[i])
-        s += '(' + GF2.polyToString(factorPolynomials[i]) + ') '
-    print(s + '= ' + GF2.polyToString(product))
+        s += "(" + GF2.polyToString(factorPolynomials[i]) + ") "
+    print(s + "= " + GF2.polyToString(product))
     print()
 
-    numberCodes = 2**(len(factorPolynomials)) - 2
+    numberCodes = 2 ** (len(factorPolynomials)) - 2
     n = degree(product)
-    print('There are', numberCodes, 'different cyclic codes of length', n, 'as')
-    print('we can find', numberCodes, 'different generator polynomials that are')
-    print('the factors of', GF2.polyToString(product))
+    print("There are", numberCodes, "different cyclic codes of length", n, "as")
+    print("we can find", numberCodes, "different generator polynomials that are")
+    print("the factors of", GF2.polyToString(product))
     print(np.bitwise_and(1, 3))
 
-    print('Code <- Generator polynomial')
+    print("Code <- Generator polynomial")
     for i in range(0, numberCodes):
-        s = ''
-        gp = np.array([]) # generator polynomial
+        s = ""
+        gp = np.array([])  # generator polynomial
         for j in range(0, len(factorPolynomials)):
-            if np.bitwise_and(i+1, 2**j) > 0:
-                if s =='':
+            if np.bitwise_and(i + 1, 2**j) > 0:
+                if s == "":
                     gp = factorPolynomials[j]
                 else:
                     gp = GF2.multPoly(gp, factorPolynomials[j])
-                s += '(' + GF2.polyToString(factorPolynomials[j]) + ')'
+                s += "(" + GF2.polyToString(factorPolynomials[j]) + ")"
 
-        print('Ccyc(' + str(n) + ', ' + str(degree(gp)) + ') <- g' + str(i+1) + ' = ' + s + ' = ' + GF2.polyToString(gp))
+        print("Ccyc(" + str(n) + ", " + str(degree(gp)) + ") <- g" + str(i + 1) + " = " + s + " = " + GF2.polyToString(gp))
+
 
 def padEnd(p, length):
-    assert p.size <= length, \
-        "padEnd() failed because polynomial is longer than given size."
+    assert p.size <= length, "padEnd() failed because polynomial is longer than given size."
 
-    p = np.pad(p, (0, length-p.size), 'constant', constant_values=0)
+    p = np.pad(p, (0, length - p.size), "constant", constant_values=0)
     return p
+
 
 class CyclicCode(LinearBlockCode):
     """Cyclic Code
@@ -149,12 +157,10 @@ class CyclicCode(LinearBlockCode):
     _n = 0
 
     def __init__(self, g, n):
-        assert g[0] == 1, \
-            "g0 must equal to 1"
-        assert n >= degree(g), \
-            "n=%i must be >= degree(g)=%i" % (n, degree(g))
-        self._g = g[:n]; #auto remove too much dangling zeros
-        self._n = n;
+        assert g[0] == 1, "g0 must equal to 1"
+        assert n >= degree(g), "n=%i must be >= degree(g)=%i" % (n, degree(g))
+        self._g = g[:n]  # auto remove too much dangling zeros
+        self._n = n
 
     def g(self):
         return self._g.astype(int)
@@ -162,13 +168,13 @@ class CyclicCode(LinearBlockCode):
     def printg(self):
         print(GF2.polyToString(self.g()))
 
-    def n(self): # override
+    def n(self):  # override
         return self._n
 
-    def k(self): # override
+    def k(self):  # override
         return self.n() - degree(self.g())
 
-    def dmin(self, verbose = False): # override
+    def dmin(self, verbose=False):  # override
         """Exact minimum distance by enumerating nonzero codewords.
         Generator weight is only an upper bound. Enumeration is exponential
         in k and intended for small textbook examples.
@@ -182,26 +188,25 @@ class CyclicCode(LinearBlockCode):
     def dminVerbose(self):
         self.dmin(True)
 
-    def G(self, systematic = True, verbose = False): # override
+    def G(self, systematic=True, verbose=False):  # override
         return gToG(self.g(), self.n(), systematic, verbose)
 
-    def setG(self): # override
+    def setG(self):  # override
         assert False, "setG() not usable with cyclic codes."
 
-    def setH(self): # override
+    def setH(self):  # override
         assert False, "setH() not usable with cyclic codes."
 
-    def shift(self, c, i = 1):
-        """Cyclic right shift of c using division (slide 11)
-        """
-        Xi = X(i) # X^i polynomial
-        XiCX = GF2.multPoly(Xi, c) # X^i * c(X) polynomial
-        Xn1 = GF2.addPoly(X(self.n()), X(0)) # X^n + 1 polynomial
-        ci = GF2.modPoly(XiCX, Xn1) # i times shifted c
-        ci = ci[:degree(ci) + 1] # remove cancelled high coefficients before padding
+    def shift(self, c, i=1):
+        """Cyclic right shift of c using division (slide 11)"""
+        Xi = X(i)  # X^i polynomial
+        XiCX = GF2.multPoly(Xi, c)  # X^i * c(X) polynomial
+        Xn1 = GF2.addPoly(X(self.n()), X(0))  # X^n + 1 polynomial
+        ci = GF2.modPoly(XiCX, Xn1)  # i times shifted c
+        ci = ci[: degree(ci) + 1]  # remove cancelled high coefficients before padding
         return padEnd(ci, self.n())
 
-    def c(self, m, systematic = True): # override
+    def c(self, m, systematic=True):  # override
         """encode message polynomial m
         Args:
             m: message polynomial
@@ -212,16 +217,16 @@ class CyclicCode(LinearBlockCode):
         c = encode(m, self.g(), systematic)
         return padEnd(c, self.n())
 
-    def printMessageCodewordTable(self, systematic = True): # override
+    def printMessageCodewordTable(self, systematic=True):  # override
         """Print all messages and their corresponding codewords.
         Args:
             systematic: print codewords in systematic form (default: True)
         """
         M = self.M()
-        print('Messages -> Codewords')
+        print("Messages -> Codewords")
         for m in M:
             c = self.c(m, systematic)
-            print(m, c, 'm(X) =', GF2.polyToString(m), '\tc(X) =', GF2.polyToString(c) )
+            print(m, c, "m(X) =", GF2.polyToString(m), "\tc(X) =", GF2.polyToString(c))
 
     def S(self, r):
         """Calculate Syndrome polynomial from receive or error polynomial.
@@ -232,9 +237,8 @@ class CyclicCode(LinearBlockCode):
         """
         return GF2.modPoly(r, self.g())
 
-    def shiftSyndrome(self, S, i = 1):
-        """Shift syndrome i times (slide 35)
-        """
+    def shiftSyndrome(self, S, i=1):
+        """Shift syndrome i times (slide 35)"""
         for i in range(0, i):
             # S1(X) = XS(X) mod g(X)
             S = GF2.modPoly(GF2.multPoly(X(1), S), self.g())

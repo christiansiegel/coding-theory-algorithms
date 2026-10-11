@@ -34,11 +34,7 @@ def reference_poly_division(a, b, modulus):
     residual = trim_polynomial(a)
     divisor = trim_polynomial(b)
     assert divisor != [0]
-    inverse = next(
-        value
-        for value in range(1, 1 << (modulus.bit_length() - 1))
-        if multiply_bits(divisor[-1], value, modulus) == 1
-    )
+    inverse = next(value for value in range(1, 1 << (modulus.bit_length() - 1)) if multiply_bits(divisor[-1], value, modulus) == 1)
     quotient = [0] * max(1, len(residual) - len(divisor) + 1)
     while residual != [0] and len(residual) >= len(divisor):
         offset = len(residual) - len(divisor)
