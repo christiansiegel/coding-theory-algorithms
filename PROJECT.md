@@ -31,6 +31,25 @@ Work proceeds one step at a time, with user review before each commit.
    `playground.py` runnable. Dependency installation remains unchanged.
 6. **Local checks — complete.** Add one command for lint,
    formatting checks, and tests, plus individual targets. Keep checks local.
+7. **Untested-method audit — syndrome-printing tests awaiting review.**
+   Extend contracts and independent tests for uncovered public methods, then
+   fix confirmed defects in separate reviews.
+
+## Syndrome-printing tests awaiting review
+
+- Define `printErrorsThatHaveSyndrome(s)` as an exhaustive diagnostic: print all
+  vectors whose syndrome equals s, including errors beyond the correction
+  radius. Preserve list/array inputs and report each vector's actual weight.
+- Use fixed repetition/Hamming check matrices and independent integer parity
+  to check the complete output sets for every syndrome, without snapshotting
+  whitespace or imposing output ordering.
+- Confirm the method ignores s, overwrites it inside the enumeration loop, and
+  always selects `[0,0,1]`. Three strict expected failures cover the repetition
+  and Hamming codes. A passing case protects the existing `[0,0,1]` results.
+- Production code is unchanged. Malformed syndrome validation remains outside
+  this step, consistent with the existing valid-input code contract.
+- Validation: `make check` passes lint and formatting checks, with **318 tests
+  passed and 3 strict expected failures** recording the confirmed defect.
 
 ## Completed local checks
 

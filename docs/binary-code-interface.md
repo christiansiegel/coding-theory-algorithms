@@ -32,12 +32,20 @@ nonbinary data, or wrong input lengths has no established validation contract.
 | `A()` | Preserve the README's existing n-entry layout: entry j counts weight j+1. It omits weight zero. |
 | `correctableErrorPatterns()` | Enumerate every length-n error of weight at most t. |
 | `syndromeDecode(r)` | Return a corrected length-n codeword for errors of weight at most t. Raise `KeyError` if the syndrome has no entry in the table. |
+| `printErrorsThatHaveSyndrome(s)` | Print every length-n binary error vector e satisfying eH.T = s, with its Hamming weight. Return `None` and preserve s. Accept a list or array of n-k bits. |
 
 The `A()` layout preserves the existing implementation and README example.
 
 Beyond t errors, decoding may silently return a different codeword or raise
 `KeyError`. A successful return is not a guarantee that the original message was
 recovered. Enumeration is exponential and intended for small textbook examples.
+
+The syndrome-printing helper enumerates all matching errors, including those
+beyond the correction radius; it is a diagnostic, not a decoder. Zero syndrome
+includes the zero vector and every nonzero codeword. Output spacing is not a
+contract. Its current implementation overwrites the requested syndrome and
+compares against a hardcoded `[0,0,1]`; strict expected-failure tests cover all
+syndromes in the repetition and Hamming examples before this defect is fixed.
 
 ## CyclicCode
 

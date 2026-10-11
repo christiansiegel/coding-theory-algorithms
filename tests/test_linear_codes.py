@@ -100,3 +100,55 @@ def test_decoder_rejects_a_syndrome_missing_from_the_table():
     received = np.array([1, 1, 0, 0, 0, 0, 0])
     with pytest.raises(KeyError):
         code.syndromeDecode(received)
+
+
+def printed_error_records(output):
+    lines = output.splitlines()
+    assert lines and "weight" in lines[0]
+    records = []
+    for line in lines[1:]:
+        vector, weight = line.split("->")
+        vector = vector.strip()
+        assert vector.startswith("[") and vector.endswith("]"), line
+        records.append((tuple(int(bit) for bit in vector[1:-1].split()), int(weight)))
+    return records
+
+
+def reference_errors_for_syndrome(check, syndrome):
+    records = set()
+    for error in product([0, 1], repeat=check.shape[1]):
+        # Use the fixed textbook check matrix and ordinary integer parity,
+        # not the production syndrome or weight functions.
+        actual = [sum(bit * coefficient for bit, coefficient in zip(error, row)) % 2 for row in check]
+        if actual == list(syndrome):
+            records.add((error, sum(error)))
+    return records
+
+
+@pytest.mark.xfail(strict=True, reason="syndrome printing ignores its argument and selects hardcoded [0,0,1]")
+def test_printed_errors_for_every_requested_syndrome(linear_case, capsys):
+    code, generator, check, _ = linear_case
+    for syndrome in product([0, 1], repeat=check.shape[0]):
+        expected = reference_errors_for_syndrome(check, syndrome)
+        assert len(expected) == 2 ** generator.shape[0]
+        for as_array in [False, True]:
+            requested = np.array(syndrome) if as_array else list(syndrome)
+            before = requested.copy()
+            assert code.printErrorsThatHaveSyndrome(requested) is None
+            records = printed_error_records(capsys.readouterr().out)
+            assert len(records) == len(expected)
+            assert set(records) == expected
+            np.testing.assert_array_equal(requested, before)
+
+
+@pytest.mark.parametrize("linear_case", ["hamming7"], indirect=True)
+def test_printed_errors_for_historical_hardcoded_syndrome(linear_case, capsys):
+    code, _, check, minimum_distance = linear_case
+    requested = [0, 0, 1]
+    assert code.printErrorsThatHaveSyndrome(requested) is None
+    records = printed_error_records(capsys.readouterr().out)
+    assert set(records) == reference_errors_for_syndrome(check, requested)
+    assert len(records) == len(set(records)) == 16
+    # A diagnostic must include errors beyond the decoder's correction radius.
+    assert any(weight > (minimum_distance - 1) // 2 for _, weight in records)
+    assert requested == [0, 0, 1]
