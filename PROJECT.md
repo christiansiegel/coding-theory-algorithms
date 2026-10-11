@@ -9,14 +9,15 @@ Work proceeds one step at a time, with user review before each commit.
    the README script output. Keep algorithm files unchanged.
 2. **Interface conventions and mathematical tests — finite-field element API
    committed in `b8c90d8`; linear/cyclic interfaces committed in `2ec4697`;
-   polynomial arithmetic awaiting review.** Document
+   polynomial arithmetic committed in `f6be7a6`.** Document
    representations,
    shapes, systematic matrix layout, and invalid-input behavior. Test finite
    fields first, then linear/cyclic codes, BCH/RS, and channel calculations using
    independent answers, algebraic properties, and exhaustive small cases.
 3. **Bug fixes — finite-field element fixes committed in `1990701`; NumPy
    compatibility fix committed in `6292409`; binary symmetric channel fixes
-   committed in `272be01`; cyclic-code fixes committed in `7e8bdc5`.**
+   committed in `272be01`; cyclic-code fixes committed in `7e8bdc5`;
+   polynomial fixes awaiting review.**
 4. **Formatting and linting.** Apply Ruff in a separate change.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
@@ -57,31 +58,32 @@ Work proceeds one step at a time, with user review before each commit.
 - [Polynomial contract](docs/polynomial-interface.md) and the polynomial tests
   in `tests/test_galois_field.py` cover addition, multiplication, division,
   evaluation, formal derivatives, and monic multipliers using independent field
-  arithmetic. Confirmed bugs are strict expected failures; constant-divisor
-  regressions are isolated in subprocesses with timeouts. Current local result:
-  **175 passed, 38 expected failures**, with NumPy 2.5.4. The same defects are
-  exercised across fields and input cases; Ruff checks pass for the test files.
+  arithmetic. The fixes remove all expected-failure markers; constant-divisor
+  regressions remain isolated in subprocesses with timeouts and now cover scalar
+  and array divisors in all four fields. Current local result: **243 passed,
+  no expected failures**, with NumPy 2.5.4; Ruff checks pass for the test files.
 - The project runs from the repository root without being installed as a package.
 - `uv run ruff check .` and `uv run ruff format --check .` expose existing source
   issues; passing them across the codebase is deferred to step 4.
 
 ## Confirmed issues to address
 
-- Polynomial division by a constant never terminates, including for a zero
-  dividend: the loop treats degree(zero) as 0 and keeps subtracting zero.
-- `addPoly`, `multPoly`, and `divmodPoly` assign a scalar second operand to
-  the first operand, leaving the second operand as an integer.
-- `derivePoly()` omits the highest-degree term, raises coefficients to powers
-  instead of multiplying by the degree in characteristic two, and returns floats.
-- Polynomial division by zero raises `AssertionError` rather than
-  `ZeroDivisionError`.
-- A zero quotient is returned as an empty floating-point array rather than
-  an integer coefficient array.
-- `monicMultiplier()` uses the final array entry even when it is trailing zero.
 - For arbitrary transition matrices, `BSC.Cs()` assumes a uniform source is
   optimal. This is not always true: with `P = [[1, 0], [0.5, 0.5]]`, it returns
   approximately 0.311278 bits, while source `[0.6, 0.4]` achieves 0.321928 bits.
   General capacity optimization remains to be addressed.
+
+## Fixes awaiting review
+
+- Stop polynomial division when the residual is zero, fixing constant divisors.
+  Initialize the quotient as an integer zero polynomial.
+- Convert scalar second operands into the second array in addition,
+  multiplication, and division.
+- Raise `ZeroDivisionError` for zero polynomial divisors.
+- Compute formal derivatives by retaining every odd-degree coefficient,
+  including the highest term, and return an integer array.
+- Invert the highest-degree nonzero coefficient for monic multipliers,
+  ignoring trailing zeros. The zero polynomial now raises `ZeroDivisionError`.
 
 ## Completed fixes
 

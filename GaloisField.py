@@ -278,7 +278,7 @@ class GaloisField:
         """Add two polynomials in the GF.
         """
         if type(a) is int: a = np.array([a])
-        if type(b) is int: a = np.array([b])
+        if type(b) is int: b = np.array([b])
         summ_degree = max(degree(a), degree(b))
         summ = np.zeros(summ_degree + 1)
         for i in range(0, summ.size):
@@ -294,7 +294,7 @@ class GaloisField:
         """Multiply two polynomials in the GF.
         """
         if type(a) is int: a = np.array([a])
-        if type(b) is int: a = np.array([b])
+        if type(b) is int: b = np.array([b])
         product_max_degree = degree(a) + degree(b)
         product = np.zeros(product_max_degree + 1)
         for i in range(0, degree(a) + 1):
@@ -308,17 +308,19 @@ class GaloisField:
         """Divide two polynomials in the GF (a/b) and return quotient and
         remainder in python array. See divPoly() and modPoly() for only quotient
         and remainder respectively.
+        Raises ZeroDivisionError for a zero divisor, including scalar zero.
         """
         if type(a) is int: a = np.array([a])
-        if type(b) is int: a = np.array([b])
-        assert np.count_nonzero(b) > 0, "Division by zero!"
+        if type(b) is int: b = np.array([b])
+        if np.count_nonzero(b) == 0:
+            raise ZeroDivisionError("Polynomial division by zero")
         if verbose:
             print()
             print('Division:')
             print(self.polyToString(a) + ' / '  + self.polyToString(a) + ' :')
             print()
-        q = np.zeros(0)
-        while degree(a) >= degree(b):
+        q = np.zeros(1, dtype=int)
+        while np.count_nonzero(a) > 0 and degree(a) >= degree(b):
             exp_a = degree(a)
             exp_b = degree(b)
             coeff_element_a = a[exp_a]
@@ -352,14 +354,12 @@ class GaloisField:
         return self.divmodPoly(a, b)[1]
 
     def derivePoly(self, p):
-        """Derive polynomial.
+        """Formal derivative in characteristic two.
+        Odd-degree terms retain their coefficients; even-degree terms vanish.
         """
-        derivative = np.zeros(degree(p))
-        for i in range(1, degree(p)):
-            coeff = p[i]
-            coeff_exp = self.elementToExp(coeff)
-            coeff_new = self.elementFromExp(coeff_exp * i)
-            derivative[i-1] = coeff_new
+        derivative = np.zeros(max(1, degree(p)), dtype=int)
+        for i in range(1, degree(p) + 1, 2):
+            derivative[i-1] = p[i]
         return derivative
 
     def isFactor(self, p, factorPoly):
@@ -382,12 +382,10 @@ class GaloisField:
 
     def monicMultiplier(self, p):
         """Returns multiplier element that is needed to make polynomial p
-        a monic polynomial.
+        a monic polynomial. Raises ZeroDivisionError for the zero polynomial.
         """
-        coeff = p[-1] # get last coeff
-        exp_coeff = self.elementToExp(coeff)
-        exp_mult = (self.q() - 1) - exp_coeff
-        return self.elementFromExp(exp_mult)
+        coeff = p[degree(p)] # highest-degree nonzero coefficient
+        return self.divElements(1, coeff)
 
     def elementToString(self, a):
         """Returns element as string (e.g. 'a^5')

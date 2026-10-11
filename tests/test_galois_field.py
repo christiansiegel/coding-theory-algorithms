@@ -281,10 +281,6 @@ def test_monic_multiplier(field_case):
     assert field.monicMultiplier(np.array([1, labels[coefficient]])) == labels[inverse]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="monicMultiplier uses the final array entry instead of the leading nonzero coefficient",
-)
 def test_monic_multiplier_with_trailing_zeros(field_case):
     field, modulus, bits, labels = field_case
     coefficient = bits[-1]
@@ -296,9 +292,21 @@ def test_monic_multiplier_with_trailing_zeros(field_case):
     )
 
 
-@pytest.mark.xfail(
-    strict=True, reason="a zero quotient is returned as an empty floating-point array"
-)
+def test_zero_polynomial_has_no_monic_multiplier(field_case):
+    field, _, _, _ = field_case
+    with pytest.raises(ZeroDivisionError):
+        field.monicMultiplier(np.array([0, 0]))
+
+
+def test_derivative_preserves_extension_field_coefficients(field_case):
+    field, _, bits, _ = field_case
+    coefficient = len(bits) - 1
+    p = np.array([1, coefficient, 1, coefficient, 1])
+    before = p.copy()
+    np.testing.assert_array_equal(field.derivePoly(p), [coefficient, 0, coefficient, 0])
+    np.testing.assert_array_equal(p, before)
+
+
 def test_zero_quotient_has_integer_dtype(field_case):
     field, _, _, _ = field_case
     q, _ = field.divmodPoly(np.array([1]), np.array([1, 1]))
@@ -306,10 +314,6 @@ def test_zero_quotient_has_integer_dtype(field_case):
 
 
 @pytest.mark.parametrize("coefficients", [[0], [1], [0, 1], [1, 1, 1, 1]])
-@pytest.mark.xfail(
-    strict=True,
-    reason="derivePoly omits the highest term and mishandles characteristic two",
-)
 def test_formal_polynomial_derivative(field_case, coefficients):
     field, _, _, _ = field_case
     p = np.array(coefficients)
@@ -323,36 +327,40 @@ def test_formal_polynomial_derivative(field_case, coefficients):
 @pytest.mark.parametrize(
     "method, expected", [("addPoly", [0, 1]), ("multPoly", [1, 1])]
 )
-@pytest.mark.xfail(
-    strict=True,
-    reason="scalar second operand is mistakenly assigned to the first operand",
-)
 def test_scalar_second_polynomial_operand(field_case, method, expected):
     field, _, _, _ = field_case
     np.testing.assert_array_equal(getattr(field, method)(np.array([1, 1]), 1), expected)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="polynomial zero divisors raise AssertionError instead of ZeroDivisionError",
+@pytest.mark.parametrize(
+    "method, expected", [("addPoly", [0, 1]), ("multPoly", [1, 1])]
 )
+def test_scalar_first_polynomial_operand(field_case, method, expected):
+    field, _, _, _ = field_case
+    np.testing.assert_array_equal(getattr(field, method)(1, np.array([1, 1])), expected)
+
+
 def test_polynomial_division_by_zero_raises(field_case):
     field, _, _, _ = field_case
-    with pytest.raises(ZeroDivisionError):
-        field.divmodPoly(np.array([1, 1]), np.array([0]))
+    for divisor in [0, np.array([0]), np.array([0, 0, 0])]:
+        with pytest.raises(ZeroDivisionError):
+            field.divmodPoly(np.array([1, 1]), divisor)
 
 
 @pytest.mark.parametrize("dividend", [[0], [1, 0, 1]])
-@pytest.mark.xfail(
-    strict=True,
-    raises=subprocess.TimeoutExpired,
-    reason="division by a constant polynomial does not terminate",
-)
-def test_constant_polynomial_division_terminates(dividend):
+@pytest.mark.parametrize("scalar_divisor", [False, True])
+def test_constant_polynomial_division_terminates(field_case, dividend, scalar_divisor):
     # Run in a child process so a nonterminating algorithm cannot hang pytest.
+    _, modulus, bits, labels = field_case
+    p = [(modulus >> i) & 1 for i in range(modulus.bit_length())]
+    divisor_label = len(bits) - 1
+    divisor_expression = (
+        str(divisor_label) if scalar_divisor else f"np.array([{divisor_label}])"
+    )
     script = (
-        "import json; import numpy as np; from GaloisField import GF2; "
-        f"q, r = GF2.divmodPoly(np.array({dividend!r}), np.array([1])); "
+        "import json; import numpy as np; from GaloisField import GaloisField; "
+        f"field = GaloisField(np.array({p!r})); "
+        f"q, r = field.divmodPoly(np.array({dividend!r}), {divisor_expression}); "
         "print(json.dumps([q.tolist(), r.tolist()]))"
     )
     result = subprocess.run(
@@ -365,5 +373,8 @@ def test_constant_polynomial_division_terminates(dividend):
     )
     assert result.returncode == 0, result.stderr
     q, r = json.loads(result.stdout)
-    assert trim_polynomial(q) == dividend
-    assert trim_polynomial(r) == [0]
+    expected_q, expected_r = reference_poly_division(
+        dividend, [bits[divisor_label]], modulus
+    )
+    assert trim_polynomial(q) == [labels[value] for value in expected_q]
+    assert trim_polynomial(r) == [labels[value] for value in expected_r]
