@@ -3,6 +3,23 @@
 import numpy as np
 import math
 
+_CAPACITY_TOLERANCE_BITS = 1e-12
+_CAPACITY_MAX_ITERATIONS = 100000
+
+def _capacity_bounds(P, logP, positive, log_source):
+    """Return a source and its mutual-information lower/dual upper bounds, in nats."""
+    log_output = np.logaddexp.reduce(log_source[:, np.newaxis] + logP, axis=0)
+    log_ratio = np.zeros(P.shape)
+    np.subtract(logP, log_output, out=log_ratio, where=positive)
+    divergence = np.sum(P * log_ratio, axis=1)
+    source = np.exp(log_source)
+    # A candidate may leave an output unreachable and give unused rows infinite
+    # divergence. Its upper bound is then infinite; avoid zero times infinity.
+    used = source > 0
+    lower = float(source[used] @ divergence[used])
+    upper = float(np.max(divergence))
+    return source, divergence, lower, upper
+
 class BSC:
     __P = np.zeros([2, 2], float)
     __PX = np.zeros(2, float)
@@ -130,35 +147,60 @@ class BSC:
         return HYX
 
     def Cs(self, verbose = True):
-        """Channel capacity for symmetric channels, using a uniform source.
-        Does not optimize the source distribution for arbitrary channels.
+        """Optimize finite-channel capacity using Blahut-Arimoto iterations.
+        Stop when the capacity bounds differ by at most 1e-12 bits.
+        Raise RuntimeError if 100,000 iterations do not establish that bound.
+        The instance's source probabilities are preserved.
         """
-        PX = self.__PX
-        P = 1 / PX.size
-        if(verbose):
-            print('Since the noise entropy H(Y|X) is independent of the source probabilities,')
-            print('then the channel capacity will be achieved when ')
-            for i in range(0, PX.size):
-                print('P(X='+str(i)+') = ' + str(P))
-            print('\nThen:')
+        P = self.__P
+        # An input-independent output carries no information, exactly.
+        if np.all(P == P[0]):
+            capacity = 0.0
+            source = np.full(P.shape[0], 1 / P.shape[0])
+        else:
+            # Work in log probabilities to avoid losing rare inputs to underflow.
+            # Omit unreachable outputs, and let zero transition terms contribute zero.
+            P = P[:, np.any(P > 0, axis=0)]
+            positive = P > 0
+            logP = np.full(P.shape, -np.inf)
+            np.log(P, out=logP, where=positive)
+            log_source = np.full(P.shape[0], -np.log(P.shape[0]))
+            log_two = np.log(2.0)
+            for iteration in range(_CAPACITY_MAX_ITERATIONS):
+                source, divergence, lower, upper = _capacity_bounds(
+                    P, logP, positive, log_source)
+                if upper - lower <= _CAPACITY_TOLERANCE_BITS * log_two:
+                    capacity = max(0.0, lower / log_two)
+                    break
+                # Boundary optima can converge slowly. Try omitting currently
+                # unhelpful inputs, but accept only if the bounds over ALL input
+                # rows certify capacity. Otherwise continue the original iteration.
+                unhelpful = divergence < lower
+                if iteration % 100 == 0 and np.any(unhelpful) and not np.all(unhelpful):
+                    candidate = log_source.copy()
+                    candidate[unhelpful] = -np.inf
+                    candidate -= np.logaddexp.reduce(candidate)
+                    candidate_source, _, candidate_lower, candidate_upper = _capacity_bounds(
+                        P, logP, positive, candidate)
+                    if candidate_upper - candidate_lower <= _CAPACITY_TOLERANCE_BITS * log_two:
+                        source = candidate_source
+                        capacity = max(0.0, candidate_lower / log_two)
+                        break
+                log_source += divergence
+                log_source -= np.logaddexp.reduce(log_source)
+            else:
+                raise RuntimeError("Channel capacity optimization did not converge")
 
-        uniform_channel = BSC(np.full(PX.size, P), self.__P)
         if verbose:
-            uniform_channel.PY(True)
-
-        if(verbose):
-            print('Hence, there is Hmax(Y) = ')
-        HmaxY = uniform_channel.HY(verbose)
-        HYX = uniform_channel.HYX()
-        Cs = HmaxY - HYX
-        if verbose:
-            print('Cs = Imax(X,Y) = Hmax(Y) - H(Y|X) = ' + str(HmaxY) + ' - ' + str(HYX) + ' = ' + str(Cs))
+            print('Channel capacity maximizes I(X,Y) over source probabilities.')
+            for i, probability in enumerate(source):
+                print('P(X=' + str(i) + ') = ' + str(probability))
+            print('Cs = Imax(X,Y) = ' + str(capacity) + ' bits')
             print('')
-
-        return Cs
+        return capacity
 
     def ChannelEfficiency(self, verbose = True):
-        """Return I(X;Y) / Cs for this source and a symmetric channel.
+        """Return I(X;Y) / Cs for this source and a finite discrete channel.
         Raises ZeroDivisionError when channel capacity is zero.
         """
         Cs = self.Cs(False)

@@ -20,8 +20,8 @@ Work proceeds one step at a time, with user review before each commit.
    committed in `272be01`; cyclic-code fixes committed in `7e8bdc5`;
    polynomial fixes committed in `8eb6b7b`; BCH construction and shared
    decoding fixes committed in `507b412`; RS encoding and distance fixes
-   committed in `cb124be`.** General channel-capacity contract and regression
-   tests await review.
+   committed in `cb124be`.** General channel-capacity contract and tests
+   committed in `16b0188`; capacity optimization awaits review.
 4. **Formatting and linting.** Apply Ruff in a separate change.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
@@ -52,9 +52,11 @@ Work proceeds one step at a time, with user review before each commit.
   and efficiency results for binary symmetric channels, including boundary
   probabilities, verbosity, and source preservation.
   General-capacity tests add independent Z-channel answers, duplicate input
-  rows, rectangular matrices, and unreachable outputs. Five strict expected
-  failures demonstrate underestimated capacity and efficiency above one.
-  Current full-suite result: **273 passed, 5 expected failures**, with NumPy 2.5.4.
+  rows, rectangular matrices, and unreachable outputs. The optimizer removes
+  all five expected failures. Additional checks cover unhelpful inputs, symbol
+  permutations, verbose output, and source preservation on nonconvergence.
+  The channel script's boundary optimum is checked independently at 2/3 bits.
+  Current full-suite result: **282 passed**, with NumPy 2.5.4.
 - [Binary code contract](docs/binary-code-interface.md), `tests/test_linear_codes.py`,
   and `tests/test_cyclic_codes.py` cover systematic matrices, enumeration,
   encoding, weight distributions, and exhaustive correction in small linear
@@ -84,20 +86,18 @@ Work proceeds one step at a time, with user review before each commit.
 - `uv run ruff check .` and `uv run ruff format --check .` expose existing source
   issues; passing them across the codebase is deferred to step 4.
 
-## Tests awaiting review
+## Fixes awaiting review
 
-- Extend the channel contract to define capacity as maximum mutual information
-  over source distributions for valid finite discrete transition matrices.
-- Add independent known-answer tests before changing the capacity calculation.
-  Symmetric and deterministic boundary cases pass; asymmetric capacity,
-  optimal-source efficiency, and duplicate-row regressions fail as expected.
-
-## Confirmed issues to address
-
-- For arbitrary transition matrices, `BSC.Cs()` assumes a uniform source is
-  optimal. This is not always true: with `P = [[1, 0], [0.5, 0.5]]`, it returns
-  approximately 0.311278 bits, while source `[0.6, 0.4]` achieves 0.321928 bits.
-  General capacity optimization remains to be addressed.
+- Optimize finite discrete channel capacity with Blahut–Arimoto iterations,
+  using log probabilities and omitting unreachable outputs. Preserve the
+  instance's source. Identical input rows return exactly zero capacity.
+- Stop when the upper/lower capacity bounds differ by at most 1e-12 bits;
+  raise `RuntimeError` after 100,000 iterations if that bound is not reached.
+- Try reduced input supports to accelerate boundary optima, accepting them
+  only when capacity bounds over all input rows certify the same tolerance.
+- Replace the previous uniform-source result for asymmetric channels. For
+  `P = [[1, 0], [0.5, 0.5]]`, capacity is now approximately 0.321928 bits,
+  and source `[0.6, 0.4]` has efficiency one.
 
 ## Completed fixes
 

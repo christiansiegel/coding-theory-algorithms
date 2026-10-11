@@ -1,9 +1,8 @@
 # Discrete channel calculations
 
 This contract covers binary symmetric channels and extends capacity and
-efficiency to valid finite discrete channels. Strict expected-failure tests
-record the current general-capacity defect. Conditional-probability edge cases
-need further review.
+efficiency to valid finite discrete channels. Conditional-probability edge
+cases need further review.
 
 ## Inputs and conventions
 
@@ -52,7 +51,18 @@ For the asymmetric Z channel `P = [[1,0],[p,1-p]]`, with 0 < p < 1, capacity is
 `log2(1 + (1-p)*p**(p/(1-p)))`. At p=1/2 it is `log2(1.25)` (about 0.321928
 bits), achieved by source `[0.6,0.4]`. Evaluating the uniform source gives only
 about 0.311278 bits; using that as capacity incorrectly reports efficiency
-above 1 at the optimal source. This is a confirmed implementation defect.
+above 1 at the optimal source. The optimizer fixes this former defect.
+
+Capacity uses Blahut–Arimoto iterations with lower and upper capacity bounds.
+It returns the lower bound when their gap is at most 1e-12 bits. Calculations
+use log probabilities to retain rare inputs and omit unreachable outputs.
+Identical input rows give capacity zero. If 100,000 iterations do not establish
+the tolerance, `Cs()` raises `RuntimeError`; efficiency propagates that error.
+The source is preserved on both success and failure. No new dependency is used.
+For boundary optima, the optimizer also tries removing currently unhelpful
+inputs. Such a candidate is accepted only when the bounds over **all** input
+rows certify the same tolerance; unsuccessful candidates do not alter the
+ongoing iteration.
 
 ## Verification
 
@@ -62,6 +72,9 @@ flipping channels, zero capacity, quiet/verbose output, instance independence,
 and preservation of the source even when a capacity calculation raises.
 General-channel tests use the Z-channel closed form and independently known
 capacities for distinguishable deterministic outputs and identical input rows.
-They include rectangular matrices and unreachable outputs. Capacity and
-efficiency regressions for asymmetric channels and duplicate input rows remain
-strict expected failures until the optimizer is implemented.
+They include rectangular matrices, unreachable outputs, unhelpful input rows,
+and permutations of input/output symbols. All capacity and efficiency
+regressions now pass. A reduced iteration limit checks that nonconvergence
+raises without changing the stored source.
+The channel file's own three-input/five-output example checks a boundary
+optimum with capacity exactly 2/3 bits and optimal source `[1/2,0,1/2]`.

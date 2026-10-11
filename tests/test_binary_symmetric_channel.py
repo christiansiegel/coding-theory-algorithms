@@ -61,11 +61,11 @@ def test_capacity_failure_does_not_change_source(monkeypatch):
     channel = make_channel(0.2, 0.1)
     before = channel.PX().copy()
 
-    def fail_entropy(self, verbose=False):
-        raise RuntimeError("entropy calculation failed")
+    def fail_log(*args, **kwargs):
+        raise RuntimeError("capacity calculation failed")
 
-    monkeypatch.setattr(BSC, "HY", fail_entropy)
-    with pytest.raises(RuntimeError, match="entropy calculation failed"):
+    monkeypatch.setattr(channel_module.np, "log", fail_log)
+    with pytest.raises(RuntimeError, match="capacity calculation failed"):
         channel.Cs(False)
     np.testing.assert_array_equal(channel.PX(), before)
 
@@ -89,7 +89,6 @@ def test_source_entropy_including_zero_probabilities(x):
 
 
 @pytest.mark.parametrize("p", [0.1, 0.5, 0.8])
-@pytest.mark.xfail(strict=True, reason="capacity assumes the uniform source is optimal")
 def test_asymmetric_z_channel_capacity(p, capsys):
     # For P=[[1,0],[p,1-p]], maximize h(u*(1-p))-u*h(p), where
     # u=P(X=1). Setting its derivative to zero gives this closed form.
@@ -101,9 +100,6 @@ def test_asymmetric_z_channel_capacity(p, capsys):
     assert capsys.readouterr().out == ""
 
 
-@pytest.mark.xfail(
-    strict=True, reason="underestimated capacity gives efficiency above 1"
-)
 def test_asymmetric_channel_efficiency_at_optimal_source(capsys):
     # For the p=1/2 Z channel, the maximizing source is [3/5,2/5].
     channel = BSC([0.6, 0.4], [[1, 0], [0.5, 0.5]])
@@ -113,7 +109,6 @@ def test_asymmetric_channel_efficiency_at_optimal_source(capsys):
     assert capsys.readouterr().out == ""
 
 
-@pytest.mark.xfail(strict=True, reason="duplicate input rows bias a uniform output")
 def test_capacity_with_duplicate_input_rows():
     # Inputs 0 and 1 have the same output; only two symbols can be distinguished.
     channel = BSC([0.2, 0.3, 0.5], [[1, 0], [1, 0], [0, 1]])
@@ -134,4 +129,47 @@ def test_general_capacity_boundary_cases(source, transition, expected, capsys):
     with np.errstate(divide="raise", invalid="raise"):
         assert channel.Cs(False) == pytest.approx(expected, abs=1e-10)
     np.testing.assert_array_equal(channel.PX(), source)
+    assert capsys.readouterr().out == ""
+
+
+def test_capacity_with_an_unhelpful_input_and_permuted_symbols():
+    # The third row adds pure noise to an otherwise binary symmetric channel.
+    transition = np.array([[0.75, 0.25, 0], [0.25, 0.75, 0], [0.5, 0.5, 0]])
+    expected = 1 - binary_entropy(0.25)
+    for matrix in [transition, transition[[2, 0, 1]][:, [2, 1, 0]]]:
+        channel = BSC([0.2, 0.3, 0.5], matrix)
+        with np.errstate(divide="raise", invalid="raise", over="raise"):
+            assert channel.Cs(False) == pytest.approx(expected, abs=1e-10)
+
+
+def test_verbose_asymmetric_capacity_includes_the_result(capsys):
+    channel = BSC([0.2, 0.8], [[1, 0], [0.5, 0.5]])
+    assert channel.Cs(True) == pytest.approx(math.log2(1.25), abs=1e-10)
+    assert "Cs = Imax(X,Y) =" in capsys.readouterr().out
+    np.testing.assert_array_equal(channel.PX(), [0.2, 0.8])
+
+
+def test_capacity_iteration_limit_raises_and_preserves_source(monkeypatch):
+    channel = BSC([0.2, 0.8], [[1, 0], [0.5, 0.5]])
+    monkeypatch.setattr(channel_module, "_CAPACITY_MAX_ITERATIONS", 1)
+    with pytest.raises(RuntimeError, match="did not converge"):
+        channel.Cs(False)
+    np.testing.assert_array_equal(channel.PX(), [0.2, 0.8])
+
+
+def test_capacity_for_the_script_example_with_boundary_optimum(capsys):
+    # H(Y|X)=log2(3) for every input. H(Y) is maximized by the output
+    # [1/6,1/6,1/3,1/6,1/6], attained by source [1/2,0,1/2].
+    # Therefore capacity is exactly 2/3 bits.
+    channel = BSC(
+        [1 / 3] * 3,
+        [
+            [1 / 3, 1 / 3, 1 / 3, 0, 0],
+            [0, 1 / 3, 1 / 3, 1 / 3, 0],
+            [0, 0, 1 / 3, 1 / 3, 1 / 3],
+        ],
+    )
+    with np.errstate(divide="raise", invalid="raise", over="raise"):
+        assert channel.Cs(False) == pytest.approx(2 / 3, abs=1e-10)
+    np.testing.assert_array_equal(channel.PX(), [1 / 3] * 3)
     assert capsys.readouterr().out == ""
