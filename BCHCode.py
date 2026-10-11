@@ -2,7 +2,6 @@
 import numpy as np
 from CyclicCode import CyclicCode
 from GaloisField import X
-import math
 
 
 def g(GF, t, verbose=True):
@@ -55,55 +54,34 @@ def g(GF, t, verbose=True):
 
 
 def HCF(A, B):
-    """Calculate the highest common factor (HCF) of two integer numbers
-    using the Euclidean Algorithm.
-    (slide 24)
-    """
-    if A < B:  # A has to be >= B
-        tmp = A
-        A = B
-        B = tmp
+    """Print integer Euclid steps and return the nonnegative GCD exactly."""
+    A, B = abs(A), abs(B)
+    if A < B:
+        A, B = B, A
+    if A == 0:
+        print(0)
+        return 0
 
-    i = -1
-    while True:
-        # init values for i = -1 and i = 0
-        if i == -1:
-            ri = A
-            si = 1
-            ti = 0
-            qi = "-"
-        elif i == 0:
-            ri = B
-            si = 0
-            ti = 1
-            qi = "-"
-        else:
-            # recursive calculations
-            qi = math.floor(ri_minus2 / ri_minus1)
-            ri = ri_minus2 - qi * ri_minus1  # = ri_minus2 % ri_minus1
-            si = si_minus2 - qi * si_minus1
-            ti = ti_minus2 - qi * ti_minus1
-
-        # break condition?
-        if ri == 0:
-            print(ri_minus1)
-            return ri_minus1  # -> the previus r was the HCF
-
-        # optional print
-        print(i, "\t", ri, "\t", qi, "\t", si, "\t", ti)
-
-        # store previous two values
-        if i >= 0:
-            ri_minus2 = ri_minus1
-            si_minus2 = si_minus1
-            ti_minus2 = ti_minus1
-        if i >= -1:
-            ri_minus1 = ri
-            si_minus1 = si
-            ti_minus1 = ti
-
-        # increase i
+    print(-1, "\t", A, "\t", "-", "\t", 1, "\t", 0)
+    if B != 0:
+        print(0, "\t", B, "\t", "-", "\t", 0, "\t", 1)
+    previous_r, r = A, B
+    previous_s, s = 1, 0
+    previous_t, t = 0, 1
+    i = 1
+    while r != 0:
+        quotient = previous_r // r
+        next_r = previous_r - quotient * r
+        next_s = previous_s - quotient * s
+        next_t = previous_t - quotient * t
+        if next_r != 0:
+            print(i, "\t", next_r, "\t", quotient, "\t", next_s, "\t", next_t)
+        previous_r, r = r, next_r
+        previous_s, s = s, next_s
+        previous_t, t = t, next_t
         i += 1
+    print(previous_r)
+    return previous_r
 
 
 class BCHCode(CyclicCode):

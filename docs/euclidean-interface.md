@@ -1,8 +1,8 @@
 # Euclidean algorithm interfaces
 
 The two methods named `HCF` have different purposes. These contracts retain
-their existing names and calling conventions. Strict expected-failure tests
-record defects before fixes are implemented.
+their existing names and calling conventions. Regression tests cover the
+formerly failing edge cases without expected-failure markers.
 
 ## Integer greatest common divisor
 

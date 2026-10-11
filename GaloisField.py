@@ -610,77 +610,51 @@ class GaloisField:
         return True
 
     def HCF(self, A, B, verbose=False):
-        """Calculate the highest common factor (HCF) of two polynomials numbers
-        using the Euclidean Algorithm.
-        (slide 24)
-        Returns:
-            ri, ti
+        """Return an early-stopping extended-Euclid pair for BCH/RS decoding.
+
+        Order nonzero operands by degree, then return (r, t) satisfying
+        r = t * smaller_operand modulo larger_operand. Stop at zero r or
+        degree(r) < degree(t). This helper does not compute a full GCD.
         """
+        if np.count_nonzero(A) == 0 or np.count_nonzero(B) == 0:
+            raise ValueError("Polynomial Euclid requires nonzero operands")
+        A, B = np.array(A, dtype=int, copy=True), np.array(B, dtype=int, copy=True)
+        if degree(A) < degree(B):
+            A, B = B, A
+
+        previous_r, r = A, B
+        previous_t, t = np.zeros(1, dtype=int), np.ones(1, dtype=int)
+
+        def print_row(i, remainder, quotient, coefficient):
+            print(i, "||", "\t", self.polyToString(remainder), "||", "\t", self.polyToString(quotient), "||", "\t", self.polyToString(coefficient))
 
         if verbose:
             print()
-            print("i  ||   r_i = r_(i−2) − q_i * r_(i−1)  ||    q_i   ||    t_i = t_(i−2) − t_i * t_(i−1)")
+            print("i  ||   r_i = r_(i−2) − q_i * r_(i−1)  ||    q_i   ||    t_i = t_(i−2) − q_i * t_(i−1)")
             print("--------------------------------------------------------------------------------")
+            print_row(-1, previous_r, "-", previous_t)
+            print_row(0, r, "-", t)
 
-        if degree(A) < degree(B):  # A has to be >= B
-            tmp = A
-            A = B
-            B = tmp
-
-        i = -1
-        while True:
-            # init values for i = -1 and i = 0
-            if i == -1:
-                ri = A
-                ti = np.zeros(1)
-                qi = "-"
-            elif i == 0:
-                ri = B
-                ti = np.ones(1)
-                qi = "-"
-            else:
-                # recursive calculations
-                qi = self.divPoly(ri_minus2, ri_minus1)
-                ri = self.addPoly(ri_minus2, self.multPoly(qi, ri_minus1))  # = ri_minus2 % ri_minus1
-                ti = self.addPoly(ti_minus2, self.multPoly(qi, ti_minus1))
-
-            # optional print
-            if verbose:
-                print(
-                    i,
-                    "||",
-                    "\t",
-                    self.polyToString(ri),
-                    "||",
-                    "\t",
-                    self.polyToString(qi),
-                    "||",
-                    "\t",
-                    self.polyToString(ti),
-                )
-
-            # break condition?
-            if degree(ri) < degree(ti):
-                if verbose:
-                    print()
-                    print("When the degree of the polynomial in column r_i(X) is lower than the")
-                    print("degree of the polynomial in column t_i(X), the recursion is halted.")
-                    print("In this case:")
-                    print("  r_" + str(i) + "(X) = " + self.polyToString(ri))
-                    print("  t_" + str(i) + "(X) = " + self.polyToString(ti))
-                    print()
-                return ri, ti
-
-            # store previous two values
-            if i >= 0:
-                ri_minus2 = ri_minus1
-                ti_minus2 = ti_minus1
-            if i >= -1:
-                ri_minus1 = ri
-                ti_minus1 = ti
-
-            # increase i
+        i = 0
+        while np.count_nonzero(r) != 0 and degree(r) >= degree(t):
+            quotient = self.divPoly(previous_r, r)
+            next_r = self.addPoly(previous_r, self.multPoly(quotient, r))
+            next_t = self.addPoly(previous_t, self.multPoly(quotient, t))
+            previous_r, r = r, next_r
+            previous_t, t = t, next_t
             i += 1
+            if verbose:
+                print_row(i, r, quotient, t)
+
+        if verbose:
+            print()
+            print("When the remainder is zero or its degree is lower than the")
+            print("degree of the polynomial in column t_i(X), the recursion is halted.")
+            print("In this case:")
+            print("  r_" + str(i) + "(X) = " + self.polyToString(r))
+            print("  t_" + str(i) + "(X) = " + self.polyToString(t))
+            print()
+        return r.astype(int), t.astype(int)
 
 
 INF = float("inf")  # infinity variable

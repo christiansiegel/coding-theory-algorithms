@@ -24,7 +24,7 @@ Work proceeds one step at a time, with user review before each commit.
    committed in `16b0188`; capacity optimization committed in `8f128d6`.
 4. **Formatting and linting — Ruff formatting committed in `6e7ac33`.**
    Routine lint cleanup committed in `9fe7c07`. Euclidean contracts and
-   independent edge-case tests await review before algorithm changes.
+   independent edge-case tests committed in `e891a53`; Euclidean fixes await review.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
 
@@ -57,7 +57,6 @@ Work proceeds one step at a time, with user review before each commit.
   all five expected failures. Additional checks cover unhelpful inputs, symbol
   permutations, verbose output, and source preservation on nonconvergence.
   The channel script's boundary optimum is checked independently at 2/3 bits.
-  Current full-suite result: **290 passed, 11 expected failures**, with NumPy 2.5.4.
 - [Binary code contract](docs/binary-code-interface.md), `tests/test_linear_codes.py`,
   and `tests/test_cyclic_codes.py` cover systematic matrices, enumeration,
   encoding, weight distributions, and exhaustive correction in small linear
@@ -87,37 +86,27 @@ Work proceeds one step at a time, with user review before each commit.
 - [Euclidean contracts](docs/euclidean-interface.md) distinguish integer GCD
   from the early-stopping polynomial decoder helper. Tests compare integers
   against `math.gcd` and verify polynomial known answers and modular identities
-  using independent arithmetic. Strict expected failures cover the confirmed
-  zero/sign/large-integer and polynomial zero-remainder defects, plus the
-  intended validation of zero polynomial operands.
-- `uv run ruff format --check .` now passes across the codebase.
-  `uv run ruff check .` now reports 31 diagnostics, all in the integer and
-  polynomial Euclidean loops. Investigate their behavior and add independent
-  edge-case tests before changing them; diagnostics alone do not establish
-  which paths are incorrect.
+  using independent arithmetic. Fixes remove all expected-failure markers for
+  zero/sign/large-integer and polynomial zero-remainder defects, and implement
+  the reviewed validation of zero polynomial operands. Signed integer checks
+  now cover every pair from -25 to 25; verbose output covers the zero stop.
+- `uv run ruff format --check .` and `uv run ruff check .` now pass across
+  the codebase with the 200-character line-length target. Intentional unused
+  playground imports retain their file-level exemption.
 
-## Euclidean contracts and tests awaiting review
+## Euclidean fixes awaiting review
 
-- Document existing names and the decoder helper's early stopping, operand
-  ordering, modular identity, and nonzero-input domain.
-- Test all nonnegative integer pairs up to 25 (zero/zero has its own regression).
-  Add signed, zero/zero, floating-point precision, and overflow regressions.
-- Check polynomial known answers in GF(2)/GF(4), identities in GF(2)/GF(4)/GF(8),
-  trailing zeros, operand ordering, and input preservation.
-- Add strict expected failures for equal/constant polynomial operands and the
-  intended `ValueError` for zero polynomial operands. Production code is unchanged.
-- Validation: **290 passed, 11 expected failures**; test lint and repository-wide
-  formatting checks pass.
-
-## Confirmed Euclidean defects
-
-- Integer `(0,0)` reads an uninitialized previous remainder; negative inputs can
-  return a negative GCD. Floating-point quotients give -1 rather than 1 for
-  `(2**54+1,3)` and overflow for `(10**400,3)`.
-- The polynomial helper does not terminate on a zero remainder when t is
-  constant; equal operands and constant pairs reach division by zero.
-- Zero polynomial operands currently reach division by zero; explicit validation
-  is part of the proposed helper contract.
+- Initialize Euclidean state explicitly in both functions, resolving the
+  remaining undefined/unused-variable diagnostics.
+- Normalize integer signs, handle `(0,0)`, and use exact integer quotients.
+  Precision and overflow regressions now pass.
+- Stop polynomial Euclid on a zero remainder, including equal and constant
+  operands. Reject zero operands with `ValueError`. Preserve early stopping,
+  degree ordering, modular identity, and the decoder's use of the helper.
+- Remove all 11 expected-failure markers, broaden signed integer checks, and
+  check verbose zero-remainder output. Full lint and formatter checks pass.
+- Validation: **302 tests passed with no warnings or expected failures**,
+  including all BCH/RS decoder regressions, with NumPy 2.5.4.
 
 ## Completed fixes
 

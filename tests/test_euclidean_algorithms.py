@@ -11,17 +11,14 @@ from GaloisField import GaloisField
 from .field_reference import multiply_bits, reference_poly_division, reference_poly_product, trim_polynomial
 
 
-def test_integer_gcd_for_small_nonnegative_operands(capsys):
-    for a in range(26):
-        for b in range(26):
-            if a == b == 0:
-                continue
+def test_integer_gcd_for_small_signed_operands(capsys):
+    for a in range(-25, 26):
+        for b in range(-25, 26):
             assert HCF(a, b) == math.gcd(a, b)
     assert capsys.readouterr().out
 
 
 @pytest.mark.parametrize("a,b", [(0, 0), (-15, 6), (15, -6), (-15, -6), (2**54 + 1, 3), (10**400, 3)])
-@pytest.mark.xfail(strict=True, reason="integer Euclid mishandles zero/signs and uses floating-point division")
 def test_integer_gcd_edge_cases(a, b):
     assert HCF(a, b) == math.gcd(a, b)
 
@@ -71,7 +68,6 @@ def test_polynomial_euclid_modular_identity_and_input_preservation(modulus, caps
 
 
 @pytest.mark.parametrize("a,b,expected_t", [([1, 1], [1, 1], [1]), ([1], [1], [1])])
-@pytest.mark.xfail(strict=True, reason="zero remainder does not stop when t is constant")
 def test_polynomial_euclid_zero_remainder_with_constant_coefficient(a, b, expected_t):
     field = GaloisField()
     r, t = field.HCF(np.array(a), np.array(b))
@@ -80,7 +76,16 @@ def test_polynomial_euclid_zero_remainder_with_constant_coefficient(a, b, expect
 
 
 @pytest.mark.parametrize("a,b", [([0], [1, 1]), ([1, 1], [0]), ([0], [0])])
-@pytest.mark.xfail(strict=True, reason="zero operands reach division by zero instead of input validation")
 def test_polynomial_euclid_rejects_zero_operands(a, b):
     with pytest.raises(ValueError):
         GaloisField().HCF(np.array(a), np.array(b))
+
+
+def test_polynomial_euclid_verbose_zero_remainder(capsys):
+    r, t = GaloisField().HCF(np.array([1, 1]), np.array([1, 1]), verbose=True)
+    assert trim_polynomial(r) == [0]
+    assert trim_polynomial(t) == [1]
+    output = capsys.readouterr().out
+    assert "remainder is zero" in output
+    assert "r_1(X) = 0" in output
+    assert "t_1(X) = 1" in output
