@@ -1,6 +1,7 @@
 """Known BCH/RS answers built from independent field-polynomial arithmetic."""
 
 from itertools import product
+import re
 
 import numpy as np
 import pytest
@@ -185,6 +186,38 @@ def test_rs_generator_roots_and_dimensions(modulus, t):
     np.testing.assert_array_equal(code.g(), [labels[v] for v in expected])
     assert code.n() == len(bits) - 1
     assert code.k() == code.n() - 2 * t
+
+
+@pytest.mark.parametrize("modulus,t", [(0b111, 1), (0b1011, 1), (0b1011, 2)])
+def test_rs_info_reports_actual_roots_and_symbol_parameters(modulus, t, capsys):
+    field, bits, _ = field_reference(modulus)
+    code = RSCode(field, t)
+    before = code.g().copy()
+    generator = generator_from_roots(modulus, bits, t, binary=False)
+    roots = []
+    for label, value in enumerate(bits[1:], start=1):
+        evaluated = 0
+        for coefficient in reversed(generator):
+            evaluated = multiply_bits(evaluated, value, modulus) ^ coefficient
+        if evaluated == 0:
+            roots.append("1" if label == 1 else "α^" + str(label - 1))
+    assert len(roots) == 2 * t
+    assert code.printInfo() is None
+    lines = capsys.readouterr().out.splitlines()
+    root_line = next(line for line in lines if line.startswith("Roots of g(X)"))
+    assert root_line.split(":", 1)[1].strip().split(", ") == roots
+    n = len(bits) - 1
+    for prefix, expected in [("Code length", n), ("Message length", n - 2 * t), ("Number of parity", 2 * t)]:
+        line = next(line for line in lines if line.startswith(prefix))
+        assert "symbols" in line
+        assert int(line.rsplit("=", 1)[1]) == expected
+    distance_line = next(line for line in lines if line.startswith("Minimum"))
+    assert "symbol distance" in distance_line
+    assert int(re.search(r"dmin\s*=\s*(\d+)", distance_line).group(1)) == 2 * t + 1
+    correction_line = next(line for line in lines if line.startswith("Error correction capability"))
+    assert "symbols" in correction_line
+    assert int(correction_line.rsplit("=", 1)[1]) == t
+    np.testing.assert_array_equal(code.g(), before)
 
 
 @pytest.mark.parametrize("systematic", [False, True])

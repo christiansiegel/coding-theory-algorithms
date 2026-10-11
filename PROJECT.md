@@ -38,10 +38,23 @@ the user authorizes committing a specific step without review.
    probability contracts and tests committed in `85b18a4`; probability fix
    committed in `6321ee2`. Root-helper contracts and tests committed in
    `5451be8`; root-helper fixes committed in `5369833`. Binary polynomial
-   classification contracts and tests committed in `fb75aa0`; fixes complete
-   and authorized for commit without review.**
+   classification contracts and tests committed in `fb75aa0`; fixes committed
+   in `1bcaf52`. RS diagnostic fixes complete.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
+
+## Completed RS diagnostic fixes
+
+- List every actual RS generator root rather than conjugate representatives
+  followed by an incorrect claim about all their conjugates.
+- Label lengths, parity count, minimum distance, and correction radius in
+  symbols, matching the RS alphabet.
+- Independently evaluate generator polynomials over GF(4)/GF(8) to verify the
+  printed root lists for RS(3,1), RS(7,5), and RS(7,3). Check parameter values,
+  generator preservation, and the diagnostic's `None` return.
+- The three regressions fail before the fix and pass afterward.
+- Validation: `make check` passes lint and formatting checks, with **415 tests
+  passed** and no expected failures.
 
 ## Completed binary polynomial classification fixes
 

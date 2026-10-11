@@ -48,6 +48,11 @@ See the [field representation contract](finite-field-interface.md).
 | `dmin()`, `t()` | Return 2t+1 and t for valid nondegenerate primitive RS parameters. Distance counts nonzero symbols, and any enumeration must cover field-valued messages. |
 | `S(r, verbose=True)` | Evaluate r at alpha^1,...,alpha^(2t), returning 2t field labels. |
 | `decode(r, verbose=True)` | Correct up to t erroneous symbols, including zero errors and arbitrary nonzero error values. Returned zero padding may vary. |
+| `printInfo()` | Print the generator polynomial and every actual generator root in the supplied field. Report lengths, parity count, distance, and correction radius in symbols. Return `None` and preserve the generator. |
+
+RS generator roots need not form complete Frobenius conjugate groups. The
+diagnostic lists actual roots rather than implying that their conjugates are
+also roots. Output spacing is not an interface contract.
 
 No binary-only matrix or probability methods are promised for RS in this step.
 The implementation currently inherits several such methods; they need separate

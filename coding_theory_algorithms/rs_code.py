@@ -87,20 +87,16 @@ class RSCode(BCHCode):
         return self._t
 
     def printInfo(self):
-
+        """Print the generator's actual roots and parameters measured in symbols."""
         GF = self.GF()
         t = self._t
         print()
         print("Generator Polynomial:        g(X) = " + GF.polyToString(self.g()))
-        rootStr = ""
-        roots = GF.removeConjugateRoots(GF.roots(self.g()))
-        for root in roots:
-            rootStr += GF.elementToString(root) + ", "
-        rootStr = rootStr[:-2]  # remove last comma
-        print("Roots of g(X) in GF(2^" + str(self.GF().m()) + "):    " + rootStr + " and all conjugate roots")
-        print("Code length:                 n = q - 1 = " + str(self.n()))
-        print("Message length:              k = " + str(self.k()))
-        print("Number of parity bits:       n - k = 2t = " + str(2 * t))
-        print("Minimum Hamming distance:    dmin = " + str(2 * t + 1) + " = 2t + 1")
-        print("Error correction capability: t = " + str(t))
+        rootStr = ", ".join(GF.elementToString(root) for root in GF.roots(self.g()))
+        print("Roots of g(X) in GF(2^" + str(GF.m()) + "):    " + rootStr)
+        print("Code length (symbols):       n = q - 1 = " + str(self.n()))
+        print("Message length (symbols):    k = " + str(self.k()))
+        print("Number of parity symbols:    n - k = 2t = " + str(2 * t))
+        print("Minimum symbol distance:     dmin = " + str(2 * t + 1) + " = 2t + 1")
+        print("Error correction capability (symbols): t = " + str(t))
         print()
