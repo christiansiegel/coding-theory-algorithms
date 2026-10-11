@@ -29,6 +29,19 @@ Work proceeds one step at a time, with user review before each commit.
 5. **Package structure — complete.** Move implementations into a source
    package, preserving old imports with compatibility modules and keeping
    `playground.py` runnable. Dependency installation remains unchanged.
+6. **Local checks — complete.** Add one command for lint,
+   formatting checks, and tests, plus individual targets. Keep checks local.
+
+## Completed local checks
+
+- `make` and `make check` run Ruff lint, formatting checks, and pytest.
+- Individual targets are `test`, `lint`, `format-check`, and `format`.
+  Only `format` applies formatting changes; the check targets preserve source.
+- Commands use `uv run --locked` to preserve the dependency lockfile and
+  propagate errors through Make. `UV` can be overridden when needed.
+- Validation: `make check` passes lint, formatting checks, and **317 tests**.
+  Each target propagates a simulated command failure, and check stops on a
+  failed lint step. Source, configuration, and lockfile contents are unchanged.
 
 ## Baseline and validation
 

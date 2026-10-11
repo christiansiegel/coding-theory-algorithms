@@ -23,14 +23,18 @@ Existing imports such as `from GaloisField import GaloisField` still work.
 
 ## Development
 
-With [uv](https://docs.astral.sh/uv/) installed, run these commands from the
+With [uv](https://docs.astral.sh/uv/) and Make installed, run these commands from the
 repository root:
 
 ```sh
 uv sync --locked
 uv run python playground.py
-uv run python -m pytest
+make check
 ```
+
+`make check` runs lint, formatting checks, and tests without changing source files.
+Use `make test`, `make lint`, or `make format-check` to run individual checks.
+`make format` applies formatting changes.
 
 Dependencies are recorded in `uv.lock`. See [PROJECT.md](PROJECT.md) for the
 quality-improvement plan, known issues, and validation status.
