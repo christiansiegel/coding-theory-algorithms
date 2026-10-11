@@ -23,8 +23,8 @@ Work proceeds one step at a time, with user review before each commit.
    committed in `cb124be`.** General channel-capacity contract and tests
    committed in `16b0188`; capacity optimization committed in `8f128d6`.
 4. **Formatting and linting — Ruff formatting committed in `6e7ac33`.**
-   Routine lint cleanup awaits review. Investigate the Euclidean algorithms
-   in a separate step before resolving their diagnostics.
+   Routine lint cleanup committed in `9fe7c07`. Euclidean contracts and
+   independent edge-case tests await review before algorithm changes.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
 
@@ -57,7 +57,7 @@ Work proceeds one step at a time, with user review before each commit.
   all five expected failures. Additional checks cover unhelpful inputs, symbol
   permutations, verbose output, and source preservation on nonconvergence.
   The channel script's boundary optimum is checked independently at 2/3 bits.
-  Current full-suite result: **282 passed**, with NumPy 2.5.4.
+  Current full-suite result: **290 passed, 11 expected failures**, with NumPy 2.5.4.
 - [Binary code contract](docs/binary-code-interface.md), `tests/test_linear_codes.py`,
   and `tests/test_cyclic_codes.py` cover systematic matrices, enumeration,
   encoding, weight distributions, and exhaustive correction in small linear
@@ -84,28 +84,47 @@ Work proceeds one step at a time, with user review before each commit.
   symbols and selected one- and two-error patterns. All expected-failure
   markers have been removed from BCH/RS tests. Ruff checks pass for the test files.
 - The project runs from the repository root without being installed as a package.
+- [Euclidean contracts](docs/euclidean-interface.md) distinguish integer GCD
+  from the early-stopping polynomial decoder helper. Tests compare integers
+  against `math.gcd` and verify polynomial known answers and modular identities
+  using independent arithmetic. Strict expected failures cover the confirmed
+  zero/sign/large-integer and polynomial zero-remainder defects, plus the
+  intended validation of zero polynomial operands.
 - `uv run ruff format --check .` now passes across the codebase.
   `uv run ruff check .` now reports 31 diagnostics, all in the integer and
   polynomial Euclidean loops. Investigate their behavior and add independent
   edge-case tests before changing them; diagnostics alone do not establish
   which paths are incorrect.
 
-## Routine lint cleanup awaiting review
+## Euclidean contracts and tests awaiting review
 
-- Remove three unused imports and the unused RS root-list construction.
-  Documented module imports and script commands remain supported.
-- Keep the playground's full starting set of algorithm imports for solving new
-  exercises. A file-level F401 exemption records that these imports are intentional.
-- Rename the ambiguous conjugation counter without changing printed text.
-- Replace `is 0` with numeric equality in standard-array printing.
-- Remove three unused assignment targets while preserving their method calls,
-  including any effects in subclasses. Algorithm behavior is otherwise unchanged.
-- Reduce Ruff diagnostics from 45 to 31; all remaining diagnostics concern
-  the Euclidean loops and are reserved for the next step.
-- Validation: **282 tests passed with no warnings**; repository-wide formatter
-  checks and lint checks outside the two Euclidean-loop files pass.
+- Document existing names and the decoder helper's early stopping, operand
+  ordering, modular identity, and nonzero-input domain.
+- Test all nonnegative integer pairs up to 25 (zero/zero has its own regression).
+  Add signed, zero/zero, floating-point precision, and overflow regressions.
+- Check polynomial known answers in GF(2)/GF(4), identities in GF(2)/GF(4)/GF(8),
+  trailing zeros, operand ordering, and input preservation.
+- Add strict expected failures for equal/constant polynomial operands and the
+  intended `ValueError` for zero polynomial operands. Production code is unchanged.
+- Validation: **290 passed, 11 expected failures**; test lint and repository-wide
+  formatting checks pass.
+
+## Confirmed Euclidean defects
+
+- Integer `(0,0)` reads an uninitialized previous remainder; negative inputs can
+  return a negative GCD. Floating-point quotients give -1 rather than 1 for
+  `(2**54+1,3)` and overflow for `(10**400,3)`.
+- The polynomial helper does not terminate on a zero remainder when t is
+  constant; equal operands and constant pairs reach division by zero.
+- Zero polynomial operands currently reach division by zero; explicit validation
+  is part of the proposed helper contract.
 
 ## Completed fixes
+
+- Remove unused imports/root-list construction, rename the conjugation counter,
+  and use numeric equality in standard-array printing. Preserve method calls
+  whose assignment targets were unused and retain intentional playground imports.
+- Routine lint validation: 282 tests passed without warnings; formatting passes.
 
 - Optimize finite discrete channel capacity with Blahut–Arimoto iterations,
   using log probabilities and omitting unreachable outputs. Preserve the
