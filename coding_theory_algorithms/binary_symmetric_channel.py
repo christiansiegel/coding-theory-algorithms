@@ -58,6 +58,7 @@ class BSC:
         return np.array(PY).astype(float)
 
     def PXY(self, verbose=False):
+        """Return P(X|Y), marking unreachable output columns with NaN."""
         # Bayes theorem
         PYX = self.PYX()
         PX = self.PX()
@@ -66,6 +67,11 @@ class BSC:
         PXY = np.zeros(np.transpose(PYX).shape)
 
         for j in range(0, PYX.shape[0]):
+            if PY[j] == 0:
+                PXY[:, j] = np.nan
+                if verbose:
+                    print("P(X | Y = " + str(j) + ") is undefined because P(Y = " + str(j) + ") = 0")
+                continue
             for i in range(0, PYX.shape[1]):
                 PXY[i, j] = PYX[j, i] * PX[i] / PY[j]
                 if verbose:
@@ -124,11 +130,14 @@ class BSC:
         return H
 
     def HXY(self, verbose=False):
+        """Return H(X|Y) in bits, excluding unreachable outputs."""
         PXY = self.PXY()
         PY = self.PY()
 
         HXY = 0
         for j in range(0, PXY.shape[1]):
+            if PY[j] == 0:
+                continue
             for i in range(0, PXY.shape[0]):
                 if PXY[i, j] == 0:
                     continue

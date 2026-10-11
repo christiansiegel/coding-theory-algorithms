@@ -21,15 +21,14 @@ def make_channel(source_zero_probability, crossover_probability):
     return BSC([x, 1 - x], [[1 - p, p], [p, 1 - p]])
 
 
-UNREACHABLE_OUTPUT = pytest.mark.xfail(strict=True, reason="unreachable outputs trigger division by zero and contaminate conditional entropy")
 CONDITIONAL_CASES = [
     pytest.param([0.2, 0.8], [[0.75, 0.25], [0.25, 0.75]], [[3 / 7, 1 / 13], [4 / 7, 12 / 13]], id="biased-binary"),
     pytest.param([0.2, 0.8], [[0.5, 0.5], [0.5, 0.5]], [[0.2, 0.2], [0.8, 0.8]], id="uninformative-binary"),
     pytest.param([1, 0], [[0.75, 0.25], [0.25, 0.75]], [[1, 1], [0, 0]], id="deterministic-noisy"),
     pytest.param([0.2, 0.8], [[1, 0], [0, 1]], [[1, 0], [0, 1]], id="biased-noiseless"),
-    pytest.param([1, 0], [[1, 0], [0, 1]], [[1, np.nan], [0, np.nan]], marks=UNREACHABLE_OUTPUT, id="deterministic-noiseless"),
-    pytest.param([0, 1], [[0, 1], [1, 0]], [[0, np.nan], [1, np.nan]], marks=UNREACHABLE_OUTPUT, id="deterministic-flipping"),
-    pytest.param([0.25, 0.75], [[1, 0, 0], [0, 1, 0]], [[1, 0, np.nan], [0, 1, np.nan]], marks=UNREACHABLE_OUTPUT, id="rectangular-unreachable"),
+    pytest.param([1, 0], [[1, 0], [0, 1]], [[1, np.nan], [0, np.nan]], id="deterministic-noiseless"),
+    pytest.param([0, 1], [[0, 1], [1, 0]], [[0, np.nan], [1, np.nan]], id="deterministic-flipping"),
+    pytest.param([0.25, 0.75], [[1, 0, 0], [0, 1, 0]], [[1, 0, np.nan], [0, 1, np.nan]], id="rectangular-unreachable"),
     pytest.param([0.25, 0.75], [[0.5, 0.5, 0], [0, 0.5, 0.5]], [[1, 0.25, 0], [0, 0.75, 1]], id="rectangular-reachable"),
 ]
 

@@ -99,5 +99,5 @@ optimum with capacity exactly 2/3 bits and optimal source `[1/2,0,1/2]`.
 
 Conditional-probability tests use explicit posterior matrices and independent
 joint/output entropy calculations, including rectangular and deterministic
-channels. Six strict expected failures record the current division-by-zero
-defect for unreachable outputs in `PXY()` and `HXY()` before the fix is reviewed.
+channels. The unreachable-output regressions now pass: `PXY()` marks undefined
+columns without dividing by zero, and `HXY()` excludes those columns.
