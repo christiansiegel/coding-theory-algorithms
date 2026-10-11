@@ -17,6 +17,20 @@ See [playground.py](playground.py) for an implementation of the following two ex
 Run with `python3 playground.py`.
 Please refer to the code comments for a detailed function description.
 
+## Development
+
+With [uv](https://docs.astral.sh/uv/) installed, run these commands from the
+repository root:
+
+```sh
+uv sync --locked
+uv run python playground.py
+uv run python -m pytest
+```
+
+Dependencies are recorded in `uv.lock`. See [PROJECT.md](PROJECT.md) for the
+quality-improvement plan, known issues, and validation status.
+
 ## Example 1
 
 ### Exercise
