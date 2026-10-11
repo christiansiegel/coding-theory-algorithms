@@ -78,11 +78,6 @@ def test_conjugate_roots_against_independent_squaring(field_case, capsys):
             assert bool(capsys.readouterr().out) == verbose
 
 
-@pytest.mark.parametrize(
-    "field_case",
-    [pytest.param(0b11, marks=pytest.mark.xfail(strict=True, reason="GF(2) group enumeration omits the identity")), 0b111, 0b1011, 0b10011],
-    indirect=True,
-)
 def test_conjugate_groups_partition_the_whole_field(field_case):
     field, modulus, bits, labels = field_case
     expected = sorted({tuple(reference_conjugate_group(root, modulus, bits, labels)) for root in range(len(bits))})
@@ -92,7 +87,6 @@ def test_conjugate_groups_partition_the_whole_field(field_case):
     assert sorted(flattened) == list(range(len(bits)))
 
 
-@pytest.mark.xfail(strict=True, reason="conjugate reduction aliases and mutates its input while iterating")
 def test_conjugate_reduction_preserves_inputs_and_supplied_representatives(field_case):
     field, modulus, bits, labels = field_case
     candidates = [[], list(range(len(bits))), list(reversed(range(len(bits)))), [1, 1, 0, 0]]

@@ -76,5 +76,6 @@ and zero-handling are checked separately. This verifies the covered small fields
 not every possible primitive polynomial or the polynomial/code algorithms.
 Root tests check every monic linear and quadratic polynomial in these fields,
 using independent evaluation. Orbit and minimal-polynomial tests use reference
-squaring and polynomial products. Strict expected failures record the missing
-GF(2) orbit and input mutation in conjugate reduction before their fixes.
+squaring and polynomial products. All root-helper regressions now pass,
+including complete GF(2) coverage and conjugate reduction that preserves inputs
+and supplied representatives.

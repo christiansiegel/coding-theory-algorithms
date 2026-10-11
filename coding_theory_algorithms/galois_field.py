@@ -441,7 +441,8 @@ class GaloisField:
         Args:
             p: polynomial to find roots for in the GF.
         Returns:
-            Roots of p in the GF as standard python array.
+            Sorted distinct nonzero roots as a Python list. Zero is excluded;
+            the zero polynomial returns every nonzero field element.
         """
         roots = []
         for element in range(1, self.q()):
@@ -480,35 +481,30 @@ class GaloisField:
         return sorted(roots)
 
     def removeConjugateRoots(self, roots):
-        """Remove all conjugate roots from given roots list and leave only
-        lowest root.
-        """
-        result = roots
-        for root in roots:
-            conjugateRoots = self.conjugateRoots(root)
-            for conjugateRoot in conjugateRoots[1:]:  # don't remove first root
-                if conjugateRoot in result:
-                    result.remove(conjugateRoot)
+        """Return the lowest supplied root per orbit, preserving the input list."""
+        result = []
+        covered = set()
+        for root in sorted(set(roots)):
+            if root not in covered:
+                result.append(root)
+                covered.update(self.conjugateRoots(root))
         return result
 
     def conjugateRootGroups(self):
-        """Calculate all conjugate groups and return them in a
-        python array.
-        """
-        groups = [[0]]
-        m = self.m()
-        for i in range(0, 2**m - 1):
-            group = self.conjugateRoots(i)
-            if group not in groups:
+        """Partition every field element, including zero, into Frobenius orbits."""
+        groups = []
+        covered = set()
+        for root in range(self.q()):
+            if root not in covered:
+                group = self.conjugateRoots(root)
                 groups.append(group)
+                covered.update(group)
         return groups
 
     def minimalPolynomial(self, roots):
-        """Generate minimal polynomial from conjugate root group.
+        """Return the monic binary minimal polynomial of a complete Frobenius orbit.
         Args:
-            conjugateRoots: Exponent of roots in a standard python array.
-
-        BE AWARE THAT THE MINIMALPOLYNOMAILS RETURNED IS ONLY EVERY SECOND SO Φ_1,Φ_3,Φ_5 etc.
+            roots: Distinct canonical element labels, as a list or array.
         """
         result = np.ones(1)
         for root in roots:

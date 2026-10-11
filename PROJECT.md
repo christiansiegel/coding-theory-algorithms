@@ -36,12 +36,12 @@ the user authorizes committing a specific step without review.
    `0cddc10`; fix committed in `f749436`. Conditional-probability contracts and
    tests committed in `5688033`; fix committed in `4891160`. Linear-code
    probability contracts and tests committed in `85b18a4`; probability fix
-   committed in `6321ee2`. Root-helper contracts, tests, and fixes are authorized
-   for commit without review.**
+   committed in `6321ee2`. Root-helper contracts and tests committed in
+   `5451be8`; root-helper fixes complete and authorized for commit without review.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
 
-## Root-helper contracts and tests
+## Completed root-helper fixes
 
 - Preserve the nonzero-root search used by decoding; document zero polynomials
   and repeated roots. Check all monic linear/quadratic polynomials in GF(2),
@@ -51,8 +51,15 @@ the user authorizes committing a specific step without review.
   polynomials for each complete orbit.
 - Require conjugate reduction to preserve unsorted or repeated input lists and
   select the lowest supplied label per represented orbit.
-- Five strict expected failures record the missing GF(2) identity orbit and
-  caller-list aliasing/mutation in conjugate reduction. Production is unchanged.
+- Enumerate all q field elements when building conjugate groups. Track covered
+  orbits to avoid redundant work and include the GF(2) identity orbit.
+- Reduce a sorted copy of distinct supplied roots, keeping one supplied
+  representative per orbit without mutating inputs or dropping singleton lists.
+- Correct minimal-polynomial argument documentation: roots are element labels,
+  not exponents. Enable all five regression cases.
+- Validation: `make check` passes lint and formatting checks, with **396 tests
+  passed** and no expected failures. All **161 finite-field tests** pass,
+  alongside BCH/RS decoding and legacy import checks.
 
 ## Completed linear-code probability fix
 
