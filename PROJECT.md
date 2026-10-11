@@ -19,8 +19,9 @@ Work proceeds one step at a time, with user review before each commit.
    compatibility fix committed in `6292409`; binary symmetric channel fixes
    committed in `272be01`; cyclic-code fixes committed in `7e8bdc5`;
    polynomial fixes committed in `8eb6b7b`; BCH construction and shared
-   decoding fixes committed in `507b412`.** RS encoding and distance fixes
-   await review.
+   decoding fixes committed in `507b412`; RS encoding and distance fixes
+   committed in `cb124be`.** General channel-capacity contract and regression
+   tests await review.
 4. **Formatting and linting.** Apply Ruff in a separate change.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
@@ -50,6 +51,10 @@ Work proceeds one step at a time, with user review before each commit.
   `tests/test_binary_symmetric_channel.py` check closed-form entropy, capacity,
   and efficiency results for binary symmetric channels, including boundary
   probabilities, verbosity, and source preservation.
+  General-capacity tests add independent Z-channel answers, duplicate input
+  rows, rectangular matrices, and unreachable outputs. Five strict expected
+  failures demonstrate underestimated capacity and efficiency above one.
+  Current full-suite result: **273 passed, 5 expected failures**, with NumPy 2.5.4.
 - [Binary code contract](docs/binary-code-interface.md), `tests/test_linear_codes.py`,
   and `tests/test_cyclic_codes.py` cover systematic matrices, enumeration,
   encoding, weight distributions, and exhaustive correction in small linear
@@ -74,17 +79,18 @@ Work proceeds one step at a time, with user review before each commit.
   over GF(8), in both encoding forms, and independently enumerate their
   minimum symbol weights. GF(8) syndrome and decoding checks include nonbinary
   symbols and selected one- and two-error patterns. All expected-failure
-  markers have been removed. Current local result: **269 passed**, with NumPy
-  2.5.4. Ruff checks pass for the test files.
+  markers have been removed from BCH/RS tests. Ruff checks pass for the test files.
 - The project runs from the repository root without being installed as a package.
 - `uv run ruff check .` and `uv run ruff format --check .` expose existing source
   issues; passing them across the codebase is deferred to step 4.
 
-## Fixes awaiting review
+## Tests awaiting review
 
-- Encode RS messages with the supplied field's polynomial arithmetic.
-- Return the primitive RS minimum symbol distance `2t+1` and design radius t,
-  avoiding binary enumeration and correcting the syndrome count.
+- Extend the channel contract to define capacity as maximum mutual information
+  over source distributions for valid finite discrete transition matrices.
+- Add independent known-answer tests before changing the capacity calculation.
+  Symmetric and deterministic boundary cases pass; asymmetric capacity,
+  optimal-source efficiency, and duplicate-row regressions fail as expected.
 
 ## Confirmed issues to address
 
@@ -94,6 +100,10 @@ Work proceeds one step at a time, with user review before each commit.
   General capacity optimization remains to be addressed.
 
 ## Completed fixes
+
+- Encode RS messages with the supplied field's polynomial arithmetic.
+- Return the primitive RS minimum symbol distance `2t+1` and design radius t,
+  avoiding binary enumeration and correcting the syndrome count.
 
 - Return a copy of an error-free BCH/RS codeword when all syndromes are zero,
   avoiding division by zero in Euclid.

@@ -1,4 +1,4 @@
-"""Check binary symmetric channels against their closed-form entropy formulas."""
+"""Check channel calculations against independent closed-form answers."""
 
 import math
 
@@ -86,3 +86,52 @@ def test_verbose_efficiency_includes_the_result(capsys):
 def test_source_entropy_including_zero_probabilities(x):
     channel = make_channel(x, 0.1)
     assert channel.HX() == pytest.approx(binary_entropy(x))
+
+
+@pytest.mark.parametrize("p", [0.1, 0.5, 0.8])
+@pytest.mark.xfail(strict=True, reason="capacity assumes the uniform source is optimal")
+def test_asymmetric_z_channel_capacity(p, capsys):
+    # For P=[[1,0],[p,1-p]], maximize h(u*(1-p))-u*h(p), where
+    # u=P(X=1). Setting its derivative to zero gives this closed form.
+    expected = math.log2(1 + (1 - p) * p ** (p / (1 - p)))
+    channel = BSC([0.2, 0.8], [[1, 0], [p, 1 - p]])
+    before = channel.PX().copy()
+    assert channel.Cs(False) == pytest.approx(expected, abs=1e-10)
+    np.testing.assert_array_equal(channel.PX(), before)
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.xfail(
+    strict=True, reason="underestimated capacity gives efficiency above 1"
+)
+def test_asymmetric_channel_efficiency_at_optimal_source(capsys):
+    # For the p=1/2 Z channel, the maximizing source is [3/5,2/5].
+    channel = BSC([0.6, 0.4], [[1, 0], [0.5, 0.5]])
+    assert channel.HY() - channel.HYX() == pytest.approx(math.log2(1.25))
+    assert channel.ChannelEfficiency(False) == pytest.approx(1, abs=1e-10)
+    np.testing.assert_array_equal(channel.PX(), [0.6, 0.4])
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.xfail(strict=True, reason="duplicate input rows bias a uniform output")
+def test_capacity_with_duplicate_input_rows():
+    # Inputs 0 and 1 have the same output; only two symbols can be distinguished.
+    channel = BSC([0.2, 0.3, 0.5], [[1, 0], [1, 0], [0, 1]])
+    assert channel.Cs(False) == pytest.approx(1, abs=1e-10)
+
+
+@pytest.mark.parametrize(
+    "source, transition, expected",
+    [
+        ([0.2, 0.8], [[1, 0, 0], [0, 1, 0]], 1),
+        ([0.2, 0.3, 0.5], np.eye(3), math.log2(3)),
+        ([0.2, 0.8], [[0.25, 0.75], [0.25, 0.75]], 0),
+        ([0.2, 0.8], [[1, 0, 0], [1, 0, 0]], 0),
+    ],
+)
+def test_general_capacity_boundary_cases(source, transition, expected, capsys):
+    channel = BSC(source, transition)
+    with np.errstate(divide="raise", invalid="raise"):
+        assert channel.Cs(False) == pytest.approx(expected, abs=1e-10)
+    np.testing.assert_array_equal(channel.PX(), source)
+    assert capsys.readouterr().out == ""

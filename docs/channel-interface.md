@@ -1,8 +1,9 @@
-# Binary symmetric channel calculations
+# Discrete channel calculations
 
-This contract covers valid binary symmetric channels and the entropy, capacity,
-and efficiency calculations tested in this step. Other discrete channels and
-conditional-probability edge cases need further review.
+This contract covers binary symmetric channels and extends capacity and
+efficiency to valid finite discrete channels. Strict expected-failure tests
+record the current general-capacity defect. Conditional-probability edge cases
+need further review.
 
 ## Inputs and conventions
 
@@ -32,14 +33,35 @@ default to quiet mode; capacity and efficiency retain their existing verbose
 defaults. Deterministic sources and crossover probabilities 0 and 1 are valid.
 At p = 1, bits are always flipped but perfectly recoverable, so capacity is 1.
 
-## Limits and verification
+## General channel capacity
 
-The class also accepts larger or asymmetric transition matrices. Its `Cs()`
-calculation evaluates mutual information at a uniform source, which need not
-maximize mutual information for those matrices. General capacity optimization
-is outside this step; results for such channels must not be assumed correct.
+The class also accepts larger or asymmetric transition matrices. For these,
+`PX` has one entry per input row, all probabilities are nonnegative and finite,
+and each input row sums to one. The source also sums to one. Rectangular
+matrices, duplicate input rows, and output columns that are always zero are
+valid. Malformed-input validation remains outside this contract.
+
+`Cs()` must maximize I(X;Y) over all input probability distributions, in bits,
+without changing this instance's source. A uniform source is optimal for a
+binary symmetric channel, but need not be optimal in general.
+`ChannelEfficiency()` returns this source's mutual information divided by the
+optimized capacity, and raises `ZeroDivisionError` at zero capacity. Quiet and
+verbose behavior follows the same conventions as above.
+
+For the asymmetric Z channel `P = [[1,0],[p,1-p]]`, with 0 < p < 1, capacity is
+`log2(1 + (1-p)*p**(p/(1-p)))`. At p=1/2 it is `log2(1.25)` (about 0.321928
+bits), achieved by source `[0.6,0.4]`. Evaluating the uniform source gives only
+about 0.311278 bits; using that as capacity incorrectly reports efficiency
+above 1 at the optimal source. This is a confirmed implementation defect.
+
+## Verification
 
 Tests use the closed-form binary entropy formulas independently of production
 methods. They cover biased and deterministic sources, noiseless and fully
 flipping channels, zero capacity, quiet/verbose output, instance independence,
 and preservation of the source even when a capacity calculation raises.
+General-channel tests use the Z-channel closed form and independently known
+capacities for distinguishable deterministic outputs and identical input rows.
+They include rectangular matrices and unreachable outputs. Capacity and
+efficiency regressions for asymmetric channels and duplicate input rows remain
+strict expected failures until the optimizer is implemented.
