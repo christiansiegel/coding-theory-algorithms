@@ -9,7 +9,8 @@ Work proceeds one step at a time, with user review before each commit.
    the README script output. Keep algorithm files unchanged.
 2. **Interface conventions and mathematical tests — finite-field element API
    committed in `b8c90d8`; linear/cyclic interfaces committed in `2ec4697`;
-   polynomial arithmetic committed in `f6be7a6`.** Document
+   polynomial arithmetic committed in `f6be7a6`; BCH/RS contracts and tests
+   awaiting review.** Document
    representations,
    shapes, systematic matrix layout, and invalid-input behavior. Test finite
    fields first, then linear/cyclic codes, BCH/RS, and channel calculations using
@@ -17,7 +18,7 @@ Work proceeds one step at a time, with user review before each commit.
 3. **Bug fixes — finite-field element fixes committed in `1990701`; NumPy
    compatibility fix committed in `6292409`; binary symmetric channel fixes
    committed in `272be01`; cyclic-code fixes committed in `7e8bdc5`;
-   polynomial fixes awaiting review.**
+   polynomial fixes committed in `8eb6b7b`.** BCH/RS defects remain below.
 4. **Formatting and linting.** Apply Ruff in a separate change.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
@@ -60,20 +61,39 @@ Work proceeds one step at a time, with user review before each commit.
   evaluation, formal derivatives, and monic multipliers using independent field
   arithmetic. The fixes remove all expected-failure markers; constant-divisor
   regressions remain isolated in subprocesses with timeouts and now cover scalar
-  and array divisors in all four fields. Current local result: **243 passed,
-  no expected failures**, with NumPy 2.5.4; Ruff checks pass for the test files.
+  and array divisors in all four fields.
+- [BCH/RS contract](docs/bch-rs-interface.md) and `tests/test_bch_rs_codes.py`
+  cover generators, independent encodings/syndromes, and small decoding cases.
+  The arithmetic oracle was moved unchanged into `tests/field_reference.py`
+  for reuse. Confirmed BCH/RS bugs are strict expected-failure regressions;
+  the affected decoding cases are isolated from the passing loops.
+  Current local result: **253 passed, 11 expected failures**, with NumPy 2.5.4;
+  Ruff checks pass for the test files.
 - The project runs from the repository root without being installed as a package.
 - `uv run ruff check .` and `uv run ruff format --check .` expose existing source
   issues; passing them across the codebase is deferred to step 4.
 
 ## Confirmed issues to address
 
+- BCH/RS decoding sends zero syndromes through Euclid and raises on error-free
+  codewords instead of returning them.
+- The decoder allocates its error vector by received polynomial degree rather
+  than code length, so correction can index beyond the array when an error
+  cancels a codeword's highest nonzero coefficient.
+- `BCHCode.H(False)` tries to index an integer field label as a vector instead
+  of expanding it into polynomial-basis bits.
+- BCH generator construction multiplies minimal polynomials without
+  deduplicating conjugacy classes. For GF(16), design t=5 produces repeated
+  factors rather than the degree-14 repetition-code generator.
+- RS encoding uses inherited GF(2) arithmetic instead of its supplied field.
+- RS distance/correction radius use binary messages and matrix arithmetic,
+  producing wrong symbol distance and syndrome counts for some fields.
 - For arbitrary transition matrices, `BSC.Cs()` assumes a uniform source is
   optimal. This is not always true: with `P = [[1, 0], [0.5, 0.5]]`, it returns
   approximately 0.311278 bits, while source `[0.6, 0.4]` achieves 0.321928 bits.
   General capacity optimization remains to be addressed.
 
-## Fixes awaiting review
+## Completed fixes
 
 - Stop polynomial division when the residual is zero, fixing constant divisors.
   Initialize the quotient as an integer zero polynomial.
@@ -84,8 +104,6 @@ Work proceeds one step at a time, with user review before each commit.
   including the highest term, and return an integer array.
 - Invert the highest-degree nonzero coefficient for monic multipliers,
   ignoring trailing zeros. The zero polynomial now raises `ZeroDivisionError`.
-
-## Completed fixes
 
 - Replace the cyclic generator-weight shortcut with exact linear
   minimum-distance enumeration using matrix encoding. For n=15 and
