@@ -99,9 +99,6 @@ def test_division_by_nonzero_elements_exhaustively(field_case):
     for b, value_b in enumerate(bits[1:], start=1):
         inverse = next(v for v in bits[1:] if multiply_bits(value_b, v, modulus) == 1)
         for a, value_a in enumerate(bits):
-            if a and a - b == -1:
-                # Covered separately: exponent -1 is a confirmed conversion bug.
-                continue
             expected = labels[multiply_bits(value_a, inverse, modulus)]
             assert field.divElements(a, b) == expected, (a, b)
 
@@ -124,43 +121,32 @@ def test_nonzero_negative_powers(field_case):
         value = 1
         for exponent in range(1, len(bits)):
             value = multiply_bits(value, inverse, modulus)
-            if a == 2 and exponent == 1:
-                # Covered separately: alpha^-1 hits the conversion bug.
-                continue
             assert field.powElement(a, -exponent) == labels[value], (a, -exponent)
 
 
-def test_division_requiring_exponent_minus_one(field_case, request):
+def test_division_requiring_exponent_minus_one(field_case):
     field, _, bits, _ = field_case
     if len(bits) == 2:
         assert field.divElements(1, 1) == 1
         return
-    request.applymarker(
-        pytest.mark.xfail(strict=True, reason="division with exponent -1 returns zero")
-    )
     assert field.divElements(1, 2) == len(bits) - 1
 
 
-def test_alpha_inverse_power(field_case, request):
+def test_alpha_inverse_power(field_case):
     field, _, bits, _ = field_case
     if len(bits) == 2:
         assert field.powElement(1, -1) == 1
         return
-    request.applymarker(
-        pytest.mark.xfail(strict=True, reason="alpha^-1 incorrectly returns zero")
-    )
     assert field.powElement(2, -1) == len(bits) - 1
 
 
-@pytest.mark.xfail(
-    strict=True, reason="elementFromExp(-1) incorrectly maps alpha's inverse to zero"
-)
 def test_negative_exponent_conversion(field_case):
     field, _, bits, _ = field_case
-    assert field.elementFromExp(-1) == len(bits) - 1
+    period = len(bits) - 1
+    for exponent in range(-3 * period, 0):
+        assert field.elementFromExp(exponent) == 1 + exponent % period
 
 
-@pytest.mark.xfail(strict=True, reason="divElements does not reject a zero denominator")
 def test_division_by_zero_raises(field_case):
     field, _, bits, _ = field_case
     for a in range(len(bits)):
@@ -168,15 +154,11 @@ def test_division_by_zero_raises(field_case):
             field.divElements(a, 0)
 
 
-@pytest.mark.xfail(strict=True, reason="powElement(0, 0) computes infinity times zero")
 def test_zero_power_zero_is_one(field_case):
     field, _, _, _ = field_case
     assert field.powElement(0, 0) == 1
 
 
-@pytest.mark.xfail(
-    strict=True, reason="powElement does not reject negative powers of zero"
-)
 def test_zero_negative_power_raises(field_case):
     field, _, _, _ = field_case
     with pytest.raises(ZeroDivisionError):

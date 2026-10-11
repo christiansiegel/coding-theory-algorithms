@@ -205,9 +205,9 @@ class GaloisField:
         """
         if exp_a == INF or exp_a == -INF: # zero element is special case
             return 0
-        a = exp_a + 1 # convert to integer representation
-        a = self.element(a) # element with exponent within 0 and q-1
-        return int(a)
+        # Normalize the exponent before adding 1: exponent -1 must not
+        # become label 0, which is reserved for the zero element.
+        return int(exp_a % (self.q() - 1) + 1)
 
     def elementToPoly(self, a, size_m = False):
         """Return element in polynomial representation.
@@ -249,8 +249,10 @@ class GaloisField:
 
     def divElements(self, a, b):
         """Divide two elements of the GF (a / b).
-        (Get remainder with modElement function)
+        Raises ZeroDivisionError if b is zero.
         """
+        if self.element(b) == 0:
+            raise ZeroDivisionError("Division by zero in a finite field")
         exp_a = self.elementToExp(a)
         exp_b = self.elementToExp(b)
         exp_q = exp_a - exp_b # division = subtracting the exponents
@@ -258,9 +260,16 @@ class GaloisField:
         return int(q)
 
     def powElement(self, a, exponent):
-        """Power the exlement a times exponent (a^exponent)
+        """Return a^exponent, with a^0 = 1 (including 0^0).
+        Raises ZeroDivisionError for negative powers of zero.
         """
+        if exponent == 0:
+            return 1
         exp_a = self.elementToExp(a)
+        if exp_a == -INF:
+            if exponent < 0:
+                raise ZeroDivisionError("Zero cannot have a negative power")
+            return 0
         exp_power = exp_a * exponent
         power = self.elementFromExp(exp_power)
         return int(power)

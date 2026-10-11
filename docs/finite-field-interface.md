@@ -2,8 +2,7 @@
 
 This contract covers construction, element conversion, and element arithmetic
 in `GaloisField.py`. Polynomial arithmetic and code interfaces will follow.
-Known departures from the contract are tested with strict expected failures;
-the implementation is unchanged in this step.
+Regression tests cover negative exponents, division by zero, and powers of zero.
 
 ## Construction and representations
 
@@ -52,9 +51,7 @@ binary integer polynomials: XOR for addition, carryless multiplication, and
 reduction by the defining polynomial. It does not call production arithmetic
 or conversion methods to generate expected answers.
 
-Every element conversion and every pair for addition and multiplication is
-checked against that reference. Division by nonzero elements is checked for
-all pairs except those requiring exponent -1; that known defect has a separate
-regression test. Negative powers similarly isolate alpha^-1 from the passing
-cases. Zero-handling is checked separately. This verifies the covered small fields,
+Every element conversion and every pair for addition, multiplication, and
+division by nonzero elements is checked against that reference. Negative powers
+and zero-handling are checked separately. This verifies the covered small fields,
 not every possible primitive polynomial or the polynomial/code algorithms.
