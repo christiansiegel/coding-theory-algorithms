@@ -45,6 +45,24 @@ Arithmetic tests use canonical labels in `[0, q)`. Inputs such as floats,
 out-of-range polynomial coefficients, and empty vectors have no established
 validation contract yet. These functions should not mutate caller-owned inputs.
 
+## Root helpers
+
+These methods accept canonical element labels in [0, q). Polynomial
+coefficients are field labels in ascending degree order, as in the polynomial
+contract. Caller-owned polynomials and root lists must be preserved.
+
+| Method | Contract |
+| --- | --- |
+| `roots(p)` | Return a sorted list of distinct nonzero field roots. Zero is excluded even if p(0)=0; the zero polynomial returns all nonzero elements. |
+| `conjugateRoots(root, verbose=False)` | Return the sorted, distinct Frobenius orbit under repeated squaring, including the supplied root. Zero and one each have singleton orbits. Quiet/verbose calls return the same group. |
+| `conjugateRootGroups()` | Return every distinct orbit once, partitioning all q elements, including zero. Group order is not an API contract. |
+| `removeConjugateRoots(roots)` | Return a new sorted list containing the lowest supplied label in each represented orbit. Accept an unsorted list with duplicates; preserve it. A singleton remains unchanged in value even if its orbit contains a lower absent label. |
+| `minimalPolynomial(roots)` | Given a complete, distinct Frobenius orbit as a list or array, return the monic product of (X+root) as an integer array. Its coefficients are binary. For [0], return X; for [1], return X+1. |
+
+`roots()` retains the nonzero search used by the decoder's Chien search.
+`minimalPolynomial()` expects one complete orbit; arbitrary or repeated roots
+have no established minimal-polynomial contract.
+
 ## Independent verification
 
 Tests construct small fields GF(2), GF(4), GF(8), and GF(16). A reference uses
@@ -56,3 +74,7 @@ Every element conversion and every pair for addition, multiplication, and
 division by nonzero elements is checked against that reference. Negative powers
 and zero-handling are checked separately. This verifies the covered small fields,
 not every possible primitive polynomial or the polynomial/code algorithms.
+Root tests check every monic linear and quadratic polynomial in these fields,
+using independent evaluation. Orbit and minimal-polynomial tests use reference
+squaring and polynomial products. Strict expected failures record the missing
+GF(2) orbit and input mutation in conjugate reduction before their fixes.

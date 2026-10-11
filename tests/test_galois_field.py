@@ -41,6 +41,94 @@ def test_reference_gf16_known_product():
     assert multiply_bits(0b1000, 0b0010, 0b10011) == 0b0011
 
 
+def reference_conjugate_group(root, modulus, bits, labels):
+    group = set()
+    value = bits[root]
+    while labels[value] not in group:
+        group.add(labels[value])
+        value = multiply_bits(value, value, modulus)
+    return sorted(group)
+
+
+def reference_evaluate(coefficients, value, modulus):
+    result = 0
+    for coefficient in reversed(coefficients):
+        result = multiply_bits(result, value, modulus) ^ coefficient
+    return result
+
+
+def test_nonzero_roots_against_independent_evaluation(field_case):
+    field, modulus, bits, _ = field_case
+    # Include constants, X, repeated roots, and every monic linear/quadratic.
+    polynomials = [[0], [1]] + [[a, 1] for a in range(len(bits))] + [[a, b, 1] for a in range(len(bits)) for b in range(len(bits))]
+    for coefficients in polynomials:
+        polynomial = np.array(coefficients)
+        expected = [label for label in range(1, len(bits)) if reference_evaluate([bits[c] for c in coefficients], bits[label], modulus) == 0]
+        assert field.roots(polynomial) == expected
+        np.testing.assert_array_equal(polynomial, coefficients)
+    assert field.roots(np.array([0, 1])) == []  # Zero is deliberately outside this search.
+
+
+def test_conjugate_roots_against_independent_squaring(field_case, capsys):
+    field, modulus, bits, labels = field_case
+    for root in range(len(bits)):
+        expected = reference_conjugate_group(root, modulus, bits, labels)
+        for verbose in [False, True]:
+            assert field.conjugateRoots(root, verbose) == expected
+            assert bool(capsys.readouterr().out) == verbose
+
+
+@pytest.mark.parametrize(
+    "field_case",
+    [pytest.param(0b11, marks=pytest.mark.xfail(strict=True, reason="GF(2) group enumeration omits the identity")), 0b111, 0b1011, 0b10011],
+    indirect=True,
+)
+def test_conjugate_groups_partition_the_whole_field(field_case):
+    field, modulus, bits, labels = field_case
+    expected = sorted({tuple(reference_conjugate_group(root, modulus, bits, labels)) for root in range(len(bits))})
+    actual = field.conjugateRootGroups()
+    assert sorted(tuple(group) for group in actual) == expected
+    flattened = [root for group in actual for root in group]
+    assert sorted(flattened) == list(range(len(bits)))
+
+
+@pytest.mark.xfail(strict=True, reason="conjugate reduction aliases and mutates its input while iterating")
+def test_conjugate_reduction_preserves_inputs_and_supplied_representatives(field_case):
+    field, modulus, bits, labels = field_case
+    candidates = [[], list(range(len(bits))), list(reversed(range(len(bits)))), [1, 1, 0, 0]]
+    candidates += [[root] for root in range(len(bits))]
+    candidates += [[a, b, a] for a in range(len(bits)) for b in range(len(bits))]
+    for roots in candidates:
+        before = roots.copy()
+        groups = {}
+        for root in roots:
+            key = tuple(reference_conjugate_group(root, modulus, bits, labels))
+            groups[key] = min(root, groups.get(key, root))
+        actual = field.removeConjugateRoots(roots)
+        assert roots == before
+        assert actual == sorted(groups.values())
+        assert actual is not roots
+
+
+def test_minimal_polynomials_for_complete_conjugate_groups(field_case):
+    field, modulus, bits, labels = field_case
+    groups = {tuple(reference_conjugate_group(root, modulus, bits, labels)) for root in range(len(bits))}
+    for group in groups:
+        expected = [1]
+        for root in group:
+            expected = reference_poly_product(expected, [bits[root], 1], modulus)
+        assert set(expected) <= {0, 1}
+        for roots in [list(group), np.array(list(reversed(group)))]:
+            before = roots.copy()
+            actual = field.minimalPolynomial(roots)
+            np.testing.assert_array_equal(actual, expected)
+            assert np.issubdtype(actual.dtype, np.integer)
+            assert len(actual) == len(group) + 1
+            np.testing.assert_array_equal(roots, before)
+            for root in group:
+                assert reference_evaluate(actual, bits[root], modulus) == 0
+
+
 def test_dimensions_and_defining_polynomial(field_case):
     field, modulus, bits, _ = field_case
     m = modulus.bit_length() - 1

@@ -36,9 +36,23 @@ the user authorizes committing a specific step without review.
    `0cddc10`; fix committed in `f749436`. Conditional-probability contracts and
    tests committed in `5688033`; fix committed in `4891160`. Linear-code
    probability contracts and tests committed in `85b18a4`; probability fix
-   complete and authorized for commit without review.**
+   committed in `6321ee2`. Root-helper contracts, tests, and fixes are authorized
+   for commit without review.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
+
+## Root-helper contracts and tests
+
+- Preserve the nonzero-root search used by decoding; document zero polynomials
+  and repeated roots. Check all monic linear/quadratic polynomials in GF(2),
+  GF(4), GF(8), and GF(16) against independent evaluation.
+- Specify conjugate groups as complete Frobenius orbits, including zero and
+  one. Check independent squaring, whole-field partitions, and binary minimal
+  polynomials for each complete orbit.
+- Require conjugate reduction to preserve unsorted or repeated input lists and
+  select the lowest supplied label per represented orbit.
+- Five strict expected failures record the missing GF(2) identity orbit and
+  caller-list aliasing/mutation in conjugate reduction. Production is unchanged.
 
 ## Completed linear-code probability fix
 
