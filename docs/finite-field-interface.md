@@ -1,7 +1,8 @@
 # Finite-field interface
 
 This contract covers construction, element conversion, and element arithmetic
-in `GaloisField.py`. Polynomial arithmetic and code interfaces will follow.
+in `GaloisField.py`. See the separate [polynomial contract](polynomial-interface.md)
+for polynomial arithmetic.
 Regression tests cover negative exponents, division by zero, and powers of zero.
 
 ## Construction and representations
