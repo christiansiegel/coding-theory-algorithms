@@ -17,6 +17,10 @@ def linear_case(request):
         generator = np.column_stack([parity, np.eye(4, dtype=int)])
         check = np.column_stack([np.eye(3, dtype=int), parity.T])
         minimum_distance = 3
+    elif request.param == "readme7":
+        generator = np.array([[1, 0, 1, 1, 1, 0, 0], [1, 1, 1, 0, 0, 1, 0], [1, 1, 1, 1, 0, 0, 1]])
+        check = np.column_stack([np.eye(4, dtype=int), generator[:, :4].T])
+        minimum_distance = 3
     else:
         n = 3 if request.param == "repetition3" else 5
         generator = np.ones((1, n), dtype=int)
@@ -101,6 +105,40 @@ def test_decoder_rejects_a_syndrome_missing_from_the_table():
     received = np.array([1, 1, 0, 0, 0, 0, 0])
     with pytest.raises(KeyError):
         code.syndromeDecode(received)
+
+
+@pytest.mark.parametrize("linear_case", ["repetition3", "repetition5", "hamming7", "readme7"], indirect=True)
+def test_standard_array_partitions_all_vectors_with_minimum_weight_leaders(linear_case, capsys):
+    code, generator, check, minimum_distance = linear_case
+    n = generator.shape[1]
+    k = generator.shape[0]
+    codewords = [tuple(reference_encode([(i >> j) & 1 for j in range(k)], generator)) for i in range(2**k)]
+    assert code.printStandardArray() is None
+    rows = []
+    for line in capsys.readouterr().out.splitlines():
+        if line and set(line) == {"-"}:
+            continue
+        assert line.count("|") == 1
+        row = [tuple(int(bit) for bit in word) for word in line.replace("|", " ").split()]
+        assert len(row) == 2**k
+        assert all(len(word) == n and set(word) <= {0, 1} for word in row)
+        rows.append(row)
+    assert len(rows) == 2 ** (n - k)
+    assert rows[0] == codewords
+    flattened = [word for row in rows for word in row]
+    assert len(flattened) == len(set(flattened)) == 2**n
+    assert set(flattened) == set(product([0, 1], repeat=n))
+    for row in rows:
+        leader = row[0]
+        assert sum(leader) == min(map(sum, row))
+        assert row == [tuple(a ^ b for a, b in zip(leader, word)) for word in codewords]
+        syndromes = {tuple(sum(bit * coefficient for bit, coefficient in zip(word, parity_row)) % 2 for parity_row in check) for word in row}
+        assert len(syndromes) == 1
+    # Completing the diagnostic must not expand the guaranteed decoder table.
+    radius = (minimum_distance - 1) // 2
+    expected_errors = {error for error in product([0, 1], repeat=n) if sum(error) <= radius}
+    assert {tuple(error) for error in code.decodingTable().values()} == expected_errors
+    np.testing.assert_array_equal(code.G(), generator)
 
 
 @pytest.mark.parametrize("p", [0, 0.01, 0.2, 0.5, 0.8, 1])

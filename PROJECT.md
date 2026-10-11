@@ -39,9 +39,25 @@ the user authorizes committing a specific step without review.
    committed in `6321ee2`. Root-helper contracts and tests committed in
    `5451be8`; root-helper fixes committed in `5369833`. Binary polynomial
    classification contracts and tests committed in `fb75aa0`; fixes committed
-   in `1bcaf52`. RS diagnostic fixes complete.**
+   in `1bcaf52`. RS diagnostic fixes committed in `bb8e8e4`. Standard-array
+   completeness fix complete.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
+
+## Completed standard-array completeness fix
+
+- Print one row per syndrome, choosing a minimum-weight leader by enumerating
+  errors in increasing weight. Include all cosets, beyond the correction radius.
+- Generate codewords once and use the same column order for every coset.
+  Stop when all 2^(n-k) syndromes are represented.
+- Independently check complete vector coverage, distinct cosets, minimum leader
+  weights, column relationships, and generator preservation for repetition,
+  Hamming, and the README (7,3) code.
+- The README regression confirms the former eight-row output was incomplete;
+  its complete standard array has 16 rows. Decoder-table tests ensure only
+  guaranteed-correctable errors remain in that separate table.
+- Validation: `make check` passes lint and formatting checks, with **419 tests
+  passed** and no expected failures. All **60 linear-code tests** pass.
 
 ## Completed RS diagnostic fixes
 

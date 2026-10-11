@@ -35,6 +35,7 @@ nonbinary data, or wrong input lengths has no established validation contract.
 | `correctableErrorPatterns()` | Enumerate every length-n error of weight at most t. |
 | `syndromeDecode(r)` | Return a corrected length-n codeword for errors of weight at most t. Raise `KeyError` if the syndrome has no entry in the table. |
 | `printErrorsThatHaveSyndrome(s)` | Print every length-n binary error vector e satisfying eH.T = s, with its Hamming weight. Return `None` and preserve s. Accept a list or array of n-k bits. |
+| `printStandardArray()` | Print all 2^(n-k) cosets with 2^k vectors per row, covering every length-n vector exactly once. The first column contains minimum-weight coset leaders; the first row is `C()` in message order. Return `None` and preserve G. |
 
 The `A()` layout preserves the existing implementation and README example.
 
@@ -49,6 +50,14 @@ have no established validation contract.
 Beyond t errors, decoding may silently return a different codeword or raise
 `KeyError`. A successful return is not a guarantee that the original message was
 recovered. Enumeration is exponential and intended for small textbook examples.
+
+The standard array includes cosets whose leaders exceed the correction radius.
+It is a complete diagnostic; `correctableErrorPatterns()` and `decodingTable()`
+remain restricted to errors of weight at most t. Each row is its leader plus
+every codeword modulo 2, in the same column order as the first row. Ties between
+minimum-weight leaders, coset row order, and output spacing are not contracts.
+Tests cover repetition and Hamming codes plus the nonperfect README (7,3) code,
+whose full array has 16 rows rather than the former eight correctable rows.
 
 The syndrome-printing helper enumerates all matching errors, including those
 beyond the correction radius; it is a diagnostic, not a decoder. Zero syndrome

@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from itertools import combinations
 
 
 def HtoG(H):
@@ -377,32 +378,25 @@ class LinearBlockCode:
                 print(e, "->", w(e))
 
     def printStandardArray(self):
-        """Print Standard Array (slide 68)"""
-        self.H()
-        self.dmin()
-        t = self.t()
+        """Print every coset once, with a minimum-weight leader in its first column."""
         k = self.k()
         n = self.n()
-
-        firstLine = True
-
-        for j in range(0, 2**n):
-            e = intToArray(j, n)
-            if w(e) <= t:
-                line = ""
-                for i in range(0, 2**k):
-                    m = intToArray(i, k)
-                    c = self.c(m)
-                    ce_sum = (c + e) % 2
-                    line += arrayToString(ce_sum)
-                    if i == 0:
-                        line += " | "
-                    else:
-                        line += " "
-                print(line)
-                if firstLine:
-                    firstLine = False
+        codewords = self.C()
+        seen_syndromes = set()
+        for weight in range(n + 1):
+            for positions in combinations(range(n), weight):
+                leader = np.zeros(n, dtype=int)
+                leader[list(positions)] = 1
+                syndrome = tuple(self.s(leader))
+                if syndrome in seen_syndromes:
+                    continue
+                seen_syndromes.add(syndrome)
+                row = [arrayToString((codeword + leader) % 2) for codeword in codewords]
+                print(row[0] + " | " + " ".join(row[1:]))
+                if len(seen_syndromes) == 1:
                     print("-" * ((2**k) * (n + 1) + 1))
+                if len(seen_syndromes) == 2 ** (n - k):
+                    return
 
     def correctableErrorPatterns(self):
         """Array of all correctable error patterns."""
