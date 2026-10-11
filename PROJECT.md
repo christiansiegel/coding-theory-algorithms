@@ -31,11 +31,12 @@ Work proceeds one step at a time, with user review before each commit.
    `playground.py` runnable. Dependency installation remains unchanged.
 6. **Local checks — complete.** Add one command for lint,
    formatting checks, and tests, plus individual targets. Keep checks local.
-7. **Untested-method audit — syndrome-printing tests awaiting review.**
+7. **Untested-method audit — syndrome-printing contracts and tests committed in
+   `0cddc10`; fix awaiting review.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
 
-## Syndrome-printing tests awaiting review
+## Syndrome-printing fix awaiting review
 
 - Define `printErrorsThatHaveSyndrome(s)` as an exhaustive diagnostic: print all
   vectors whose syndrome equals s, including errors beyond the correction
@@ -43,13 +44,14 @@ Work proceeds one step at a time, with user review before each commit.
 - Use fixed repetition/Hamming check matrices and independent integer parity
   to check the complete output sets for every syndrome, without snapshotting
   whitespace or imposing output ordering.
-- Confirm the method ignores s, overwrites it inside the enumeration loop, and
-  always selects `[0,0,1]`. Three strict expected failures cover the repetition
-  and Hamming codes. A passing case protects the existing `[0,0,1]` results.
-- Production code is unchanged. Malformed syndrome validation remains outside
-  this step, consistent with the existing valid-input code contract.
-- Validation: `make check` passes lint and formatting checks, with **318 tests
-  passed and 3 strict expected failures** recording the confirmed defect.
+- Keep the requested syndrome separate from each candidate's computed syndrome
+  and compare them, replacing the hardcoded `[0,0,1]` selection.
+- Enable the three regression cases covering all syndromes for repetition and
+  Hamming codes. The existing `[0,0,1]` results remain covered.
+- Malformed syndrome validation remains outside this step, consistent with the
+  existing valid-input code contract.
+- Validation: `make check` passes lint and formatting checks, with **321 tests
+  passed** and no expected failures.
 
 ## Completed local checks
 

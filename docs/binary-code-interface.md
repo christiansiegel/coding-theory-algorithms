@@ -43,9 +43,9 @@ recovered. Enumeration is exponential and intended for small textbook examples.
 The syndrome-printing helper enumerates all matching errors, including those
 beyond the correction radius; it is a diagnostic, not a decoder. Zero syndrome
 includes the zero vector and every nonzero codeword. Output spacing is not a
-contract. Its current implementation overwrites the requested syndrome and
-compares against a hardcoded `[0,0,1]`; strict expected-failure tests cover all
-syndromes in the repetition and Hamming examples before this defect is fixed.
+contract. Independent tests cover every syndrome in the repetition and Hamming
+examples, using both list and array inputs. The former hardcoded `[0,0,1]`
+selection is fixed; zero and nonzero requests now select their own error sets.
 
 ## CyclicCode
 

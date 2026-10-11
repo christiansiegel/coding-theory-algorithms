@@ -367,12 +367,13 @@ class LinearBlockCode:
         Args:
             s: Syndrome vector
         """
+        requested_syndrome = np.asarray(s)
         n = self.n()
         print("e0 e1 e2 ... -> weight")
         for i in range(0, 2**n):
             e = intToArray(i, n)
-            s = self.s(e)
-            if np.array_equal(s, np.array([0, 0, 1])):
+            actual_syndrome = self.s(e)
+            if np.array_equal(actual_syndrome, requested_syndrome):
                 print(e, "->", w(e))
 
     def printStandardArray(self):

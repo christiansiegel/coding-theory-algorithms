@@ -125,7 +125,6 @@ def reference_errors_for_syndrome(check, syndrome):
     return records
 
 
-@pytest.mark.xfail(strict=True, reason="syndrome printing ignores its argument and selects hardcoded [0,0,1]")
 def test_printed_errors_for_every_requested_syndrome(linear_case, capsys):
     code, generator, check, _ = linear_case
     for syndrome in product([0, 1], repeat=check.shape[0]):
