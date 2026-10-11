@@ -327,7 +327,8 @@ class LinearBlockCode:
     def A(self):
         """Weight distribution(slide 61)
         Returns:
-            array with number of codewords having weight i (i = array index)
+            n-entry array: entry j counts codewords of weight j + 1.
+            Weight zero is omitted; use Ai(0) for its count.
         """
         n = self.n()
         A = np.empty([n])

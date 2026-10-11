@@ -73,23 +73,17 @@ def test_distance_in_small_cyclic_examples(cyclic_case):
     assert code.errorDetectionCapability() == expected - 1
 
 
-def test_cyclic_shifts_without_reduction(cyclic_case):
+def test_cyclic_shifts_for_all_messages(cyclic_case):
     code, n, g = cyclic_case
     for message in range(1 << code.k()):
         c = code.c(vector(message, code.k()))
         value = sum(int(bit) << i for i, bit in enumerate(c))
         for amount in [0, 1, n - 1, n, n + 1]:
-            if value and value.bit_length() + amount > n:
-                # Wraparound cases have a separate regression test below.
-                continue
             expected = vector(remainder(value << amount, (1 << n) | 1), n)
             np.testing.assert_array_equal(code.shift(c, amount), expected)
 
 
 @pytest.mark.parametrize("amount_kind", ["one", "n_minus_one", "n", "n_plus_one"])
-@pytest.mark.xfail(
-    strict=True, reason="wraparound leaves trailing zeros that fail padEnd"
-)
 def test_cyclic_shift_with_wraparound(cyclic_case, amount_kind):
     code, n, _ = cyclic_case
     message = np.zeros(code.k(), dtype=int)
@@ -113,12 +107,16 @@ def test_shifted_polynomial_syndromes(cyclic_case):
 @pytest.mark.parametrize(
     "method, expected", [("dmin", 2), ("t", 0), ("errorDetectionCapability", 1)]
 )
-@pytest.mark.xfail(
-    strict=True, reason="cyclic minimum distance is incorrectly set to generator weight"
-)
 def test_generator_weight_is_not_the_minimum_distance(method, expected):
     # g=1+X+X^2+X^3+X^4 divides X^15+1. Its weight is 5, but
     # (1+X)*g = 1+X^5 is a weight-2 codeword. No monomial is divisible by g.
     code = CyclicCode(np.ones(5, dtype=int), 15)
     np.testing.assert_array_equal(code.c(vector(0b11, 11), False), vector(0b100001, 15))
     assert getattr(code, method)() == expected
+
+
+def test_distance_two_code_does_not_attempt_single_error_correction():
+    code = CyclicCode(np.ones(5, dtype=int), 15)
+    received = vector(1, 15)
+    with pytest.raises(KeyError):
+        code.syndromeDecode(received)

@@ -1,5 +1,4 @@
 import numpy as np
-import LinearBlockCode as lbc
 from GaloisField import GF2, X, degree
 from LinearBlockCode import LinearBlockCode
 
@@ -169,15 +168,16 @@ class CyclicCode(LinearBlockCode):
     def k(self): # override
         return self.n() - degree(self.g())
 
-    def dmin(self, verbose = False): # override (LinearBlockCode dmin would work, but is slower)
-        dmin = lbc.w(self.g())
-        if verbose:
-            print()
-            print('Minimum Hamming distance (d_min) equals weight of generator polynomial g(X):')
-            print('g(X) =', GF2.polyToString(self.g()))
-            print('d_min =', dmin)
-            print()
-        return dmin
+    def dmin(self, verbose = False): # override
+        """Exact minimum distance by enumerating nonzero codewords.
+        Generator weight is only an upper bound. Enumeration is exponential
+        in k and intended for small textbook examples.
+        """
+        # Enumerate using matrix encoding rather than repeating polynomial
+        # division for every message. Systematic form is unnecessary here.
+        linear_code = LinearBlockCode()
+        linear_code.setG(self.G(systematic=False))
+        return linear_code.dmin(verbose)
 
     def dminVerbose(self):
         self.dmin(True)
@@ -198,6 +198,7 @@ class CyclicCode(LinearBlockCode):
         XiCX = GF2.multPoly(Xi, c) # X^i * c(X) polynomial
         Xn1 = GF2.addPoly(X(self.n()), X(0)) # X^n + 1 polynomial
         ci = GF2.modPoly(XiCX, Xn1) # i times shifted c
+        ci = ci[:degree(ci) + 1] # remove cancelled high coefficients before padding
         return padEnd(ci, self.n())
 
     def c(self, m, systematic = True): # override

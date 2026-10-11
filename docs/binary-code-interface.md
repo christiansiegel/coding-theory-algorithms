@@ -1,9 +1,7 @@
 # Binary linear and cyclic code interfaces
 
 This contract covers small, nondegenerate binary codes with valid inputs.
-Known departures from the contract are regression tests marked
-`xfail(strict=True)` pending fixes. BCH and Reed–Solomon behavior is not covered
-by this contract.
+BCH and Reed–Solomon behavior is not covered by this contract.
 
 ## Common conventions
 
@@ -35,9 +33,7 @@ nonbinary data, or wrong input lengths has no established validation contract.
 | `correctableErrorPatterns()` | Enumerate every length-n error of weight at most t. |
 | `syndromeDecode(r)` | Return a corrected length-n codeword for errors of weight at most t. Raise `KeyError` if the syndrome has no entry in the table. |
 
-The existing `A()` docstring says weights match array indices, contrary to its
-implementation and the README example. The contract above records the current
-layout to preserve compatibility; this needs a docstring correction.
+The `A()` layout preserves the existing implementation and README example.
 
 Beyond t errors, decoding may silently return a different codeword or raise
 `KeyError`. A successful return is not a guarantee that the original message was
@@ -64,6 +60,7 @@ Constructor checks are currently incomplete; callers must supply valid codes.
 Tests use fixed repetition/Hamming matrices and independent integer polynomial
 arithmetic. They enumerate all messages and correctable errors in the selected
 linear codes, and all received vectors for polynomial syndromes in the selected
-cyclic codes. Wraparound shifts and the incorrect cyclic minimum distance have
-separate expected-failure regressions. Probability methods, general systematic
+cyclic codes. Wraparound shifts and the generator-weight counterexample have
+separate regressions. Exact minimum distance enumerates 2^k messages; this can
+be slow for larger codes. Probability methods, general systematic
 conversion, invalid inputs, and BCH/RS still need independent coverage.
