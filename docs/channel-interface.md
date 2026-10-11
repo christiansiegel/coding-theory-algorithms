@@ -1,8 +1,7 @@
 # Discrete channel calculations
 
 This contract covers binary symmetric channels and extends capacity and
-efficiency to valid finite discrete channels. Conditional-probability edge
-cases need further review.
+efficiency and conditional probabilities to valid finite discrete channels.
 
 ## Inputs and conventions
 
@@ -21,9 +20,11 @@ zero-probability terms contributing zero. Thus h(0) = h(1) = 0.
 | `PX()` | Return the source probabilities. |
 | `PY()` | Return `[y, 1-y]`, where y = x(1-p) + (1-x)p. |
 | `PYX()` | Return P transposed, with output symbols in rows. |
+| `PXY()` | Return P(X=i \| Y=j), with input symbols in rows and output symbols in columns. Unreachable output columns contain `NaN`. |
 | `HX()` | Return h(x). |
 | `HY()` | Return h(y). |
 | `HYX()` | Return H(Y\|X) = h(p). |
+| `HXY()` | Return H(X\|Y) = h(x) + h(p) - h(y), including deterministic sources. |
 | `Cs(verbose=True)` | Return capacity C = 1-h(p), using a uniform source without changing this instance's source probabilities. |
 | `ChannelEfficiency(verbose=True)` | Return [h(y)-h(p)] / C. Raise `ZeroDivisionError` when C = 0 (p = 1/2). |
 
@@ -31,6 +32,23 @@ Passing `verbose=False` must suppress printed explanations. Entropy methods
 default to quiet mode; capacity and efficiency retain their existing verbose
 defaults. Deterministic sources and crossover probabilities 0 and 1 are valid.
 At p = 1, bits are always flipped but perfectly recoverable, so capacity is 1.
+
+## Conditional probabilities and entropy
+
+For any valid finite channel, `PXY()` returns a floating-point array with the
+same shape as P. For reachable output j, its column is
+`PX[i] * P[i,j] / PY[j]` and sums to one. If `PY[j] == 0`, conditioning on that
+output is undefined: the whole column contains `NaN` as an explicit marker.
+This case must not emit numerical warnings or raise a floating-point error.
+
+`HXY()` returns the finite conditional entropy H(X|Y) in bits. It excludes
+unreachable outputs and zero posterior terms from the sum. An unreachable
+column's `NaN` markers must not contaminate the result. For example, a
+deterministic source through a noiseless channel has H(X|Y) = 0.
+The chain rule `HX() + HYX() == HY() + HXY()` holds for valid channels.
+Both methods preserve stored source and transition probabilities; quiet and
+verbose calls return the same numerical results. Malformed-input validation
+remains outside this contract.
 
 ## General channel capacity
 
@@ -78,3 +96,8 @@ regressions now pass. A reduced iteration limit checks that nonconvergence
 raises without changing the stored source.
 The channel file's own three-input/five-output example checks a boundary
 optimum with capacity exactly 2/3 bits and optimal source `[1/2,0,1/2]`.
+
+Conditional-probability tests use explicit posterior matrices and independent
+joint/output entropy calculations, including rectangular and deterministic
+channels. Six strict expected failures record the current division-by-zero
+defect for unreachable outputs in `PXY()` and `HXY()` before the fix is reviewed.

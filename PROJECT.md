@@ -32,11 +32,26 @@ Work proceeds one step at a time, with user review before each commit.
 6. **Local checks — complete.** Add one command for lint,
    formatting checks, and tests, plus individual targets. Keep checks local.
 7. **Untested-method audit — syndrome-printing contracts and tests committed in
-   `0cddc10`; fix awaiting review.**
+   `0cddc10`; fix committed in `f749436`. Conditional-probability contracts and
+   tests awaiting review.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
 
-## Syndrome-printing fix awaiting review
+## Conditional-probability contracts and tests awaiting review
+
+- Specify posterior matrix orientation and Bayes' rule for reachable outputs.
+  Use `NaN` columns to mark undefined conditioning on unreachable outputs,
+  without numerical warnings; exclude those outputs from conditional entropy.
+- Test explicit posterior matrices for biased, uninformative, deterministic,
+  noiseless, and rectangular channels. Compute conditional entropy independently
+  as joint entropy minus output entropy and check the entropy chain rule.
+- Check quiet/verbose behavior and preservation of stored probabilities.
+- Six strict expected failures record division errors in `PXY()` and `HXY()`
+  for three unreachable-output cases. Production code is unchanged.
+- Validation: `make check` passes lint and formatting checks, with **331 tests
+  passed and 6 strict expected failures** recording the confirmed defect.
+
+## Completed syndrome-printing fix
 
 - Define `printErrorsThatHaveSyndrome(s)` as an exhaustive diagnostic: print all
   vectors whose syndrome equals s, including errors beyond the correction

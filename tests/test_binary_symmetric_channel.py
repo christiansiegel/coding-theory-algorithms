@@ -21,6 +21,60 @@ def make_channel(source_zero_probability, crossover_probability):
     return BSC([x, 1 - x], [[1 - p, p], [p, 1 - p]])
 
 
+UNREACHABLE_OUTPUT = pytest.mark.xfail(strict=True, reason="unreachable outputs trigger division by zero and contaminate conditional entropy")
+CONDITIONAL_CASES = [
+    pytest.param([0.2, 0.8], [[0.75, 0.25], [0.25, 0.75]], [[3 / 7, 1 / 13], [4 / 7, 12 / 13]], id="biased-binary"),
+    pytest.param([0.2, 0.8], [[0.5, 0.5], [0.5, 0.5]], [[0.2, 0.2], [0.8, 0.8]], id="uninformative-binary"),
+    pytest.param([1, 0], [[0.75, 0.25], [0.25, 0.75]], [[1, 1], [0, 0]], id="deterministic-noisy"),
+    pytest.param([0.2, 0.8], [[1, 0], [0, 1]], [[1, 0], [0, 1]], id="biased-noiseless"),
+    pytest.param([1, 0], [[1, 0], [0, 1]], [[1, np.nan], [0, np.nan]], marks=UNREACHABLE_OUTPUT, id="deterministic-noiseless"),
+    pytest.param([0, 1], [[0, 1], [1, 0]], [[0, np.nan], [1, np.nan]], marks=UNREACHABLE_OUTPUT, id="deterministic-flipping"),
+    pytest.param([0.25, 0.75], [[1, 0, 0], [0, 1, 0]], [[1, 0, np.nan], [0, 1, np.nan]], marks=UNREACHABLE_OUTPUT, id="rectangular-unreachable"),
+    pytest.param([0.25, 0.75], [[0.5, 0.5, 0], [0, 0.5, 0.5]], [[1, 0.25, 0], [0, 0.75, 1]], id="rectangular-reachable"),
+]
+
+
+def reference_entropy(probabilities):
+    return -sum(p * math.log2(p) for p in probabilities if p > 0)
+
+
+@pytest.mark.parametrize("source,transition,posterior", CONDITIONAL_CASES)
+def test_posterior_known_answers(source, transition, posterior, capsys):
+    channel = BSC(source, transition)
+    for verbose in [False, True]:
+        with np.errstate(divide="raise", invalid="raise"):
+            actual = channel.PXY(verbose)
+        np.testing.assert_allclose(actual, posterior, equal_nan=True)
+        assert actual.shape == np.asarray(transition).shape
+        assert np.issubdtype(actual.dtype, np.floating)
+        reachable = ~np.isnan(np.asarray(posterior)).all(axis=0)
+        np.testing.assert_allclose(actual[:, reachable].sum(axis=0), 1)
+        output = capsys.readouterr().out
+        assert bool(output) == verbose
+        np.testing.assert_array_equal(channel.PX(), source)
+        np.testing.assert_array_equal(channel.PYX(), np.asarray(transition).T)
+
+
+@pytest.mark.parametrize("source,transition,posterior", CONDITIONAL_CASES)
+def test_conditional_entropy_from_joint_distribution(source, transition, posterior, capsys):
+    # Compute H(X,Y)-H(Y) with ordinary scalar arithmetic, independently of
+    # the production posterior and entropy methods.
+    joint = [[px * probability for probability in row] for px, row in zip(source, transition)]
+    output_probabilities = [sum(column) for column in zip(*joint)]
+    expected = reference_entropy([p for row in joint for p in row]) - reference_entropy(output_probabilities)
+    channel = BSC(source, transition)
+    for verbose in [False, True]:
+        with np.errstate(divide="raise", invalid="raise"):
+            actual = channel.HXY(verbose)
+        assert math.isfinite(actual)
+        assert actual == pytest.approx(expected, abs=1e-12)
+        assert channel.HX() + channel.HYX() == pytest.approx(channel.HY() + actual, abs=1e-12)
+        output = capsys.readouterr().out
+        assert bool(output) == verbose
+        np.testing.assert_array_equal(channel.PX(), source)
+        np.testing.assert_array_equal(channel.PYX(), np.asarray(transition).T)
+
+
 @pytest.mark.parametrize("p", [0, 0.1, 0.25, 0.5, 0.9, 1])
 def test_capacity_known_formula_and_source_preservation(p, capsys):
     channel = make_channel(0.2, p)
