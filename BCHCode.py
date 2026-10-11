@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 import numpy as np
 from CyclicCode import CyclicCode
-from GaloisField import X, degree
+from GaloisField import X
 import math
 
 

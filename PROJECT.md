@@ -22,8 +22,9 @@ Work proceeds one step at a time, with user review before each commit.
    decoding fixes committed in `507b412`; RS encoding and distance fixes
    committed in `cb124be`.** General channel-capacity contract and tests
    committed in `16b0188`; capacity optimization committed in `8f128d6`.
-4. **Formatting and linting — Ruff formatting awaits review.** Format the
-   seven source files first. Resolve the remaining lint diagnostics separately.
+4. **Formatting and linting — Ruff formatting committed in `6e7ac33`.**
+   Routine lint cleanup awaits review. Investigate the Euclidean algorithms
+   in a separate step before resolving their diagnostics.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
 
@@ -46,8 +47,7 @@ Work proceeds one step at a time, with user review before each commit.
   eight-bit values, and an integer larger than 64 bits. Known-answer tests
   reject deprecated NumPy calls. The 72-test suite at that step passed with
   both NumPy versions above.
-  An existing `is 0` SyntaxWarning appeared when recompiling `LinearBlockCode.py`;
-  that separate source issue remains.
+  The existing `is 0` SyntaxWarning is resolved by the routine lint cleanup.
 - [Channel contract](docs/channel-interface.md) and
   `tests/test_binary_symmetric_channel.py` check closed-form entropy, capacity,
   and efficiency results for binary symmetric channels, including boundary
@@ -85,24 +85,25 @@ Work proceeds one step at a time, with user review before each commit.
   markers have been removed from BCH/RS tests. Ruff checks pass for the test files.
 - The project runs from the repository root without being installed as a package.
 - `uv run ruff format --check .` now passes across the codebase.
-  `uv run ruff check .` reports 45 remaining diagnostics: unused imports/locals,
-  ambiguous variable names, the `is 0` comparison, and Euclidean-loop variables.
-  These require a separate lint cleanup.
+  `uv run ruff check .` now reports 31 diagnostics, all in the integer and
+  polynomial Euclidean loops. Investigate their behavior and add independent
+  edge-case tests before changing them; diagnostics alone do not establish
+  which paths are incorrect.
 
-## Formatting awaiting review
+## Routine lint cleanup awaiting review
 
-- Apply Ruff with a 200-character line-length target to source and test files.
-  This keeps the conditional-probability explanation (186 characters including
-  indentation) and the efficiency print statement on one line.
-  No files, functions, or imports are
-  moved or removed.
-- Verify the executable AST against the committed source, normalizing only
-  Unicode-prefix metadata and docstring whitespace. Executable statements and
-  non-docstring string values are unchanged.
-- Run the existing suite and the repository-wide formatter check. Lint fixes
-  remain separate to keep this review focused on formatting.
-  Validation: **282 passed**, with the existing `is 0` SyntaxWarning;
-  `ruff format --check .` passes.
+- Remove three unused imports and the unused RS root-list construction.
+  Documented module imports and script commands remain supported.
+- Keep the playground's full starting set of algorithm imports for solving new
+  exercises. A file-level F401 exemption records that these imports are intentional.
+- Rename the ambiguous conjugation counter without changing printed text.
+- Replace `is 0` with numeric equality in standard-array printing.
+- Remove three unused assignment targets while preserving their method calls,
+  including any effects in subclasses. Algorithm behavior is otherwise unchanged.
+- Reduce Ruff diagnostics from 45 to 31; all remaining diagnostics concern
+  the Euclidean loops and are reserved for the next step.
+- Validation: **282 tests passed with no warnings**; repository-wide formatter
+  checks and lint checks outside the two Euclidean-loop files pass.
 
 ## Completed fixes
 

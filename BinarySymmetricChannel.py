@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 
 import numpy as np
-import math
 
 _CAPACITY_TOLERANCE_BITS = 1e-12
 _CAPACITY_MAX_ITERATIONS = 100000

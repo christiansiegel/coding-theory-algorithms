@@ -3,7 +3,6 @@ import numpy as np
 from BCHCode import BCHCode
 from CyclicCode import padEnd
 from GaloisField import X, degree
-import math
 
 
 def g(GF, t, verbose=True):
@@ -16,8 +15,6 @@ def g(GF, t, verbose=True):
     Returns:
         Generator polynomial of BCH code with t
     """
-    i_list = list(range(1, (2 * t) + 1, 2))  # only odd roots 1 <= i <= 2t
-
     if verbose:
         print("")
         print("Generator polynomial g(X) of BCH code with t = " + str(t) + ":")

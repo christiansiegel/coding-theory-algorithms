@@ -377,8 +377,8 @@ class LinearBlockCode:
 
     def printStandardArray(self):
         """Print Standard Array (slide 68)"""
-        H = self.H()
-        dmin = self.dmin()
+        self.H()
+        self.dmin()
         t = self.t()
         k = self.k()
         n = self.n()
@@ -394,7 +394,7 @@ class LinearBlockCode:
                     c = self.c(m)
                     ce_sum = (c + e) % 2
                     line += arrayToString(ce_sum)
-                    if i is 0:
+                    if i == 0:
                         line += " | "
                     else:
                         line += " "
@@ -412,7 +412,7 @@ class LinearBlockCode:
         for i in range(0, 2**n):
             e = intToArray(i, n)
             if w(e) <= t and count < E.shape[0]:
-                s = self.s(e)
+                self.s(e)
                 E[count] = e
                 count += 1
         E = E[:count]

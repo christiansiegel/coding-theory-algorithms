@@ -466,12 +466,12 @@ class GaloisField:
         if verbose:
             print()
         roots = []
-        l = 0
+        conjugation_count = 0
         while True:
-            l += 1
-            new_root = self.powElement(root, 2**l)
+            conjugation_count += 1
+            new_root = self.powElement(root, 2**conjugation_count)
             if verbose:
-                print("l = " + str(l) + ":\t(" + self.elementToString(root) + ")^" + str(2**l) + " = " + self.elementToString(new_root))
+                print("l = " + str(conjugation_count) + ":\t(" + self.elementToString(root) + ")^" + str(2**conjugation_count) + " = " + self.elementToString(new_root))
             roots.append(new_root)
             if new_root == root:
                 break

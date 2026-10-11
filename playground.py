@@ -1,3 +1,5 @@
+# Keep all algorithm imports ready for experimenting with other exercises.
+# ruff: noqa: F401
 import numpy as np
 from BinarySymmetricChannel import BSC
 from GaloisField import GaloisField
