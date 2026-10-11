@@ -129,7 +129,6 @@ def test_error_probability_outside_radius_by_enumeration(linear_case, p, capsys)
     assert capsys.readouterr().out == ""
 
 
-@pytest.mark.xfail(strict=True, reason="floating-point factorial division overflows for the length-401 repetition code")
 @pytest.mark.parametrize("p,expected", [(0, 0), (0.5, 0.5), (1, 1)])
 def test_repetition_probability_without_factorial_overflow(p, expected):
     # Odd-length repetition has radius 200. At p=1/2, complementing an

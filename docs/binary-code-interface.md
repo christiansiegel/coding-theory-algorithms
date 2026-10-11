@@ -83,6 +83,7 @@ separate regressions. Exact minimum distance enumerates 2^k messages; this can
 be slow for larger codes. Probability tests independently enumerate all errors
 for the repetition and Hamming fixtures, including p=0, 1/2, and 1. A length-401
 repetition case uses complement symmetry to check `Pe(1/2) = 1/2` without
-exhaustive enumeration; strict expected failures record factorial overflow.
+exhaustive enumeration. Exact integer binomial coefficients fix the former
+factorial-division overflow; the endpoint and symmetry regressions now pass.
 General systematic
 conversion, invalid inputs, and BCH/RS still need independent coverage.

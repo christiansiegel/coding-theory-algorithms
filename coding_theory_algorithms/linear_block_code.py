@@ -147,11 +147,8 @@ def arrayToString(a):
 
 
 def nCr(n, k):
-    """binomial coefficient
-    https://en.wikipedia.org/wiki/Binomial_coefficient
-    """
-    f = math.factorial
-    return f(n) / f(k) / f(n - k)
+    """Return the exact integer binomial coefficient for nonnegative n and k."""
+    return math.comb(n, k)
 
 
 class LinearBlockCode:
@@ -296,9 +293,9 @@ class LinearBlockCode:
         return math.floor((self.dmin() - 1) / 2)
 
     def PU(self, p):
-        """Undetectable probability (slide 61).
+        """Probability of a nonzero undetected error under independent bit flips.
         Args:
-            p: error probability p of BSC
+            p: bit-flip probability in [0, 1].
         """
         PU = 0
         n = self.n()
@@ -307,9 +304,12 @@ class LinearBlockCode:
         return PU
 
     def Pe(self, p):
-        """Undecoded probability (slide 66).
+        """Probability of more than t independent bit errors.
+
+        This is the probability of exceeding the guaranteed correction radius.
+        Decoder behavior beyond that radius is not specified by this method.
         Args:
-            p: error probability p of BSC
+            p: bit-flip probability in [0, 1].
         """
         Pe = 0
         n = self.n()

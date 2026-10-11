@@ -35,11 +35,12 @@ the user authorizes committing a specific step without review.
 7. **Untested-method audit — syndrome-printing contracts and tests committed in
    `0cddc10`; fix committed in `f749436`. Conditional-probability contracts and
    tests committed in `5688033`; fix committed in `4891160`. Linear-code
-   probability contracts, tests, and fixes may be committed without review.**
+   probability contracts and tests committed in `85b18a4`; probability fix
+   complete and authorized for commit without review.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
 
-## Linear-code probability contracts and tests
+## Completed linear-code probability fix
 
 - Specify `PU(p)` as the probability of a nonzero zero-syndrome error and
   `Pe(p)` as the probability of exceeding the guaranteed correction radius.
@@ -48,9 +49,11 @@ the user authorizes committing a specific step without review.
   at six crossover probabilities. Check numerical results, quiet output, and
   preservation of generator matrices.
 - Length-401 repetition checks use complement symmetry and endpoint answers.
-  Three strict expected failures confirm that floating-point factorial division
-  overflows in `Pe()` even though the requested probabilities are finite.
-- Focused validation: **53 tests passed, 3 strict expected failures**.
+  Replace floating-point factorial division with `math.comb`, returning exact
+  integer binomial coefficients and avoiding the confirmed intermediate overflow.
+- Clarify probability method docstrings and enable the three regression cases.
+- Validation: `make check` passes lint and formatting checks, with **376 tests
+  passed** and no expected failures.
 
 ## Completed conditional-probability fix
 
