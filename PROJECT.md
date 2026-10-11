@@ -1,6 +1,7 @@
 # Code quality work
 
-Work proceeds one step at a time, with user review before each commit.
+Work proceeds one step at a time, with user review before each commit unless
+the user authorizes committing a specific step without review.
 
 ## Plan and status
 
@@ -33,11 +34,25 @@ Work proceeds one step at a time, with user review before each commit.
    formatting checks, and tests, plus individual targets. Keep checks local.
 7. **Untested-method audit — syndrome-printing contracts and tests committed in
    `0cddc10`; fix committed in `f749436`. Conditional-probability contracts and
-   tests committed in `5688033`; fix awaiting review.**
+   tests committed in `5688033`; fix committed in `4891160`. Linear-code
+   probability contracts, tests, and fixes may be committed without review.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
 
-## Conditional-probability fix awaiting review
+## Linear-code probability contracts and tests
+
+- Specify `PU(p)` as the probability of a nonzero zero-syndrome error and
+  `Pe(p)` as the probability of exceeding the guaranteed correction radius.
+  Include p=0 and p=1; arbitrary decoder failure rates are outside this contract.
+- Independently enumerate every error pattern for repetition and Hamming codes
+  at six crossover probabilities. Check numerical results, quiet output, and
+  preservation of generator matrices.
+- Length-401 repetition checks use complement symmetry and endpoint answers.
+  Three strict expected failures confirm that floating-point factorial division
+  overflows in `Pe()` even though the requested probabilities are finite.
+- Focused validation: **53 tests passed, 3 strict expected failures**.
+
+## Completed conditional-probability fix
 
 - Specify posterior matrix orientation and Bayes' rule for reachable outputs.
   Use `NaN` columns to mark undefined conditioning on unreachable outputs,

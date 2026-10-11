@@ -30,11 +30,21 @@ nonbinary data, or wrong input lengths has no established validation contract.
 | `errorDetectionCapability()` | Return dmin-1. |
 | `Ai(i)` | Return the number of codewords of weight i, including the zero codeword for i=0. |
 | `A()` | Preserve the README's existing n-entry layout: entry j counts weight j+1. It omits weight zero. |
+| `PU(p)` | Return the probability of a nonzero error with zero syndrome under independent bit flips of probability p. |
+| `Pe(p)` | Return the probability of more than t bit errors under independent bit flips of probability p. |
 | `correctableErrorPatterns()` | Enumerate every length-n error of weight at most t. |
 | `syndromeDecode(r)` | Return a corrected length-n codeword for errors of weight at most t. Raise `KeyError` if the syndrome has no entry in the table. |
 | `printErrorsThatHaveSyndrome(s)` | Print every length-n binary error vector e satisfying eH.T = s, with its Hamming weight. Return `None` and preserve s. Accept a list or array of n-k bits. |
 
 The `A()` layout preserves the existing implementation and README example.
+
+For probability methods, p is a real number in [0, 1], including both endpoints.
+`PU(p)` excludes the no-error event: it sums `p**w * (1-p)**(n-w)` over nonzero
+codewords of weight w. `Pe(p)` is the binomial tail above the guaranteed
+correction radius t. It measures the probability of exceeding that guarantee;
+it does not specify the failure rate of an arbitrary decoder beyond t.
+Both methods are quiet and preserve the code matrices. Invalid probabilities
+have no established validation contract.
 
 Beyond t errors, decoding may silently return a different codeword or raise
 `KeyError`. A successful return is not a guarantee that the original message was
@@ -70,5 +80,9 @@ arithmetic. They enumerate all messages and correctable errors in the selected
 linear codes, and all received vectors for polynomial syndromes in the selected
 cyclic codes. Wraparound shifts and the generator-weight counterexample have
 separate regressions. Exact minimum distance enumerates 2^k messages; this can
-be slow for larger codes. Probability methods, general systematic
+be slow for larger codes. Probability tests independently enumerate all errors
+for the repetition and Hamming fixtures, including p=0, 1/2, and 1. A length-401
+repetition case uses complement symmetry to check `Pe(1/2) = 1/2` without
+exhaustive enumeration; strict expected failures record factorial overflow.
+General systematic
 conversion, invalid inputs, and BCH/RS still need independent coverage.

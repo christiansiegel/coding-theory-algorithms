@@ -2,6 +2,7 @@
 
 from collections import Counter
 from itertools import product
+import math
 
 import numpy as np
 import pytest
@@ -100,6 +101,43 @@ def test_decoder_rejects_a_syndrome_missing_from_the_table():
     received = np.array([1, 1, 0, 0, 0, 0, 0])
     with pytest.raises(KeyError):
         code.syndromeDecode(received)
+
+
+@pytest.mark.parametrize("p", [0, 0.01, 0.2, 0.5, 0.8, 1])
+def test_undetected_error_probability_by_enumeration(linear_case, p, capsys):
+    code, generator, check, _ = linear_case
+    probabilities = []
+    for error in product([0, 1], repeat=generator.shape[1]):
+        if any(error) and all(sum(bit * coefficient for bit, coefficient in zip(error, row)) % 2 == 0 for row in check):
+            probabilities.append(math.prod(p if bit else 1 - p for bit in error))
+    actual = code.PU(p)
+    assert actual == pytest.approx(math.fsum(probabilities), abs=1e-14)
+    assert 0 <= actual <= 1
+    np.testing.assert_array_equal(code.G(), generator)
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize("p", [0, 0.01, 0.2, 0.5, 0.8, 1])
+def test_error_probability_outside_radius_by_enumeration(linear_case, p, capsys):
+    code, generator, _, minimum_distance = linear_case
+    radius = (minimum_distance - 1) // 2
+    expected = math.fsum(math.prod(p if bit else 1 - p for bit in error) for error in product([0, 1], repeat=generator.shape[1]) if sum(error) > radius)
+    actual = code.Pe(p)
+    assert actual == pytest.approx(expected, abs=1e-14)
+    assert 0 <= actual <= 1
+    np.testing.assert_array_equal(code.G(), generator)
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.xfail(strict=True, reason="floating-point factorial division overflows for the length-401 repetition code")
+@pytest.mark.parametrize("p,expected", [(0, 0), (0.5, 0.5), (1, 1)])
+def test_repetition_probability_without_factorial_overflow(p, expected):
+    # Odd-length repetition has radius 200. At p=1/2, complementing an
+    # error vector pairs every correctable pattern with an uncorrectable one.
+    # This oracle needs neither enumeration of 2**401 vectors nor factorials.
+    code = LinearBlockCode()
+    code.setG(np.ones((1, 401), dtype=int))
+    assert code.Pe(p) == pytest.approx(expected, abs=1e-14)
 
 
 def printed_error_records(output):
