@@ -70,6 +70,7 @@ class BSC:
 
         H = 0
         for i in range(0, PX.size):
+            if PX[i] == 0: continue # zero-probability terms contribute zero
             printStr = printStr + str(PX[i]) + ' * log2(1/' + str(PX[i]) + ') + '
             H = H + PX[i] * np.log2(1/PX[i])
         printStr = printStr[:-2]
@@ -87,6 +88,7 @@ class BSC:
 
         H = 0
         for j in range(0, PY.size):
+            if PY[j] == 0: continue # zero-probability terms contribute zero
             printStr = printStr + str(PY[j]) + ' * log2(1/' + str(PY[j]) + ') + '
             H = H + PY[j] * np.log2(1/PY[j])
         printStr = printStr[:-2]
@@ -128,6 +130,9 @@ class BSC:
         return HYX
 
     def Cs(self, verbose = True):
+        """Channel capacity for symmetric channels, using a uniform source.
+        Does not optimize the source distribution for arbitrary channels.
+        """
         PX = self.__PX
         P = 1 / PX.size
         if(verbose):
@@ -137,27 +142,29 @@ class BSC:
                 print('P(X='+str(i)+') = ' + str(P))
             print('\nThen:')
 
-        backupPX = self.__PX
-        self.__PX = self.__PX * 0 + P # manipulate PX temporarely
-
-        PY = self.PY(True)
+        uniform_channel = BSC(np.full(PX.size, P), self.__P)
+        if verbose:
+            uniform_channel.PY(True)
 
         if(verbose):
             print('Hence, there is Hmax(Y) = ')
-        HmaxY = self.HY(True)
-        HYX = self.HYX()
+        HmaxY = uniform_channel.HY(verbose)
+        HYX = uniform_channel.HYX()
         Cs = HmaxY - HYX
         if verbose:
             print('Cs = Imax(X,Y) = Hmax(Y) - H(Y|X) = ' + str(HmaxY) + ' - ' + str(HYX) + ' = ' + str(Cs))
             print('')
 
-        self.__PX = backupPX # restore
-
         return Cs
 
     def ChannelEfficiency(self, verbose = True):
+        """Return I(X;Y) / Cs for this source and a symmetric channel.
+        Raises ZeroDivisionError when channel capacity is zero.
+        """
         Cs = self.Cs(False)
-        IXY = bsc.HY() - bsc.HYX()
+        if Cs == 0:
+            raise ZeroDivisionError("Channel efficiency is undefined at zero capacity")
+        IXY = self.HY() - self.HYX()
         eta = IXY / Cs
         if(verbose):
             print(u'\u03B7 = I(X,Y) / Cs = ' + str(IXY) + ' / ' + str(Cs) + ' = ' + str(eta))

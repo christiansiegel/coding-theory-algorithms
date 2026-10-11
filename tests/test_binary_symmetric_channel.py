@@ -1,0 +1,88 @@
+"""Check binary symmetric channels against their closed-form entropy formulas."""
+
+import math
+
+import numpy as np
+import pytest
+
+import BinarySymmetricChannel as channel_module
+from BinarySymmetricChannel import BSC
+
+
+def binary_entropy(p):
+    if p == 0 or p == 1:
+        return 0.0
+    return -p * math.log2(p) - (1 - p) * math.log2(1 - p)
+
+
+def make_channel(source_zero_probability, crossover_probability):
+    x = source_zero_probability
+    p = crossover_probability
+    return BSC([x, 1 - x], [[1 - p, p], [p, 1 - p]])
+
+
+@pytest.mark.parametrize("p", [0, 0.1, 0.25, 0.5, 0.9, 1])
+def test_capacity_known_formula_and_source_preservation(p, capsys):
+    channel = make_channel(0.2, p)
+    before = channel.PX().copy()
+    assert channel.Cs(False) == pytest.approx(1 - binary_entropy(p))
+    np.testing.assert_array_equal(channel.PX(), before)
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize("x", [0, 0.2, 0.5, 1])
+@pytest.mark.parametrize("p", [0, 0.1, 0.25, 0.9, 1])
+def test_efficiency_known_formula(x, p, capsys):
+    channel = make_channel(x, p)
+    output_zero_probability = x * (1 - p) + (1 - x) * p
+    expected = (binary_entropy(output_zero_probability) - binary_entropy(p)) / (
+        1 - binary_entropy(p)
+    )
+    np.testing.assert_allclose(
+        channel.PY(), [output_zero_probability, 1 - output_zero_probability]
+    )
+    assert channel.HY() == pytest.approx(binary_entropy(output_zero_probability))
+    assert channel.HYX() == pytest.approx(binary_entropy(p))
+    before = channel.PX().copy()
+    assert channel.ChannelEfficiency(False) == pytest.approx(expected, abs=1e-12)
+    np.testing.assert_array_equal(channel.PX(), before)
+    assert capsys.readouterr().out == ""
+
+
+def test_efficiency_uses_its_own_instance(monkeypatch):
+    # A module-global example must not affect another channel's calculation.
+    monkeypatch.setattr(channel_module, "bsc", make_channel(0.5, 0.1), raising=False)
+    channel = make_channel(0.2, 0.1)
+    expected = (binary_entropy(0.26) - binary_entropy(0.1)) / (1 - binary_entropy(0.1))
+    assert channel.ChannelEfficiency(False) == pytest.approx(expected)
+
+
+def test_capacity_failure_does_not_change_source(monkeypatch):
+    channel = make_channel(0.2, 0.1)
+    before = channel.PX().copy()
+
+    def fail_entropy(self, verbose=False):
+        raise RuntimeError("entropy calculation failed")
+
+    monkeypatch.setattr(BSC, "HY", fail_entropy)
+    with pytest.raises(RuntimeError, match="entropy calculation failed"):
+        channel.Cs(False)
+    np.testing.assert_array_equal(channel.PX(), before)
+
+
+def test_efficiency_at_zero_capacity_raises():
+    channel = make_channel(0.2, 0.5)
+    with pytest.raises(ZeroDivisionError):
+        channel.ChannelEfficiency(False)
+
+
+def test_verbose_efficiency_includes_the_result(capsys):
+    channel = make_channel(0.5, 0.25)
+    assert channel.ChannelEfficiency(True) == pytest.approx(1)
+    assert "η = I(X,Y) / Cs =" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("x", [0, 0.2, 0.5, 1])
+def test_source_entropy_including_zero_probabilities(x):
+    channel = make_channel(x, 0.1)
+    assert channel.HX() == pytest.approx(binary_entropy(x))

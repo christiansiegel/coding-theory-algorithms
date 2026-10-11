@@ -14,7 +14,8 @@ Work proceeds one step at a time, with user review before each commit.
    fields first, then linear/cyclic codes, BCH/RS, and channel calculations using
    independent answers, algebraic properties, and exhaustive small cases.
 3. **Bug fixes — finite-field element fixes committed in `1990701`; NumPy
-   compatibility fix awaiting review.** Other fixes remain.
+   compatibility fix committed in `6292409`; binary symmetric channel fixes
+   awaiting review.** Other fixes remain.
 4. **Formatting and linting.** Apply Ruff in a separate change.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
@@ -36,27 +37,41 @@ Work proceeds one step at a time, with user review before each commit.
   power checks.
 - `tests/test_binary_vectors.py` checks bit order, zero-padding, all 256
   eight-bit values, and an integer larger than 64 bits. Known-answer tests
-  reject deprecated NumPy calls. Current local result: **72 passed, no expected
-  failures**, with both NumPy versions above; Ruff checks pass for the test files.
+  reject deprecated NumPy calls. The 72-test suite at that step passed with
+  both NumPy versions above.
   An existing `is 0` SyntaxWarning appeared when recompiling `LinearBlockCode.py`;
   that separate source issue remains.
+- [Channel contract](docs/channel-interface.md) and
+  `tests/test_binary_symmetric_channel.py` check closed-form entropy, capacity,
+  and efficiency results for binary symmetric channels, including boundary
+  probabilities, verbosity, and source preservation. Current local result:
+  **106 passed, no expected failures**, with NumPy 2.5.4; Ruff checks pass for
+  the test files.
 - The project runs from the repository root without being installed as a package.
 - `uv run ruff check .` and `uv run ruff format --check .` expose existing source
   issues; passing them across the codebase is deferred to step 4.
 
 ## Confirmed issues to address
 
-- `BSC.ChannelEfficiency()` references `bsc` rather than `self`, causing a
-  `NameError` when imported and called normally.
+- For arbitrary transition matrices, `BSC.Cs()` assumes a uniform source is
+  optimal. This is not always true: with `P = [[1, 0], [0.5, 0.5]]`, it returns
+  approximately 0.311278 bits, while source `[0.6, 0.4]` achieves 0.321928 bits.
+  General capacity optimization remains to be addressed.
 
 ## Fixes awaiting review
+
+- Compute `ChannelEfficiency()` from this instance rather than the module's
+  `bsc` example variable. Raise `ZeroDivisionError` at zero capacity.
+- Treat zero-probability terms as zero in `HX()` and `HY()`, avoiding NaN.
+- Honor `verbose=False` in `Cs()` and compute its uniform-source result using
+  a separate channel instance, preserving the original source even on failure.
+
+## Completed fixes
 
 - Replace the removed binary `np.fromstring` mode in `intToArray()` with
   `np.frombuffer` on ASCII bytes. Preserve least-significant-bit-first order,
   zero-padding, and uint8 output. Widen the NumPy constraint and update the
   lockfile after testing both the original baseline and newer NumPy.
-
-## Completed fixes
 
 - Normalize finite exponents modulo q - 1 before converting to labels. This
   fixes `elementFromExp(-1)`, division with exponent difference -1, and alpha^-1.
