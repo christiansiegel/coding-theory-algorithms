@@ -18,8 +18,9 @@ Work proceeds one step at a time, with user review before each commit.
 3. **Bug fixes — finite-field element fixes committed in `1990701`; NumPy
    compatibility fix committed in `6292409`; binary symmetric channel fixes
    committed in `272be01`; cyclic-code fixes committed in `7e8bdc5`;
-   polynomial fixes committed in `8eb6b7b`.** BCH construction and shared
-   decoding fixes await review; remaining RS defects are listed below.
+   polynomial fixes committed in `8eb6b7b`; BCH construction and shared
+   decoding fixes committed in `507b412`.** RS encoding and distance fixes
+   await review.
 4. **Formatting and linting.** Apply Ruff in a separate change.
 5. **Package structure.** Move implementation into a package, preserving old
    imports with compatibility modules and keeping `playground.py` runnable.
@@ -69,14 +70,30 @@ Work proceeds one step at a time, with user review before each commit.
   for reuse. BCH construction and shared decoding regressions now pass,
   including all single-symbol errors in RS(3,1). Expanded parity checks cover
   BCH(7,4) and BCH(15,7), including generator/check-matrix orthogonality.
-  Only RS encoding and distance regressions retain strict expected-failure
-  markers. Current local result: **261 passed, 4 expected failures**, with
-  NumPy 2.5.4. Ruff checks pass for the test files.
+  RS encoding tests exhaust all messages in RS(3,1) over GF(4) and RS(7,3)
+  over GF(8), in both encoding forms, and independently enumerate their
+  minimum symbol weights. GF(8) syndrome and decoding checks include nonbinary
+  symbols and selected one- and two-error patterns. All expected-failure
+  markers have been removed. Current local result: **269 passed**, with NumPy
+  2.5.4. Ruff checks pass for the test files.
 - The project runs from the repository root without being installed as a package.
 - `uv run ruff check .` and `uv run ruff format --check .` expose existing source
   issues; passing them across the codebase is deferred to step 4.
 
 ## Fixes awaiting review
+
+- Encode RS messages with the supplied field's polynomial arithmetic.
+- Return the primitive RS minimum symbol distance `2t+1` and design radius t,
+  avoiding binary enumeration and correcting the syndrome count.
+
+## Confirmed issues to address
+
+- For arbitrary transition matrices, `BSC.Cs()` assumes a uniform source is
+  optimal. This is not always true: with `P = [[1, 0], [0.5, 0.5]]`, it returns
+  approximately 0.311278 bits, while source `[0.6, 0.4]` achieves 0.321928 bits.
+  General capacity optimization remains to be addressed.
+
+## Completed fixes
 
 - Return a copy of an error-free BCH/RS codeword when all syndromes are zero,
   avoiding division by zero in Euclid.
@@ -85,18 +102,6 @@ Work proceeds one step at a time, with user review before each commit.
 - Expand field labels into polynomial-basis bits in `BCHCode.H(False)`.
 - Include each conjugacy class once in BCH generator construction. For GF(16),
   design t=5 now produces the degree-14 repetition-code generator.
-
-## Confirmed issues to address
-
-- RS encoding uses inherited GF(2) arithmetic instead of its supplied field.
-- RS distance/correction radius use binary messages and matrix arithmetic,
-  producing wrong symbol distance and syndrome counts for some fields.
-- For arbitrary transition matrices, `BSC.Cs()` assumes a uniform source is
-  optimal. This is not always true: with `P = [[1, 0], [0.5, 0.5]]`, it returns
-  approximately 0.311278 bits, while source `[0.6, 0.4]` achieves 0.321928 bits.
-  General capacity optimization remains to be addressed.
-
-## Completed fixes
 
 - Stop polynomial division when the residual is zero, fixing constant divisors.
   Initialize the quotient as an integer zero polynomial.

@@ -200,25 +200,30 @@ def test_rs_generator_roots_and_dimensions(modulus, t):
 
 
 @pytest.mark.parametrize("systematic", [False, True])
-@pytest.mark.xfail(
-    strict=True, reason="RS encoding inherits binary GF2 polynomial arithmetic"
-)
-def test_rs_encodes_every_gf4_message(systematic):
-    modulus = 0b111
+@pytest.mark.parametrize("modulus, t", [(0b111, 1), (0b1011, 2)])
+def test_rs_encodes_every_message_in_small_codes(modulus, t, systematic, capsys):
     field, bits, labels = field_reference(modulus)
-    code = RSCode(field, 1)
-    generator = generator_from_roots(modulus, bits, 1, binary=False)
-    for message in range(4):
-        expected = reference_encode([bits[message]], generator, modulus, 3, systematic)
-        np.testing.assert_array_equal(
-            code.c(np.array([message]), systematic), [labels[v] for v in expected]
+    code = RSCode(field, t)
+    generator = generator_from_roots(modulus, bits, t, binary=False)
+    minimum_weight = code.n()
+    for message in product(range(len(bits)), repeat=code.k()):
+        expected = reference_encode(
+            [bits[v] for v in message], generator, modulus, code.n(), systematic
         )
+        np.testing.assert_array_equal(
+            code.c(np.array(message), systematic), [labels[v] for v in expected]
+        )
+        if systematic:
+            assert expected[-code.k() :] == [bits[v] for v in message]
+        weight = sum(v != 0 for v in expected)
+        if weight:
+            minimum_weight = min(minimum_weight, weight)
+    assert minimum_weight == 2 * t + 1
+    assert code.dmin() == minimum_weight
+    assert capsys.readouterr().out == ""
 
 
 @pytest.mark.parametrize("method, expected", [("dmin", 3), ("t", 1)])
-@pytest.mark.xfail(
-    strict=True, reason="RS distance uses binary messages and binary matrix arithmetic"
-)
 def test_rs_distance_and_correction_radius_over_gf8(method, expected):
     field, _, _ = field_reference(0b1011)
     assert getattr(RSCode(field, 1), method)() == expected
@@ -263,3 +268,38 @@ def test_rs_decodes_an_error_free_codeword():
     np.testing.assert_array_equal(
         padded_bits(code.decode(np.array([2, 2, 2]), False), bits, 3), [bits[2]] * 3
     )
+
+
+@pytest.mark.parametrize("t", [1, 2])
+def test_rs_gf8_syndromes_and_decoding_with_nonbinary_symbols(t, capsys):
+    modulus = 0b1011
+    field, bits, labels = field_reference(modulus)
+    code = RSCode(field, t)
+    generator = generator_from_roots(modulus, bits, t, binary=False)
+    for message in [[0] * code.k(), [2] * code.k(), list(range(2, 2 + code.k()))]:
+        expected = reference_encode([bits[v] for v in message], generator, modulus, 7)
+        for systematic in [False, True]:
+            np.testing.assert_array_equal(
+                code.c(np.array(message), systematic),
+                [
+                    labels[v]
+                    for v in reference_encode(
+                        [bits[v] for v in message], generator, modulus, 7, systematic
+                    )
+                ],
+            )
+        # Include zero errors and the boundary positions, with distinct magnitudes.
+        patterns = [[], [(0, 2)], [(6, 5)], [(3, 7)]]
+        if t == 2:
+            patterns += [[(0, 2), (6, 5)], [(2, 7), (5, 3)]]
+        for errors in patterns:
+            received = expected[:]
+            for position, error in errors:
+                received[position] ^= bits[error]
+            received_labels = np.array([labels[v] for v in received])
+            syndrome = reference_syndrome(received, bits, modulus, 2 * t)
+            np.testing.assert_array_equal(
+                code.S(received_labels, False), [labels[v] for v in syndrome]
+            )
+            assert padded_bits(code.decode(received_labels, False), bits, 7) == expected
+    assert capsys.readouterr().out == ""

@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import numpy as np
 from BCHCode import BCHCode
+from CyclicCode import padEnd
 from GaloisField import X, degree
 import math
 
@@ -64,6 +65,28 @@ class RSCode(BCHCode):
         """ Return Galois Field.
         """
         return self._GF
+
+    def c(self, m, systematic = True):
+        """Encode a message polynomial over the supplied field, padded to n symbols."""
+        GF = self.GF()
+        if systematic:
+            shifted = GF.multPoly(X(degree(self.g())), m)
+            remainder = GF.modPoly(shifted, self.g())
+            codeword = GF.addPoly(shifted, remainder)
+        else:
+            codeword = GF.multPoly(m, self.g())
+        return padEnd(codeword.astype(int), self.n())
+
+    def dmin(self, verbose = False):
+        """Minimum symbol distance of a primitive RS code with valid parameters."""
+        distance = 2 * self._t + 1
+        if verbose:
+            print('Minimum symbol distance: dmin = 2t + 1 = ' + str(distance))
+        return distance
+
+    def t(self):
+        """Return the designed symbol-error correction radius."""
+        return self._t
 
 
 

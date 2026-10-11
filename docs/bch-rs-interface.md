@@ -1,7 +1,7 @@
 # BCH and Reed–Solomon interfaces
 
 These contracts describe intended behavior for small primitive narrow-sense
-codes. Strict expected-failure tests record current implementation defects.
+codes. Independent tests check their arithmetic and decoding behavior.
 Invalid parameters, shortened codes, and decoding beyond the guaranteed
 correction radius remain outside this step.
 
@@ -67,4 +67,8 @@ over GF(4)/GF(8), every GF(4) received vector's RS(3,1) syndromes, and its
 single-symbol-error corrections at every position and for every nonzero error
 value. Regression tests also cover error-free decoding, canceled highest terms,
 BCH factor deduplication, and expanded parity checks over GF(8) and GF(16).
-Strict expected failures remain for RS encoding and distance.
+RS encoding is checked for every message in RS(3,1) over GF(4) and RS(7,3)
+over GF(8), in both forms. Independent enumeration verifies their minimum
+symbol distance. Selected RS(7,5) encodings and GF(8) syndrome/decoding cases
+cover nonbinary symbols and one- and two-error patterns. All regression tests
+now pass without expected-failure markers.
