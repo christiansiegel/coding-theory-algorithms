@@ -99,4 +99,7 @@ and supplied representatives.
 Binary classification tests enumerate all 64 polynomials of degree at most
 five, using independent bit-mask factorization and multiplicative-order checks.
 They exercise every receiver field, trailing-zero padding, and quiet/verbose
-calls. Strict expected failures record the degree-dependence and constant cases.
+calls. The classification regressions now pass independently of receiver degree,
+including zero/constants and the distinction between X and X+1.
+The implementation enumerates possible small factors and measures modular
+multiplicative order; these checks are intended for textbook-sized polynomials.

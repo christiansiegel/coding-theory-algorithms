@@ -529,81 +529,54 @@ class GaloisField:
         print()
 
     def irreducible(self, p, verbose=False):
+        """Classify a binary polynomial over GF(2), independently of this field.
+
+        Ignore trailing zeros. Zero and constant polynomials return False.
         """
-        Test all factor polynomials over GF of degree higher than
-        zero and lower than m to see if p has no factor polynomial and
-        thus is irreducible ofer GF(2).
-        (slide 6)
-        Args:
-            p: polynomial to check if irreducible over GF(2)
-        Returns:
-            True if polynomial is irreducible.
-        """
-        m = self.m()
-        irreducible = True
+        m = degree(p)
+        if m == 0:
+            if verbose:
+                print("Zero and constant polynomials are not irreducible.")
+            return False
+        # Any reducible degree-m polynomial has a factor of degree <= m/2.
+        for factor_degree in range(1, m // 2 + 1):
+            for lower_coefficients in range(2**factor_degree):
+                factor = np.array([(lower_coefficients >> i) & 1 for i in range(factor_degree)] + [1])
+                if GF2.isFactor(p, factor):
+                    if verbose:
+                        print("The polynomial", self.polyToString(p), "is NOT irreducible over GF(2); it has factor", self.polyToString(factor))
+                    return False
         if verbose:
-            print()
-            s = ""
-        for factorPoly in self.elementsAsPoly():
-            if not (0 < degree(factorPoly) < m):
-                continue
-            if self.isFactor(p, factorPoly):
-                if verbose:
-                    irreducible = False
-                    s += "\n" + self.polyToString(factorPoly)
-                else:
-                    return False  # skip all other tests
-        if verbose:
-            if irreducible:
-                print(
-                    "The polynomial",
-                    self.polyToString(p),
-                    "is irreducible over GF(2), since \nit has no",
-                    "factor polynomials over GF(2) of degree higher than\n" + "zero and lower than " + str(m) + ".",
-                )
-            else:
-                print(
-                    "The polynomial",
-                    self.polyToString(p),
-                    "is NOT irreducible over GF(2).\n" + "It has the following factor polynomials:" + s,
-                )
-        if verbose:
-            print()
-        return irreducible
+            print("The polynomial", self.polyToString(p), "is irreducible over GF(2); it has no nonconstant proper factor.")
+        return True
 
     def primitive(self, p, verbose=False):
-        """
-        Test of polynomial is primitive (and hence also irreducible).
-        (slide 7)
-        Args:
-            p: polynomial to check if primitive
-        Returns:
-            True if polynomial is primitive.
+        """Return whether a binary polynomial is primitive over GF(2).
+
+        Require irreducibility and multiplicative order 2**degree(p)-1 for X
+        modulo p. Zero/constants and X are not primitive; X+1 is primitive.
         """
         if not self.irreducible(p, verbose):
             if verbose:
                 print("Hence, the polynomial is also not primitive.")
             return False
-        else:  # irreducible
-            m = self.m()
-            for n in range(1, 2**m - 1):
-                p2 = self.addPoly(X(0), X(n))
-                if self.isFactor(p2, p):
-                    if verbose:
-                        print(
-                            "The polynomial",
-                            self.polyToString(p),
-                            "is a factor polynomial of 1+X^" + str(n) + "\n" + "and hence not primitive.",
-                        )
-                    return False
+        if p[0] == 0:
+            if verbose:
+                print("X is zero modulo this polynomial, so the polynomial is not primitive.")
+            return False
+        maximum_order = 2 ** degree(p) - 1
+        residue = np.array([1])
+        for exponent in range(1, maximum_order + 1):
+            # Multiplication by X shifts coefficients; reduction stays in GF(2).
+            residue = GF2.modPoly(np.concatenate(([0], residue)), p)
+            if degree(residue) == 0 and residue[0] == 1:
+                primitive = exponent == maximum_order
+                if verbose:
+                    print("X modulo", self.polyToString(p), "has order", exponent, "; required order is", maximum_order, "; primitive =", primitive)
+                return primitive
         if verbose:
-            print(
-                "The polynomial",
-                self.polyToString(p),
-                "is also primitive,",
-                "since it is not a \nfactor of 1+X^n, 1 <= n < " + str(2**m - 1) + ".\n",
-            )
-        return True
+            print("X does not have the required multiplicative order; the polynomial is not primitive.")
+        return False
 
     def HCF(self, A, B, verbose=False):
         """Return an early-stopping extended-Euclid pair for BCH/RS decoding.

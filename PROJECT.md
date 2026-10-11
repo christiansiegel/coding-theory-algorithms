@@ -38,11 +38,12 @@ the user authorizes committing a specific step without review.
    probability contracts and tests committed in `85b18a4`; probability fix
    committed in `6321ee2`. Root-helper contracts and tests committed in
    `5451be8`; root-helper fixes committed in `5369833`. Binary polynomial
-   classification tests and fixes are authorized for commit without review.**
+   classification contracts and tests committed in `fb75aa0`; fixes complete
+   and authorized for commit without review.**
    Extend contracts and independent tests for uncovered public methods, then
    fix confirmed defects in separate reviews.
 
-## Binary polynomial classification contracts and tests
+## Completed binary polynomial classification fixes
 
 - Specify irreducibility and primitivity over GF(2), using the tested polynomial's
   degree independently of the receiver field. Constants and zero return false;
@@ -50,9 +51,15 @@ the user authorizes committing a specific step without review.
 - Independently classify all 64 binary polynomials of degree at most five using
   bit-mask factorization and multiplicative order. Check all four receiver
   fields, trailing zeros, input preservation, and quiet/verbose calls.
-- Eight known-answer checks validate the reference. Eight strict expected
-  failures record receiver-degree dependence and incorrect constant handling.
-  Production is unchanged.
+- Eight known-answer checks validate the reference. Enable the eight regression
+  cases that recorded receiver-degree dependence and incorrect constant handling.
+- Enumerate possible binary factors using the input degree, and perform modular
+  arithmetic in GF(2). Reject zero/constants for both predicates; distinguish
+  X from the primitive degree-one polynomial X+1.
+- Measure the order of X modulo the input polynomial with bounded-degree
+  remainders, avoiding construction of successively higher-degree X^n+1 arrays.
+- Validation: `make check` passes lint and formatting checks, with **412 tests
+  passed** and no expected failures. All **16 classification tests** pass.
 
 ## Completed root-helper fixes
 

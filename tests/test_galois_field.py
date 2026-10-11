@@ -89,7 +89,6 @@ def test_binary_classification_reference_known_answers(polynomial, expected):
     assert reference_binary_classification(polynomial) == expected
 
 
-@pytest.mark.xfail(strict=True, reason="binary classification depends on receiver degree and mishandles constants")
 @pytest.mark.parametrize("method,index", [("irreducible", 0), ("primitive", 1)])
 def test_binary_polynomial_classification_independent_of_receiver(field_case, method, index, capsys):
     field, _, _, _ = field_case
