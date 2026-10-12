@@ -9,8 +9,8 @@ Construct `BSC(PX, P)` with source probabilities `PX = [x, 1 - x]` and a
 transition matrix `P = [[1 - p, p], [p, 1 - p]]`, where x and p are in [0, 1].
 Rows of P correspond to input symbols; columns correspond to output symbols.
 `P[i, j]` is P(Y=j | X=i). The constructor accepts lists or NumPy arrays and
-stores floating-point arrays. Validation of malformed probabilities is not yet
-part of the interface contract.
+stores floating-point arrays. Malformed probabilities or incompatible shapes
+raise `ValueError`; see [input validation](input-validation.md).
 
 Entropy is measured in bits. Define h(z) = -z log2(z) - (1-z) log2(1-z), with
 zero-probability terms contributing zero. Thus h(0) = h(1) = 0.
@@ -47,8 +47,8 @@ column's `NaN` markers must not contaminate the result. For example, a
 deterministic source through a noiseless channel has H(X|Y) = 0.
 The chain rule `HX() + HYX() == HY() + HXY()` holds for valid channels.
 Both methods preserve stored source and transition probabilities; quiet and
-verbose calls return the same numerical results. Malformed-input validation
-remains outside this contract.
+verbose calls return the same numerical results. Construction validates
+probability distributions and shapes.
 
 ## General channel capacity
 
@@ -56,7 +56,7 @@ The class also accepts larger or asymmetric transition matrices. For these,
 `PX` has one entry per input row, all probabilities are nonnegative and finite,
 and each input row sums to one. The source also sums to one. Rectangular
 matrices, duplicate input rows, and output columns that are always zero are
-valid. Malformed-input validation remains outside this contract.
+valid. Malformed construction inputs raise `ValueError`.
 
 `Cs()` must maximize I(X;Y) over all input probability distributions, in bits,
 without changing this instance's source. A uniform source is optimal for a

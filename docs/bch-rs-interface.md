@@ -2,8 +2,9 @@
 
 These contracts describe intended behavior for small primitive narrow-sense
 codes. Independent tests check their arithmetic and decoding behavior.
-Invalid parameters, shortened codes, and decoding beyond the guaranteed
-correction radius remain outside this step.
+Invalid construction parameters and received-vector shapes raise `ValueError`;
+see [input validation](input-validation.md). Shortened codes and decoding
+guarantees beyond the correction radius remain outside this contract.
 
 ## Binary BCH codes
 

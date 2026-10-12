@@ -2,8 +2,9 @@
 
 Polynomials here have **field-element labels as coefficients**, not binary
 polynomial values. See the [element contract](finite-field-interface.md) for
-that distinction. Roots, minimal
-polynomials, irreducibility tests, and polynomial GCD are outside this step.
+that distinction. Roots, minimal polynomials, and binary classification have
+contracts in the field document. The early-stopping decoder Euclidean helper
+has a [separate contract](euclidean-interface.md); it is not a full polynomial GCD.
 
 ## Representation
 

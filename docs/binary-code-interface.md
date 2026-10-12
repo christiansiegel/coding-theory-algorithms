@@ -15,8 +15,9 @@ Conversions do not perform general Gaussian elimination on arbitrary matrices.
 ## LinearBlockCode
 
 Create `LinearBlockCode()` then call `set_g(G)` or `set_h(H)` with a full-rank
-systematic matrix. Using an uninitialized code, a rank-deficient matrix,
-nonbinary data, or wrong input lengths has no established validation contract.
+systematic matrix. Setters and code-vector boundaries validate dimensions,
+systematic layout, and coefficients; see [input validation](input-validation.md). Initialize the
+code before using its arithmetic methods.
 
 | Method | Contract |
 | --- | --- |
@@ -45,7 +46,7 @@ codewords of weight w. `Pe(p)` is the binomial tail above the guaranteed
 correction radius t. It measures the probability of exceeding that guarantee;
 it does not specify the failure rate of an arbitrary decoder beyond t.
 Both methods are quiet and preserve the code matrices. Invalid probabilities
-have no established validation contract.
+raise `ValueError`.
 
 Beyond t errors, decoding may silently return a different codeword or raise
 `KeyError`. A successful return is not a guarantee that the original message was
@@ -71,7 +72,7 @@ selection is fixed; zero and nonzero requests now select their own error sets.
 Construct `CyclicCode(g, n)` with a nonconstant binary generator polynomial
 g that divides X^n+1, has constant coefficient 1, and degree r satisfying
 0 < r < n. Polynomial vectors use ascending degree order. k = n-r.
-Constructor checks are currently incomplete; callers must supply valid codes.
+Invalid generators and dimensions raise `ValueError`.
 
 | Method | Contract |
 | --- | --- |
@@ -94,5 +95,7 @@ for the repetition and Hamming fixtures, including p=0, 1/2, and 1. A length-401
 repetition case uses complement symmetry to check `Pe(1/2) = 1/2` without
 exhaustive enumeration. Exact integer binomial coefficients fix the former
 factorial-division overflow; the endpoint and symmetry regressions now pass.
-General systematic
-conversion, invalid inputs, and BCH/RS still need independent coverage.
+Systematic conversion tests cover row swaps, elimination, input preservation,
+and rejection of a singular information block. Printed equations and cyclic
+code dimensions are checked independently. BCH/RS have a
+[separate contract](bch-rs-interface.md).

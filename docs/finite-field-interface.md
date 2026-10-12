@@ -1,7 +1,7 @@
 # Finite-field interface
 
 This contract covers construction, element conversion, and element arithmetic
-in `GaloisField.py`. See the separate [polynomial contract](polynomial-interface.md)
+in `coding_theory_algorithms.galois_field`. See the separate [polynomial contract](polynomial-interface.md)
 for polynomial arithmetic.
 Regression tests cover negative exponents, division by zero, and powers of zero.
 
@@ -10,8 +10,9 @@ Regression tests cover negative exponents, division by zero, and powers of zero.
 `GaloisField(p)` constructs GF(2^m), where `p` is a one-dimensional integer
 NumPy array giving a primitive binary polynomial of degree m >= 1.
 Coefficients are ordered from lowest to highest degree: `[1, 1, 0, 0, 1]`
-means 1 + X + X^4. Callers currently need to provide valid primitive polynomials;
-validation of malformed or nonprimitive polynomials is not guaranteed.
+means 1 + X + X^4.
+Malformed or nonprimitive defining polynomials raise `ValueError`; see
+[input validation](input-validation.md).
 `GF2` is the predefined GF(2) instance.
 
 An element's integer label is **not its binary polynomial value**:
