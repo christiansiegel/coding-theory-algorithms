@@ -6,9 +6,9 @@ import re
 import numpy as np
 import pytest
 
-from BCHCode import BCHCode
-from GaloisField import GaloisField
-from RSCode import RSCode
+from coding_theory_algorithms.bch_code import BCHCode
+from coding_theory_algorithms.galois_field import GaloisField
+from coding_theory_algorithms.rs_code import RSCode
 
 from .field_reference import (
     multiply_bits,

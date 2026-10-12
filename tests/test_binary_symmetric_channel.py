@@ -5,8 +5,8 @@ import math
 import numpy as np
 import pytest
 
-import BinarySymmetricChannel as channel_module
-from BinarySymmetricChannel import BSC
+import coding_theory_algorithms.binary_symmetric_channel as channel_module
+from coding_theory_algorithms.binary_symmetric_channel import BSC
 
 
 def binary_entropy(p):

@@ -3,12 +3,12 @@
 import numpy as np
 import pytest
 
-from BinarySymmetricChannel import BSC
-from GaloisField import GaloisField
-from LinearBlockCode import LinearBlockCode
-from CyclicCode import CyclicCode
-from BCHCode import BCHCode
-from RSCode import RSCode
+from coding_theory_algorithms.binary_symmetric_channel import BSC
+from coding_theory_algorithms.galois_field import GaloisField
+from coding_theory_algorithms.linear_block_code import LinearBlockCode
+from coding_theory_algorithms.cyclic_code import CyclicCode
+from coding_theory_algorithms.bch_code import BCHCode
+from coding_theory_algorithms.rs_code import RSCode
 
 
 @pytest.mark.parametrize(

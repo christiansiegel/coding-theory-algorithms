@@ -7,7 +7,7 @@ import math
 import numpy as np
 import pytest
 
-from LinearBlockCode import GtoH, HtoG, LinearBlockCode
+from coding_theory_algorithms.linear_block_code import GtoH, HtoG, LinearBlockCode
 
 
 @pytest.fixture(params=["repetition3", "repetition5", "hamming7"])

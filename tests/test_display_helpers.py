@@ -6,8 +6,8 @@ import re
 import numpy as np
 import pytest
 
-from CyclicCode import makeSystematic, printAllCyclicCodes
-from LinearBlockCode import matrixMultiplicationEquations
+from coding_theory_algorithms.cyclic_code import makeSystematic, printAllCyclicCodes
+from coding_theory_algorithms.linear_block_code import matrixMultiplicationEquations
 
 from .test_cyclic_codes import carryless_product, vector
 

@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import pytest
 
-from LinearBlockCode import intToArray
+from coding_theory_algorithms.linear_block_code import intToArray
 
 
 @pytest.mark.parametrize(

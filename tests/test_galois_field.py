@@ -8,7 +8,7 @@ import sys
 import numpy as np
 import pytest
 
-from GaloisField import GaloisField
+from coding_theory_algorithms.galois_field import GaloisField
 
 from .field_reference import (
     multiply_bits,
@@ -414,7 +414,7 @@ def test_constant_polynomial_division_terminates(field_case, dividend, scalar_di
     divisor_label = len(bits) - 1
     divisor_expression = str(divisor_label) if scalar_divisor else f"np.array([{divisor_label}])"
     script = (
-        "import json; import numpy as np; from GaloisField import GaloisField; "
+        "import json; import numpy as np; from coding_theory_algorithms.galois_field import GaloisField; "
         f"field = GaloisField(np.array({p!r})); "
         f"q, r = field.divmodPoly(np.array({dividend!r}), {divisor_expression}); "
         "print(json.dumps([q.tolist(), r.tolist()]))"

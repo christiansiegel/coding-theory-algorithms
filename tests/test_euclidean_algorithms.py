@@ -5,8 +5,8 @@ import math
 import numpy as np
 import pytest
 
-from BCHCode import HCF
-from GaloisField import GaloisField
+from coding_theory_algorithms.bch_code import HCF
+from coding_theory_algorithms.galois_field import GaloisField
 
 from .field_reference import multiply_bits, reference_poly_division, reference_poly_product, trim_polynomial
 

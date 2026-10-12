@@ -1,12 +1,12 @@
 # Keep all algorithm imports ready for experimenting with other exercises.
 # ruff: noqa: F401
 import numpy as np
-from BinarySymmetricChannel import BSC
-from GaloisField import GaloisField
-from GaloisField import GF2
-from LinearBlockCode import LinearBlockCode
-from CyclicCode import CyclicCode
-from BCHCode import BCHCode
+from coding_theory_algorithms.binary_symmetric_channel import BSC
+from coding_theory_algorithms.galois_field import GaloisField
+from coding_theory_algorithms.galois_field import GF2
+from coding_theory_algorithms.linear_block_code import LinearBlockCode
+from coding_theory_algorithms.cyclic_code import CyclicCode
+from coding_theory_algorithms.bch_code import BCHCode
 
 print("Exercise 1")
 """

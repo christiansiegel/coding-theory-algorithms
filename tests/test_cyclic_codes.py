@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from CyclicCode import CyclicCode
+from coding_theory_algorithms.cyclic_code import CyclicCode
 
 
 def vector(value, length):
