@@ -91,17 +91,17 @@ def padded_bits(decoded, bits, n):
         "PU",
         "Pe",
         "shift",
-        "shiftSyndrome",
-        "correctableErrorPatterns",
-        "decodingTable",
-        "syndromeDecode",
-        "printMessageCodewordTable",
-        "printParityCheckEquations",
-        "printSyndromeVectorEquations",
-        "printErrorsThatHaveSyndrome",
-        "printStandardArray",
-        "printDecodingTable",
-        "verboseSyndromeDecode",
+        "shift_syndrome",
+        "correctable_error_patterns",
+        "decoding_table",
+        "syndrome_decode",
+        "print_message_codeword_table",
+        "print_parity_check_equations",
+        "print_syndrome_vector_equations",
+        "print_errors_that_have_syndrome",
+        "print_standard_array",
+        "print_decoding_table",
+        "verbose_syndrome_decode",
     ],
 )
 def test_rs_rejects_binary_only_inherited_methods(method):
@@ -236,7 +236,7 @@ def test_rs_info_reports_actual_roots_and_symbol_parameters(modulus, t, capsys):
         if evaluated == 0:
             roots.append("1" if label == 1 else "α^" + str(label - 1))
     assert len(roots) == 2 * t
-    assert code.printInfo() is None
+    assert code.print_info() is None
     lines = capsys.readouterr().out.splitlines()
     root_line = next(line for line in lines if line.startswith("Roots of g(X)"))
     assert root_line.split(":", 1)[1].strip().split(", ") == roots

@@ -26,7 +26,7 @@ zero-probability terms contributing zero. Thus h(0) = h(1) = 0.
 | `HYX()` | Return H(Y\|X) = h(p). |
 | `HXY()` | Return H(X\|Y) = h(x) + h(p) - h(y), including deterministic sources. |
 | `Cs(verbose=True)` | Return capacity C = 1-h(p), using a uniform source without changing this instance's source probabilities. |
-| `ChannelEfficiency(verbose=True)` | Return [h(y)-h(p)] / C. Raise `ZeroDivisionError` when C = 0 (p = 1/2). |
+| `channel_efficiency(verbose=True)` | Return [h(y)-h(p)] / C. Raise `ZeroDivisionError` when C = 0 (p = 1/2). |
 
 Passing `verbose=False` must suppress printed explanations. Entropy methods
 default to quiet mode; capacity and efficiency retain their existing verbose
@@ -61,7 +61,7 @@ valid. Malformed-input validation remains outside this contract.
 `Cs()` must maximize I(X;Y) over all input probability distributions, in bits,
 without changing this instance's source. A uniform source is optimal for a
 binary symmetric channel, but need not be optimal in general.
-`ChannelEfficiency()` returns this source's mutual information divided by the
+`channel_efficiency()` returns this source's mutual information divided by the
 optimized capacity, and raises `ZeroDivisionError` at zero capacity. Quiet and
 verbose behavior follows the same conventions as above.
 

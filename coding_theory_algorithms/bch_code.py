@@ -37,18 +37,18 @@ def g(GF, t, verbose=True):
     g = np.ones(1)
     included_roots = set()
     for i in i_list:
-        root = GF.elementFromExp(i)
+        root = GF.element_from_exp(i)
         if root in included_roots:
             continue  # the minimal polynomial for this conjugacy class is included
-        conjugate_roots = GF.conjugateRoots(root)
+        conjugate_roots = GF.conjugate_roots(root)
         included_roots.update(conjugate_roots)
-        phi = GF.minimalPolynomial(conjugate_roots)
-        g = GF.multPoly(g, phi)
+        phi = GF.minimal_polynomial(conjugate_roots)
+        g = GF.mult_poly(g, phi)
         if verbose:
-            print("\u03a6_" + str(i) + "(X) = " + GF.polyToString(phi))
+            print("\u03a6_" + str(i) + "(X) = " + GF.poly_to_string(phi))
 
     if verbose:
-        print("g(X) = " + GF.polyToString(g))
+        print("g(X) = " + GF.poly_to_string(g))
         print()
 
     return g
@@ -137,8 +137,8 @@ class BCHCode(CyclicCode):
         for ni in range(0, n):  # 0,1,2...n-1
             Hcol = None  # ni'th column vector of H
             for ti in range(1, 2 * t, 2):  # 1,3,5...2t-1
-                alpha = self.GF().elementFromExp(ti * ni)  # (a^ti)^ni
-                alpha = self.GF().elementToPoly(alpha, size_m=True)[:, np.newaxis]
+                alpha = self.GF().element_from_exp(ti * ni)  # (a^ti)^ni
+                alpha = self.GF().element_to_poly(alpha, size_m=True)[:, np.newaxis]
                 if Hcol is None:
                     Hcol = alpha
                 else:
@@ -168,20 +168,20 @@ class BCHCode(CyclicCode):
 
         for i in range(1, 2 * t + 1):  # 1 <= i <= 2t
             exp_a = i
-            a = GF.elementFromExp(exp_a)
-            s = GF.substituteElementIntoPoly(r, a)
+            a = GF.element_from_exp(exp_a)
+            s = GF.substitute_element_into_poly(r, a)
             S[i - 1] = s
 
             if verbose:
-                syndromeVectorStr = "s_" + str(i) + " = r(" + GF.elementToString(a) + ") = "
-                syndromeVectorStr += GF.polyToString(r, "(" + GF.elementToString(a) + ")") + " = "
-                syndromeVectorStr += GF.elementToString(s)
+                syndromeVectorStr = "s_" + str(i) + " = r(" + GF.element_to_string(a) + ") = "
+                syndromeVectorStr += GF.poly_to_string(r, "(" + GF.element_to_string(a) + ")") + " = "
+                syndromeVectorStr += GF.element_to_string(s)
                 print(syndromeVectorStr)
 
         if verbose:
             print()
             print("Therefore the syndrome polynomial is:")
-            print("S(X) =", GF.polyToString(S))
+            print("S(X) =", GF.poly_to_string(S))
             print()
 
         return S.astype(int)
@@ -199,7 +199,7 @@ class BCHCode(CyclicCode):
         if verbose:
             print()
             print("Decode the received polynomial:")
-            print("r(X) = " + self.GF().polyToString(r))
+            print("r(X) = " + self.GF().poly_to_string(r))
 
         S = self.S(r, verbose)
         if np.count_nonzero(S) == 0:
@@ -212,36 +212,36 @@ class BCHCode(CyclicCode):
 
         ri, ti = GF.HCF(X(2 * self.t()), S, verbose)
 
-        lamb = GF.monicMultiplier(ti)
+        lamb = GF.monic_multiplier(ti)
 
-        errorLocationPoly = GF.multPoly(lamb, ti)
-        errorLocationPolyDerivative = GF.derivePoly(errorLocationPoly)
-        errorEvalutationPoly = GF.multPoly(lamb, ri)
+        errorLocationPoly = GF.mult_poly(lamb, ti)
+        errorLocationPolyDerivative = GF.derive_poly(errorLocationPoly)
+        errorEvalutationPoly = GF.mult_poly(lamb, ri)
         if verbose:
             print("An element \u03bb \u2208 GF(" + str(GF.q()) + ") is conveniently selected to multiply")
             print("t_i(X) by, in order to convert it into a monic polynomial.")
-            print("This value of \u03bb is \u03bb = " + GF.elementToString(lamb))
+            print("This value of \u03bb is \u03bb = " + GF.element_to_string(lamb))
             print("Therefore:")
             print()
             print("Error location polynomial:")
-            print("\u03c3(X) = \u03bb * t_i(X) = " + GF.elementToString(lamb) + "(" + GF.polyToString(ti) + ")")
-            print("                  = " + GF.polyToString(errorLocationPoly))
+            print("\u03c3(X) = \u03bb * t_i(X) = " + GF.element_to_string(lamb) + "(" + GF.poly_to_string(ti) + ")")
+            print("                  = " + GF.poly_to_string(errorLocationPoly))
             print()
-            print("\u03c3'(X) = " + GF.polyToString(errorLocationPolyDerivative))
+            print("\u03c3'(X) = " + GF.poly_to_string(errorLocationPolyDerivative))
             print()
             print("Error evaluation polynomial:")
-            print("W(X) = -\u03bb * r_i(X) = " + GF.elementToString(lamb) + " * " + GF.polyToString(ri))
-            print("                   = " + GF.polyToString(errorEvalutationPoly))
+            print("W(X) = -\u03bb * r_i(X) = " + GF.element_to_string(lamb) + " * " + GF.poly_to_string(ri))
+            print("                   = " + GF.poly_to_string(errorEvalutationPoly))
             print()
             print("Performing Chien search in the error location polynomial \u03c3(X):")
             print()
 
         errorLocations = []
         for i, root in enumerate(GF.roots(errorLocationPoly)):
-            j = GF.elementToExp(GF.elementFromExp(-GF.elementToExp(root)))
+            j = GF.element_to_exp(GF.element_from_exp(-GF.element_to_exp(root)))
             errorLocations.append(j)
             if verbose:
-                print("\u03b1^(-j_" + str(i + 1) + ") = " + GF.elementToString(root) + "\t-> j_" + str(i + 1) + " = " + str(j))
+                print("\u03b1^(-j_" + str(i + 1) + ") = " + GF.element_to_string(root) + "\t-> j_" + str(i + 1) + " = " + str(j))
 
         if verbose:
             print("\nError values:")
@@ -249,25 +249,25 @@ class BCHCode(CyclicCode):
         errorValues = []
 
         for i, errorLocation in enumerate(errorLocations):
-            alpha = GF.elementFromExp(-errorLocation)
-            res_W = GF.substituteElementIntoPoly(errorEvalutationPoly, alpha)
-            res_o = GF.substituteElementIntoPoly(errorLocationPolyDerivative, alpha)
-            errorValue = GF.divElements(res_W, res_o)
+            alpha = GF.element_from_exp(-errorLocation)
+            res_W = GF.substitute_element_into_poly(errorEvalutationPoly, alpha)
+            res_o = GF.substitute_element_into_poly(errorLocationPolyDerivative, alpha)
+            errorValue = GF.div_elements(res_W, res_o)
             errorValues.append(errorValue)
             if verbose:
                 print(
                     "e_j"
                     + str(i + 1)
                     + " = W("
-                    + GF.elementToString(alpha)
+                    + GF.element_to_string(alpha)
                     + ") / \u03c3'("
-                    + GF.elementToString(alpha)
+                    + GF.element_to_string(alpha)
                     + ") = "
-                    + GF.elementToString(res_W)
+                    + GF.element_to_string(res_W)
                     + " / "
-                    + GF.elementToString(res_o)
+                    + GF.element_to_string(res_o)
                     + " = "
-                    + GF.elementToString(errorValue)
+                    + GF.element_to_string(errorValue)
                 )
 
         e = np.zeros(self.n(), dtype=int)
@@ -275,29 +275,29 @@ class BCHCode(CyclicCode):
             errorValue = errorValues[i]
             e[errorLocation] = errorValue
 
-        c = GF.addPoly(r, e)
+        c = GF.add_poly(r, e)
 
         if verbose:
             print()
             print("Error polynomial:")
-            print("e(X) = " + GF.polyToString(e))
+            print("e(X) = " + GF.poly_to_string(e))
             print()
             print("Code vector:")
             print("c = r + e = " + str(c))
 
         return c.astype(int)
 
-    def printInfo(self):
+    def print_info(self):
         """
         (slide 5, 7)
         """
         GF = self.GF()
         print()
-        print("Generator Polynomial:        g(X) = " + GF.polyToString(self.g()))
+        print("Generator Polynomial:        g(X) = " + GF.poly_to_string(self.g()))
         rootStr = ""
-        roots = GF.removeConjugateRoots(GF.roots(self.g()))
+        roots = GF.remove_conjugate_roots(GF.roots(self.g()))
         for root in roots:
-            rootStr += GF.elementToString(root) + ", "
+            rootStr += GF.element_to_string(root) + ", "
         rootStr = rootStr[:-2]  # remove last comma
         print("Roots of g(X) in GF(2^" + str(self.GF().m()) + "):    " + rootStr + " and all conjugate roots")
         print("Code length:                 n = 2^m - 1 = " + str(self.n()))

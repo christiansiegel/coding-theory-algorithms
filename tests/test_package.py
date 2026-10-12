@@ -7,7 +7,7 @@ from .test_smoke import run_python
 
 def test_binary_field_singleton_is_shared_by_internal_imports():
     result = run_python(
-        "-c", "from coding_theory_algorithms.galois_field import GF2; from coding_theory_algorithms.cyclic_code import GF2 as cyclic; assert GF2 is cyclic; assert GF2.multElements(1, 1) == 1"
+        "-c", "from coding_theory_algorithms.galois_field import GF2; from coding_theory_algorithms.cyclic_code import GF2 as cyclic; assert GF2 is cyclic; assert GF2.mult_elements(1, 1) == 1"
     )
     assert result.returncode == 0, result.stdout + result.stderr
 

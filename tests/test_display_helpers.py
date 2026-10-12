@@ -6,8 +6,8 @@ import re
 import numpy as np
 import pytest
 
-from coding_theory_algorithms.cyclic_code import makeSystematic, printAllCyclicCodes
-from coding_theory_algorithms.linear_block_code import matrixMultiplicationEquations
+from coding_theory_algorithms.cyclic_code import make_systematic, print_all_cyclic_codes
+from coding_theory_algorithms.linear_block_code import matrix_multiplication_equations
 
 from .test_cyclic_codes import carryless_product, vector
 
@@ -20,7 +20,7 @@ def row_space(matrix):
 def test_systematic_conversion_preserves_row_space_and_input(matrix, capsys):
     original = np.array(matrix)
     for verbose in [False, True]:
-        result = makeSystematic(original, verbose)
+        result = make_systematic(original, verbose)
         np.testing.assert_array_equal(result[:, -len(matrix) :], np.eye(len(matrix), dtype=int))
         assert row_space(result) == row_space(original)
         np.testing.assert_array_equal(original, matrix)
@@ -30,13 +30,13 @@ def test_systematic_conversion_preserves_row_space_and_input(matrix, capsys):
 def test_systematic_conversion_rejects_singular_information_block():
     original = np.array([[1, 0, 0, 0], [0, 1, 0, 0]])
     with pytest.raises(ValueError, match="invertible"):
-        makeSystematic(original, False)
+        make_systematic(original, False)
     np.testing.assert_array_equal(original, [[1, 0, 0, 0], [0, 1, 0, 0]])
 
 
 def test_printed_matrix_equations_match_every_input():
     matrix = np.array([[1, 0, 1, 0], [0, 1, 1, 0]])
-    equations = matrixMultiplicationEquations(matrix, "c", "m").strip().splitlines()
+    equations = matrix_multiplication_equations(matrix, "c", "m").strip().splitlines()
     assert len(equations) == 4
     for message in product([0, 1], repeat=2):
         for column, equation in enumerate(equations):
@@ -49,7 +49,7 @@ def test_printed_matrix_equations_match_every_input():
 
 def test_printed_cyclic_code_dimensions_match_factor_products(capsys):
     factors = [0b11, 0b1011, 0b1101]
-    printAllCyclicCodes([vector(factor, factor.bit_length()) for factor in factors])
+    print_all_cyclic_codes([vector(factor, factor.bit_length()) for factor in factors])
     lines = [line for line in capsys.readouterr().out.splitlines() if line.startswith("Ccyc(")]
     assert len(lines) == 6
     for subset, line in enumerate(lines, start=1):

@@ -38,11 +38,11 @@ def encode(m, g, systematic=True):
     if systematic:
         r = degree(g)  # r = n - k
         Xr = X(r)  # X^(n-k)
-        XrmX = GF2.multPoly(Xr, m)  # X^(n-k) * m(X)
-        p = GF2.modPoly(XrmX, g)  # p(X) = (X^(n-k) * m(X)) mod g(X)
-        c = GF2.addPoly(p, XrmX)  # c(X) = p(X) + (X^(n-k) * m(X))
+        XrmX = GF2.mult_poly(Xr, m)  # X^(n-k) * m(X)
+        p = GF2.mod_poly(XrmX, g)  # p(X) = (X^(n-k) * m(X)) mod g(X)
+        c = GF2.add_poly(p, XrmX)  # c(X) = p(X) + (X^(n-k) * m(X))
     else:
-        c = GF2.multPoly(m, g)
+        c = GF2.mult_poly(m, g)
     return c.astype(int)
 
 
@@ -58,7 +58,7 @@ def gToG(g, n, systematic=True, verbose=False):
         Generator Matrix
     """
     k = n - degree(g)
-    g = padEnd(g, n)
+    g = pad_end(g, n)
     G = np.empty([k, n])
     for i in range(0, k):
         G[i, :] = shift(g, i)
@@ -66,12 +66,12 @@ def gToG(g, n, systematic=True, verbose=False):
     # row additions to gain embedded identity matrix on right side
     # -> systematic form
     if systematic:
-        G = makeSystematic(G, verbose)
+        G = make_systematic(G, verbose)
 
     return G.astype(int)
 
 
-def makeSystematic(G, verbose=True):
+def make_systematic(G, verbose=True):
     G = np.asarray(G)
     if G.ndim != 2 or not 0 < G.shape[0] < G.shape[1]:
         raise ValueError("G must have shape (k,n) with 0 < k < n")
@@ -99,7 +99,7 @@ def makeSystematic(G, verbose=True):
     return G.astype(int)
 
 
-def printAllCyclicCodes(factorPolynomials):
+def print_all_cyclic_codes(factorPolynomials):
     """Generates all cyclic codes that can be created from
     the given factor polynomials.
     (slide 28)
@@ -112,16 +112,16 @@ def printAllCyclicCodes(factorPolynomials):
         if i == 0:
             product = factorPolynomials[i]
         else:
-            product = GF2.multPoly(product, factorPolynomials[i])
-        s += "(" + GF2.polyToString(factorPolynomials[i]) + ") "
-    print(s + "= " + GF2.polyToString(product))
+            product = GF2.mult_poly(product, factorPolynomials[i])
+        s += "(" + GF2.poly_to_string(factorPolynomials[i]) + ") "
+    print(s + "= " + GF2.poly_to_string(product))
     print()
 
     numberCodes = 2 ** (len(factorPolynomials)) - 2
     n = degree(product)
     print("There are", numberCodes, "different cyclic codes of length", n, "as")
     print("we can find", numberCodes, "different generator polynomials that are")
-    print("the factors of", GF2.polyToString(product))
+    print("the factors of", GF2.poly_to_string(product))
 
     print("Code <- Generator polynomial")
     for i in range(0, numberCodes):
@@ -132,14 +132,14 @@ def printAllCyclicCodes(factorPolynomials):
                 if s == "":
                     gp = factorPolynomials[j]
                 else:
-                    gp = GF2.multPoly(gp, factorPolynomials[j])
-                s += "(" + GF2.polyToString(factorPolynomials[j]) + ")"
+                    gp = GF2.mult_poly(gp, factorPolynomials[j])
+                s += "(" + GF2.poly_to_string(factorPolynomials[j]) + ")"
 
-        print("Ccyc(" + str(n) + ", " + str(n - degree(gp)) + ") <- g" + str(i + 1) + " = " + s + " = " + GF2.polyToString(gp))
+        print("Ccyc(" + str(n) + ", " + str(n - degree(gp)) + ") <- g" + str(i + 1) + " = " + s + " = " + GF2.poly_to_string(gp))
 
 
-def padEnd(p, length):
-    assert p.size <= length, "padEnd() failed because polynomial is longer than given size."
+def pad_end(p, length):
+    assert p.size <= length, "pad_end() failed because polynomial is longer than given size."
 
     p = np.pad(p, (0, length - p.size), "constant", constant_values=0)
     return p
@@ -171,8 +171,8 @@ class CyclicCode(LinearBlockCode):
     def g(self):
         return self._g.astype(int)
 
-    def printg(self):
-        print(GF2.polyToString(self.g()))
+    def print_g(self):
+        print(GF2.poly_to_string(self.g()))
 
     def n(self):  # override
         return self._n
@@ -188,29 +188,29 @@ class CyclicCode(LinearBlockCode):
         # Enumerate using matrix encoding rather than repeating polynomial
         # division for every message. Systematic form is unnecessary here.
         linear_code = LinearBlockCode()
-        linear_code.setG(self.G())
+        linear_code.set_g(self.G())
         return linear_code.dmin(verbose)
 
-    def dminVerbose(self):
+    def dmin_verbose(self):
         self.dmin(True)
 
     def G(self, systematic=True, verbose=False):  # override
         return gToG(self.g(), self.n(), systematic, verbose)
 
-    def setG(self, *args):  # override
+    def set_g(self, *args):  # override
         raise NotImplementedError("Set the generator through the cyclic-code constructor")
 
-    def setH(self, *args):  # override
+    def set_h(self, *args):  # override
         raise NotImplementedError("Set the generator through the cyclic-code constructor")
 
     def shift(self, c, i=1):
         """Cyclic right shift of c using division (slide 11)"""
         Xi = X(i)  # X^i polynomial
-        XiCX = GF2.multPoly(Xi, c)  # X^i * c(X) polynomial
-        Xn1 = GF2.addPoly(X(self.n()), X(0))  # X^n + 1 polynomial
-        ci = GF2.modPoly(XiCX, Xn1)  # i times shifted c
+        XiCX = GF2.mult_poly(Xi, c)  # X^i * c(X) polynomial
+        Xn1 = GF2.add_poly(X(self.n()), X(0))  # X^n + 1 polynomial
+        ci = GF2.mod_poly(XiCX, Xn1)  # i times shifted c
         ci = ci[: degree(ci) + 1]  # remove cancelled high coefficients before padding
-        return padEnd(ci, self.n())
+        return pad_end(ci, self.n())
 
     def c(self, m, systematic=True):  # override
         """encode message polynomial m
@@ -222,9 +222,9 @@ class CyclicCode(LinearBlockCode):
         """
         m = coefficients(m, "m", maximum_length=self.k())
         c = encode(m, self.g(), systematic)
-        return padEnd(c, self.n())
+        return pad_end(c, self.n())
 
-    def printMessageCodewordTable(self, systematic=True):  # override
+    def print_message_codeword_table(self, systematic=True):  # override
         """Print all messages and their corresponding codewords.
         Args:
             systematic: print codewords in systematic form (default: True)
@@ -233,7 +233,7 @@ class CyclicCode(LinearBlockCode):
         print("Messages -> Codewords")
         for m in M:
             c = self.c(m, systematic)
-            print(m, c, "m(X) =", GF2.polyToString(m), "\tc(X) =", GF2.polyToString(c))
+            print(m, c, "m(X) =", GF2.poly_to_string(m), "\tc(X) =", GF2.poly_to_string(c))
 
     def S(self, r):
         """Calculate Syndrome polynomial from receive or error polynomial.
@@ -242,11 +242,11 @@ class CyclicCode(LinearBlockCode):
         Returns:
             Syndrome polynomial
         """
-        return GF2.modPoly(r, self.g())
+        return GF2.mod_poly(r, self.g())
 
-    def shiftSyndrome(self, S, i=1):
+    def shift_syndrome(self, S, i=1):
         """Shift syndrome i times (slide 35)"""
         for i in range(0, i):
             # S1(X) = XS(X) mod g(X)
-            S = GF2.modPoly(GF2.multPoly(X(1), S), self.g())
+            S = GF2.mod_poly(GF2.mult_poly(X(1), S), self.g())
         return S

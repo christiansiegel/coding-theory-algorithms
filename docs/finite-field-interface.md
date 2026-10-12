@@ -32,14 +32,14 @@ For example, in GF(16) defined by 1 + X + X^4, label 5 represents alpha^4 =
 | `m()`, `q()` | Return m and 2^m. |
 | `p()` | Return the defining polynomial as an integer array. |
 | `element(a)` | Keep label 0 as zero; normalize any other integer label to `1 + ((a - 1) % (q - 1))`. This is label normalization, not exponent conversion. |
-| `elementToExp(a)` | Return the normalized label's exponent; zero maps to negative infinity. |
-| `elementFromExp(e)` | Return the label of alpha^e for any integer e, including negative integers. Either infinity maps to zero for compatibility with the existing API. |
-| `elementToPoly(a, size_m=False)` | Return the normalized element as an integer coefficient vector in ascending order. Current output has m coefficients, including zero padding. `size_m=True` also guarantees that width. |
-| `elementFromPoly(v)` | Return the label of a binary coefficient vector of degree less than m. Trailing zeros are allowed. This method does not promise reduction of higher-degree polynomials. |
-| `addElements(a, b)` | Return the integer label of a + b in the field. |
-| `multElements(a, b)` | Return the integer label of a * b in the field. |
-| `divElements(a, b)` | Return the integer label of a / b for nonzero b; raise `ZeroDivisionError` when b is zero. |
-| `powElement(a, e)` | Return the integer label of a^e for integer e. Nonzero a allows negative e. Define a^0 = 1, including 0^0; zero to a negative power raises `ZeroDivisionError`. |
+| `element_to_exp(a)` | Return the normalized label's exponent; zero maps to negative infinity. |
+| `element_from_exp(e)` | Return the label of alpha^e for any integer e, including negative integers. Either infinity maps to zero for compatibility with the existing API. |
+| `element_to_poly(a, size_m=False)` | Return the normalized element as an integer coefficient vector in ascending order. Current output has m coefficients, including zero padding. `size_m=True` also guarantees that width. |
+| `element_from_poly(v)` | Return the label of a binary coefficient vector of degree less than m. Trailing zeros are allowed. This method does not promise reduction of higher-degree polynomials. |
+| `add_elements(a, b)` | Return the integer label of a + b in the field. |
+| `mult_elements(a, b)` | Return the integer label of a * b in the field. |
+| `div_elements(a, b)` | Return the integer label of a / b for nonzero b; raise `ZeroDivisionError` when b is zero. |
+| `pow_element(a, e)` | Return the integer label of a^e for integer e. Nonzero a allows negative e. Define a^0 = 1, including 0^0; zero to a negative power raises `ZeroDivisionError`. |
 
 Arithmetic tests use canonical labels in `[0, q)`. Inputs such as floats,
 out-of-range polynomial coefficients, and empty vectors have no established
@@ -54,13 +54,13 @@ contract. Caller-owned polynomials and root lists must be preserved.
 | Method | Contract |
 | --- | --- |
 | `roots(p)` | Return a sorted list of distinct nonzero field roots. Zero is excluded even if p(0)=0; the zero polynomial returns all nonzero elements. |
-| `conjugateRoots(root, verbose=False)` | Return the sorted, distinct Frobenius orbit under repeated squaring, including the supplied root. Zero and one each have singleton orbits. Quiet/verbose calls return the same group. |
-| `conjugateRootGroups()` | Return every distinct orbit once, partitioning all q elements, including zero. Group order is not an API contract. |
-| `removeConjugateRoots(roots)` | Return a new sorted list containing the lowest supplied label in each represented orbit. Accept an unsorted list with duplicates; preserve it. A singleton remains unchanged in value even if its orbit contains a lower absent label. |
-| `minimalPolynomial(roots)` | Given a complete, distinct Frobenius orbit as a list or array, return the monic product of (X+root) as an integer array. Its coefficients are binary. For [0], return X; for [1], return X+1. |
+| `conjugate_roots(root, verbose=False)` | Return the sorted, distinct Frobenius orbit under repeated squaring, including the supplied root. Zero and one each have singleton orbits. Quiet/verbose calls return the same group. |
+| `conjugate_root_groups()` | Return every distinct orbit once, partitioning all q elements, including zero. Group order is not an API contract. |
+| `remove_conjugate_roots(roots)` | Return a new sorted list containing the lowest supplied label in each represented orbit. Accept an unsorted list with duplicates; preserve it. A singleton remains unchanged in value even if its orbit contains a lower absent label. |
+| `minimal_polynomial(roots)` | Given a complete, distinct Frobenius orbit as a list or array, return the monic product of (X+root) as an integer array. Its coefficients are binary. For [0], return X; for [1], return X+1. |
 
 `roots()` retains the nonzero search used by the decoder's Chien search.
-`minimalPolynomial()` expects one complete orbit; arbitrary or repeated roots
+`minimal_polynomial()` expects one complete orbit; arbitrary or repeated roots
 have no established minimal-polynomial contract.
 
 ## Binary polynomial classification

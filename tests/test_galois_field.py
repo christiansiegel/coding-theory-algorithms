@@ -122,14 +122,14 @@ def test_conjugate_roots_against_independent_squaring(field_case, capsys):
     for root in range(len(bits)):
         expected = reference_conjugate_group(root, modulus, bits, labels)
         for verbose in [False, True]:
-            assert field.conjugateRoots(root, verbose) == expected
+            assert field.conjugate_roots(root, verbose) == expected
             assert bool(capsys.readouterr().out) == verbose
 
 
 def test_conjugate_groups_partition_the_whole_field(field_case):
     field, modulus, bits, labels = field_case
     expected = sorted({tuple(reference_conjugate_group(root, modulus, bits, labels)) for root in range(len(bits))})
-    actual = field.conjugateRootGroups()
+    actual = field.conjugate_root_groups()
     assert sorted(tuple(group) for group in actual) == expected
     flattened = [root for group in actual for root in group]
     assert sorted(flattened) == list(range(len(bits)))
@@ -146,7 +146,7 @@ def test_conjugate_reduction_preserves_inputs_and_supplied_representatives(field
         for root in roots:
             key = tuple(reference_conjugate_group(root, modulus, bits, labels))
             groups[key] = min(root, groups.get(key, root))
-        actual = field.removeConjugateRoots(roots)
+        actual = field.remove_conjugate_roots(roots)
         assert roots == before
         assert actual == sorted(groups.values())
         assert actual is not roots
@@ -162,7 +162,7 @@ def test_minimal_polynomials_for_complete_conjugate_groups(field_case):
         assert set(expected) <= {0, 1}
         for roots in [list(group), np.array(list(reversed(group)))]:
             before = roots.copy()
-            actual = field.minimalPolynomial(roots)
+            actual = field.minimal_polynomial(roots)
             np.testing.assert_array_equal(actual, expected)
             assert np.issubdtype(actual.dtype, np.integer)
             assert len(actual) == len(group) + 1
@@ -183,11 +183,11 @@ def test_element_conversions(field_case):
     field, _, bits, _ = field_case
     for label, value in enumerate(bits):
         vector = np.array([(value >> i) & 1 for i in range(field.m())])
-        np.testing.assert_array_equal(field.elementToPoly(label), vector)
-        np.testing.assert_array_equal(field.elementToPoly(label, True), vector)
-        assert field.elementFromPoly(vector) == label
-        assert field.elementFromPoly(np.pad(vector, (0, 2))) == label
-        assert field.elementToExp(label) == (label - 1 if label else -float("inf"))
+        np.testing.assert_array_equal(field.element_to_poly(label), vector)
+        np.testing.assert_array_equal(field.element_to_poly(label, True), vector)
+        assert field.element_from_poly(vector) == label
+        assert field.element_from_poly(np.pad(vector, (0, 2))) == label
+        assert field.element_to_exp(label) == (label - 1 if label else -float("inf"))
 
 
 def test_label_normalization(field_case):
@@ -203,17 +203,17 @@ def test_nonnegative_exponents_and_infinity(field_case):
     field, _, bits, _ = field_case
     period = len(bits) - 1
     for exponent in range(3 * period):
-        assert field.elementFromExp(exponent) == 1 + exponent % period
-    assert field.elementFromExp(float("inf")) == 0
-    assert field.elementFromExp(-float("inf")) == 0
+        assert field.element_from_exp(exponent) == 1 + exponent % period
+    assert field.element_from_exp(float("inf")) == 0
+    assert field.element_from_exp(-float("inf")) == 0
 
 
 def test_addition_and_multiplication_exhaustively(field_case):
     field, modulus, bits, labels = field_case
     for a, value_a in enumerate(bits):
         for b, value_b in enumerate(bits):
-            assert field.addElements(a, b) == labels[value_a ^ value_b], (a, b)
-            assert field.multElements(a, b) == labels[multiply_bits(value_a, value_b, modulus)], (a, b)
+            assert field.add_elements(a, b) == labels[value_a ^ value_b], (a, b)
+            assert field.mult_elements(a, b) == labels[multiply_bits(value_a, value_b, modulus)], (a, b)
 
 
 def test_division_by_nonzero_elements_exhaustively(field_case):
@@ -223,7 +223,7 @@ def test_division_by_nonzero_elements_exhaustively(field_case):
         inverse = next(v for v in bits[1:] if multiply_bits(value_b, v, modulus) == 1)
         for a, value_a in enumerate(bits):
             expected = labels[multiply_bits(value_a, inverse, modulus)]
-            assert field.divElements(a, b) == expected, (a, b)
+            assert field.div_elements(a, b) == expected, (a, b)
 
 
 def test_positive_powers_and_nonzero_power_zero(field_case):
@@ -231,10 +231,10 @@ def test_positive_powers_and_nonzero_power_zero(field_case):
     for a, value_a in enumerate(bits):
         value = 1
         if a:
-            assert field.powElement(a, 0) == 1
+            assert field.pow_element(a, 0) == 1
         for exponent in range(1, 2 * len(bits)):
             value = multiply_bits(value, value_a, modulus)
-            assert field.powElement(a, exponent) == labels[value], (a, exponent)
+            assert field.pow_element(a, exponent) == labels[value], (a, exponent)
 
 
 def test_nonzero_negative_powers(field_case):
@@ -244,48 +244,48 @@ def test_nonzero_negative_powers(field_case):
         value = 1
         for exponent in range(1, len(bits)):
             value = multiply_bits(value, inverse, modulus)
-            assert field.powElement(a, -exponent) == labels[value], (a, -exponent)
+            assert field.pow_element(a, -exponent) == labels[value], (a, -exponent)
 
 
 def test_division_requiring_exponent_minus_one(field_case):
     field, _, bits, _ = field_case
     if len(bits) == 2:
-        assert field.divElements(1, 1) == 1
+        assert field.div_elements(1, 1) == 1
         return
-    assert field.divElements(1, 2) == len(bits) - 1
+    assert field.div_elements(1, 2) == len(bits) - 1
 
 
 def test_alpha_inverse_power(field_case):
     field, _, bits, _ = field_case
     if len(bits) == 2:
-        assert field.powElement(1, -1) == 1
+        assert field.pow_element(1, -1) == 1
         return
-    assert field.powElement(2, -1) == len(bits) - 1
+    assert field.pow_element(2, -1) == len(bits) - 1
 
 
 def test_negative_exponent_conversion(field_case):
     field, _, bits, _ = field_case
     period = len(bits) - 1
     for exponent in range(-3 * period, 0):
-        assert field.elementFromExp(exponent) == 1 + exponent % period
+        assert field.element_from_exp(exponent) == 1 + exponent % period
 
 
 def test_division_by_zero_raises(field_case):
     field, _, bits, _ = field_case
     for a in range(len(bits)):
         with pytest.raises(ZeroDivisionError):
-            field.divElements(a, 0)
+            field.div_elements(a, 0)
 
 
 def test_zero_power_zero_is_one(field_case):
     field, _, _, _ = field_case
-    assert field.powElement(0, 0) == 1
+    assert field.pow_element(0, 0) == 1
 
 
 def test_zero_negative_power_raises(field_case):
     field, _, _, _ = field_case
     with pytest.raises(ZeroDivisionError):
-        field.powElement(0, -1)
+        field.pow_element(0, -1)
 
 
 def as_polynomial_bits(actual, bits):
@@ -303,8 +303,8 @@ def test_polynomial_addition_and_multiplication(field_case):
             operand_b = np.array([labels[v] for v in b])
             before_a, before_b = operand_a.copy(), operand_b.copy()
             expected_sum = [(a[i] if i < len(a) else 0) ^ (b[i] if i < len(b) else 0) for i in range(max(len(a), len(b)))]
-            assert as_polynomial_bits(field.addPoly(operand_a, operand_b), bits) == trim_polynomial(expected_sum)
-            assert as_polynomial_bits(field.multPoly(operand_a, operand_b), bits) == reference_poly_product(a, b, modulus)
+            assert as_polynomial_bits(field.add_poly(operand_a, operand_b), bits) == trim_polynomial(expected_sum)
+            assert as_polynomial_bits(field.mult_poly(operand_a, operand_b), bits) == reference_poly_product(a, b, modulus)
             np.testing.assert_array_equal(operand_a, before_a)
             np.testing.assert_array_equal(operand_b, before_b)
 
@@ -319,12 +319,12 @@ def test_polynomial_division_by_nonconstant_divisors(field_case):
             operand_b = np.array([labels[v] for v in b])
             before_a, before_b = operand_a.copy(), operand_b.copy()
             expected_q, expected_r = reference_poly_division(a, b, modulus)
-            q, r = field.divmodPoly(operand_a, operand_b)
+            q, r = field.divmod_poly(operand_a, operand_b)
             assert as_polynomial_bits(q, bits) == expected_q
             assert as_polynomial_bits(r, bits) == expected_r
-            assert as_polynomial_bits(field.divPoly(operand_a, operand_b), bits) == expected_q
-            assert as_polynomial_bits(field.modPoly(operand_a, operand_b), bits) == expected_r
-            assert field.isFactor(operand_a, operand_b) == (expected_r == [0])
+            assert as_polynomial_bits(field.div_poly(operand_a, operand_b), bits) == expected_q
+            assert as_polynomial_bits(field.mod_poly(operand_a, operand_b), bits) == expected_r
+            assert field.is_factor(operand_a, operand_b) == (expected_r == [0])
             np.testing.assert_array_equal(operand_a, before_a)
             np.testing.assert_array_equal(operand_b, before_b)
 
@@ -338,7 +338,7 @@ def test_polynomial_evaluation(field_case):
             expected = 0
             for coefficient in reversed(coefficients):
                 expected = multiply_bits(expected, value, modulus) ^ coefficient
-            assert field.substituteElementIntoPoly(p, a) == labels[expected]
+            assert field.substitute_element_into_poly(p, a) == labels[expected]
         np.testing.assert_array_equal(p, before)
 
 
@@ -346,20 +346,20 @@ def test_monic_multiplier(field_case):
     field, modulus, bits, labels = field_case
     coefficient = bits[-1]
     inverse = next(value for value in bits[1:] if multiply_bits(coefficient, value, modulus) == 1)
-    assert field.monicMultiplier(np.array([1, labels[coefficient]])) == labels[inverse]
+    assert field.monic_multiplier(np.array([1, labels[coefficient]])) == labels[inverse]
 
 
 def test_monic_multiplier_with_trailing_zeros(field_case):
     field, modulus, bits, labels = field_case
     coefficient = bits[-1]
     inverse = next(value for value in bits[1:] if multiply_bits(coefficient, value, modulus) == 1)
-    assert field.monicMultiplier(np.array([1, labels[coefficient], 0])) == labels[inverse]
+    assert field.monic_multiplier(np.array([1, labels[coefficient], 0])) == labels[inverse]
 
 
 def test_zero_polynomial_has_no_monic_multiplier(field_case):
     field, _, _, _ = field_case
     with pytest.raises(ZeroDivisionError):
-        field.monicMultiplier(np.array([0, 0]))
+        field.monic_multiplier(np.array([0, 0]))
 
 
 def test_derivative_preserves_extension_field_coefficients(field_case):
@@ -367,13 +367,13 @@ def test_derivative_preserves_extension_field_coefficients(field_case):
     coefficient = len(bits) - 1
     p = np.array([1, coefficient, 1, coefficient, 1])
     before = p.copy()
-    np.testing.assert_array_equal(field.derivePoly(p), [coefficient, 0, coefficient, 0])
+    np.testing.assert_array_equal(field.derive_poly(p), [coefficient, 0, coefficient, 0])
     np.testing.assert_array_equal(p, before)
 
 
 def test_zero_quotient_has_integer_dtype(field_case):
     field, _, _, _ = field_case
-    q, _ = field.divmodPoly(np.array([1]), np.array([1, 1]))
+    q, _ = field.divmod_poly(np.array([1]), np.array([1, 1]))
     assert np.issubdtype(q.dtype, np.integer)
 
 
@@ -382,17 +382,17 @@ def test_formal_polynomial_derivative(field_case, coefficients):
     field, _, _, _ = field_case
     p = np.array(coefficients)
     expected = [p[i] if i % 2 else 0 for i in range(1, len(p))]
-    np.testing.assert_array_equal(trim_polynomial(field.derivePoly(p)), trim_polynomial(expected))
-    assert np.issubdtype(field.derivePoly(p).dtype, np.integer)
+    np.testing.assert_array_equal(trim_polynomial(field.derive_poly(p)), trim_polynomial(expected))
+    assert np.issubdtype(field.derive_poly(p).dtype, np.integer)
 
 
-@pytest.mark.parametrize("method, expected", [("addPoly", [0, 1]), ("multPoly", [1, 1])])
+@pytest.mark.parametrize("method, expected", [("add_poly", [0, 1]), ("mult_poly", [1, 1])])
 def test_scalar_second_polynomial_operand(field_case, method, expected):
     field, _, _, _ = field_case
     np.testing.assert_array_equal(getattr(field, method)(np.array([1, 1]), 1), expected)
 
 
-@pytest.mark.parametrize("method, expected", [("addPoly", [0, 1]), ("multPoly", [1, 1])])
+@pytest.mark.parametrize("method, expected", [("add_poly", [0, 1]), ("mult_poly", [1, 1])])
 def test_scalar_first_polynomial_operand(field_case, method, expected):
     field, _, _, _ = field_case
     np.testing.assert_array_equal(getattr(field, method)(1, np.array([1, 1])), expected)
@@ -402,7 +402,7 @@ def test_polynomial_division_by_zero_raises(field_case):
     field, _, _, _ = field_case
     for divisor in [0, np.array([0]), np.array([0, 0, 0])]:
         with pytest.raises(ZeroDivisionError):
-            field.divmodPoly(np.array([1, 1]), divisor)
+            field.divmod_poly(np.array([1, 1]), divisor)
 
 
 @pytest.mark.parametrize("dividend", [[0], [1, 0, 1]])
@@ -416,7 +416,7 @@ def test_constant_polynomial_division_terminates(field_case, dividend, scalar_di
     script = (
         "import json; import numpy as np; from coding_theory_algorithms.galois_field import GaloisField; "
         f"field = GaloisField(np.array({p!r})); "
-        f"q, r = field.divmodPoly(np.array({dividend!r}), {divisor_expression}); "
+        f"q, r = field.divmod_poly(np.array({dividend!r}), {divisor_expression}); "
         "print(json.dumps([q.tolist(), r.tolist()]))"
     )
     result = subprocess.run(

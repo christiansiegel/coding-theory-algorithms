@@ -19,7 +19,7 @@ g(X) = 1 + X2 + X3 + X4.
 """
 p = np.array([1, 0, 1, 0, 0, 1])
 GF25 = GaloisField(p)
-GF25.printInfo()
+GF25.print_info()
 
 print("Exercise 2")
 """
@@ -32,4 +32,4 @@ g(X) = 1 + X2 + X3 + X4.
 """
 g = np.array([1, 0, 1, 1, 1])
 cc = CyclicCode(g, 7)
-cc.printInfo()
+cc.print_info()

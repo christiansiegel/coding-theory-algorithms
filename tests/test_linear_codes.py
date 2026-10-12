@@ -27,7 +27,7 @@ def linear_case(request):
         check = np.column_stack([np.eye(n - 1, dtype=int), np.ones(n - 1, dtype=int)])
         minimum_distance = n
     code = LinearBlockCode()
-    code.setG(generator)
+    code.set_g(generator)
     return code, generator, check, minimum_distance
 
 
@@ -43,7 +43,7 @@ def test_systematic_matrix_conversion(linear_case):
     np.testing.assert_array_equal(code.H(), check)
     np.testing.assert_array_equal(generator @ check.T % 2, 0)
     from_check = LinearBlockCode()
-    from_check.setH(check)
+    from_check.set_h(check)
     np.testing.assert_array_equal(from_check.G(), generator)
 
 
@@ -74,7 +74,7 @@ def test_distance_and_weight_distribution(linear_case):
     histogram = Counter(int(sum(reference_encode(message, generator))) for message in product([0, 1], repeat=code.k()))
     assert code.dmin() == minimum_distance
     assert code.t() == (minimum_distance - 1) // 2
-    assert code.errorDetectionCapability() == minimum_distance - 1
+    assert code.error_detection_capability() == minimum_distance - 1
     assert code.Ai(0) == histogram[0] == 1
     # A() preserves the README's historical layout: weights 1 through n.
     np.testing.assert_array_equal(code.A(), [histogram[i] for i in range(1, code.n() + 1)])
@@ -84,7 +84,7 @@ def test_all_correctable_errors_and_decoding(linear_case):
     code, generator, check, minimum_distance = linear_case
     radius = (minimum_distance - 1) // 2
     errors = [np.array(e) for e in product([0, 1], repeat=code.n()) if sum(e) <= radius]
-    assert {tuple(e) for e in code.correctableErrorPatterns()} == {tuple(e) for e in errors}
+    assert {tuple(e) for e in code.correctable_error_patterns()} == {tuple(e) for e in errors}
     syndromes = set()
     for error in errors:
         expected = np.array([sum(e * h for e, h in zip(error, row)) % 2 for row in check])
@@ -95,16 +95,16 @@ def test_all_correctable_errors_and_decoding(linear_case):
         codeword = reference_encode(message, generator)
         for error in errors:
             received = (codeword + error) % 2
-            np.testing.assert_array_equal(code.syndromeDecode(received), codeword)
+            np.testing.assert_array_equal(code.syndrome_decode(received), codeword)
 
 
 def test_decoder_rejects_a_syndrome_missing_from_the_table():
     code = LinearBlockCode()
     # The README (7,3) code covers only 8 of its 16 syndromes.
-    code.setG(np.array([[1, 0, 1, 1, 1, 0, 0], [1, 1, 1, 0, 0, 1, 0], [0, 1, 1, 1, 0, 0, 1]]))
+    code.set_g(np.array([[1, 0, 1, 1, 1, 0, 0], [1, 1, 1, 0, 0, 1, 0], [0, 1, 1, 1, 0, 0, 1]]))
     received = np.array([1, 1, 0, 0, 0, 0, 0])
     with pytest.raises(KeyError):
-        code.syndromeDecode(received)
+        code.syndrome_decode(received)
 
 
 @pytest.mark.parametrize("linear_case", ["repetition3", "repetition5", "hamming7", "readme7"], indirect=True)
@@ -113,7 +113,7 @@ def test_standard_array_partitions_all_vectors_with_minimum_weight_leaders(linea
     n = generator.shape[1]
     k = generator.shape[0]
     codewords = [tuple(reference_encode([(i >> j) & 1 for j in range(k)], generator)) for i in range(2**k)]
-    assert code.printStandardArray() is None
+    assert code.print_standard_array() is None
     rows = []
     for line in capsys.readouterr().out.splitlines():
         if line and set(line) == {"-"}:
@@ -137,7 +137,7 @@ def test_standard_array_partitions_all_vectors_with_minimum_weight_leaders(linea
     # Completing the diagnostic must not expand the guaranteed decoder table.
     radius = (minimum_distance - 1) // 2
     expected_errors = {error for error in product([0, 1], repeat=n) if sum(error) <= radius}
-    assert {tuple(error) for error in code.decodingTable().values()} == expected_errors
+    assert {tuple(error) for error in code.decoding_table().values()} == expected_errors
     np.testing.assert_array_equal(code.G(), generator)
 
 
@@ -173,7 +173,7 @@ def test_repetition_probability_without_factorial_overflow(p, expected):
     # error vector pairs every correctable pattern with an uncorrectable one.
     # This oracle needs neither enumeration of 2**401 vectors nor factorials.
     code = LinearBlockCode()
-    code.setG(np.ones((1, 401), dtype=int))
+    code.set_g(np.ones((1, 401), dtype=int))
     assert code.Pe(p) == pytest.approx(expected, abs=1e-14)
 
 
@@ -208,7 +208,7 @@ def test_printed_errors_for_every_requested_syndrome(linear_case, capsys):
         for as_array in [False, True]:
             requested = np.array(syndrome) if as_array else list(syndrome)
             before = requested.copy()
-            assert code.printErrorsThatHaveSyndrome(requested) is None
+            assert code.print_errors_that_have_syndrome(requested) is None
             records = printed_error_records(capsys.readouterr().out)
             assert len(records) == len(expected)
             assert set(records) == expected
@@ -219,7 +219,7 @@ def test_printed_errors_for_every_requested_syndrome(linear_case, capsys):
 def test_printed_errors_for_historical_hardcoded_syndrome(linear_case, capsys):
     code, _, check, minimum_distance = linear_case
     requested = [0, 0, 1]
-    assert code.printErrorsThatHaveSyndrome(requested) is None
+    assert code.print_errors_that_have_syndrome(requested) is None
     records = printed_error_records(capsys.readouterr().out)
     assert set(records) == reference_errors_for_syndrome(check, requested)
     assert len(records) == len(set(records)) == 16

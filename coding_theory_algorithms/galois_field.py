@@ -46,7 +46,7 @@ def X(i):
     return X.astype(int)
 
 
-def constructGF(p, verbose=True):
+def construct_gf(p, verbose=True):
     """Construct GF(2^m) based on primitive polynomial p.
     The degree of pi(X) is used to determine m.
     (slide 12)
@@ -68,11 +68,11 @@ def constructGF(p, verbose=True):
     if verbose:
         print()
         print("Construct a GF(2^" + str(m) + ") based on primitive")
-        print("polynomial pi(X) =", GF2.polyToString(p, "X"))
+        print("polynomial pi(X) =", GF2.poly_to_string(p, "X"))
         print()
         print("Assuming pi(X) has root \u03b1, there is")
-        print("pi(\u03b1) =", GF2.polyToString(p, "\u03b1"), "= 0,")
-        print("then \u03b1^" + str(m) + " = " + GF2.polyToString(a_high, "\u03b1"))
+        print("pi(\u03b1) =", GF2.poly_to_string(p, "\u03b1"), "= 0,")
+        print("then \u03b1^" + str(m) + " = " + GF2.poly_to_string(a_high, "\u03b1"))
         print()
         print("Exp. rep.\t vector rep.\t poly. rep.")
         print("-------------------------------------------")
@@ -91,10 +91,10 @@ def constructGF(p, verbose=True):
 
             poly = X(remainder)
             for j in range(0, quotient):
-                poly = GF2.multPoly(poly, a_high)
+                poly = GF2.mult_poly(poly, a_high)
 
             while degree(poly) >= m:
-                poly = GF2.addPoly(poly, elements[degree(poly) + 1])
+                poly = GF2.add_poly(poly, elements[degree(poly) + 1])
                 poly = poly[:-1]
 
         # format polynomial (size m)
@@ -106,8 +106,8 @@ def constructGF(p, verbose=True):
 
         # print row
         if verbose:
-            expStr = GF2.polyToString(exp, "\u03b1")
-            polyStr = GF2.polyToString(poly, "\u03b1")
+            expStr = GF2.poly_to_string(exp, "\u03b1")
+            polyStr = GF2.poly_to_string(poly, "\u03b1")
             print(expStr, "\t\t", poly, "\t", polyStr)
 
     if verbose:
@@ -122,11 +122,11 @@ class GaloisField:
 
     Attributes:
         _p: Primitive polynomial pi(X) the GF is based on.
-        _cachedPolyElements: All elements of the GF in polynomial representation
+        _cached_poly_elements: All elements of the GF in polynomial representation
     """
 
     _p = np.zeros(1)
-    _cachedPolyElements = []
+    _cached_poly_elements = []
 
     def __init__(self, p=np.array([1, 1])):
         """Create Galois Field GF(2^m)
@@ -137,7 +137,7 @@ class GaloisField:
                (default: 1+X -> GF(2))
         """
         self._p = primitive_polynomial(p)
-        self._cachedPolyElements = constructGF(self.p(), False)
+        self._cached_poly_elements = construct_gf(self.p(), False)
 
     def p(self):
         """Primitive polynomial pi(X) the GF is based on."""
@@ -148,9 +148,9 @@ class GaloisField:
         return degree(self.p())
 
     def q(self):
-        return len(self._cachedPolyElements)
+        return len(self._cached_poly_elements)
 
-    def dminOfPoly(self, poly):
+    def dmin_of_poly(self, poly):
         # The roots create Φ_1,Φ_3,Φ_51
         count = 0
         for index in range(0, len(poly)):
@@ -159,24 +159,24 @@ class GaloisField:
 
         return count
 
-    def printInfo(self):
+    def print_info(self):
         """Prints how the GF is constructed from the primitive
         polynomial pi(X).
         """
-        constructGF(self.p(), True)
+        construct_gf(self.p(), True)
 
         """ slide 17: """
         m = self.m()
-        tmp = self.addPoly(X(0), X(2**m - 1))  # x^(2^m - 1) + 1
-        print("-> The non-zero elements of GF(2^" + str(self.m()) + ") are all roots of " + self.polyToString(tmp) + ".")
+        tmp = self.add_poly(X(0), X(2**m - 1))  # x^(2^m - 1) + 1
+        print("-> The non-zero elements of GF(2^" + str(self.m()) + ") are all roots of " + self.poly_to_string(tmp) + ".")
 
-        tmp = self.addPoly(X(0), X(2**m))
-        print("-> The elements of GF(2^" + str(self.m()) + ") are all roots of " + self.polyToString(tmp) + ".")
+        tmp = self.add_poly(X(0), X(2**m))
+        print("-> The elements of GF(2^" + str(self.m()) + ") are all roots of " + self.poly_to_string(tmp) + ".")
         print()
 
-    def elementsAsPoly(self):
+    def elements_as_poly(self):
         """All elements of the GF in polynomial representation."""
-        return self._cachedPolyElements
+        return self._cached_poly_elements
 
     def element(self, a):
         """Return element that is the same as element a but with an
@@ -189,7 +189,7 @@ class GaloisField:
         a = exp_a + 1  # convert back to integer representation
         return int(a)
 
-    def elementToExp(self, a):
+    def element_to_exp(self, a):
         """Returns the exponent of an element. For the zero element an exponent
         of -infinity is returned by definition.
         """
@@ -199,7 +199,7 @@ class GaloisField:
         exp_a = a - 1  # convert from integer representation to exponent
         return int(exp_a)
 
-    def elementFromExp(self, exp_a):
+    def element_from_exp(self, exp_a):
         """Returns element in integer representation from given exponent
         representation. For the zero element an exponent of +-infinity is
         expected by definition.
@@ -210,67 +210,67 @@ class GaloisField:
         # become label 0, which is reserved for the zero element.
         return int(exp_a % (self.q() - 1) + 1)
 
-    def elementToPoly(self, a, size_m=False):
+    def element_to_poly(self, a, size_m=False):
         """Return element in polynomial representation."""
         a = self.element(a)  # element with exponent within 0 and q-1
-        poly_a = self.elementsAsPoly()[a]
+        poly_a = self.elements_as_poly()[a]
         if size_m:
             poly_a = np.pad(poly_a, (0, self.m() - poly_a.size), "constant", constant_values=0)
         return poly_a.astype(int)
 
-    def elementFromPoly(self, poly_a):
+    def element_from_poly(self, poly_a):
         """Return element from given element in polynomial representation."""
         assert degree(poly_a) <= degree(self.p())
         poly_a = poly_a[: degree(poly_a) + 1]  # remove dangling zeros
-        for i, poly_i in enumerate(self.elementsAsPoly()):
+        for i, poly_i in enumerate(self.elements_as_poly()):
             poly_i = poly_i[: degree(poly_i) + 1]  # remove dangling zeros
             if np.array_equal(poly_i, poly_a):
                 return int(i)
         assert False, "This should never be reached?!"
 
-    def addElements(self, a, b):
+    def add_elements(self, a, b):
         """Add two elements of the GF."""
-        poly_a = self.elementToPoly(a, True)
-        poly_b = self.elementToPoly(b, True)
+        poly_a = self.element_to_poly(a, True)
+        poly_b = self.element_to_poly(b, True)
         poly_sum = (poly_a + poly_b) % 2
-        return int(self.elementFromPoly(poly_sum))
+        return int(self.element_from_poly(poly_sum))
 
-    def multElements(self, a, b):
+    def mult_elements(self, a, b):
         """Multiply two elements of the GF."""
-        exp_a = self.elementToExp(a)
-        exp_b = self.elementToExp(b)
+        exp_a = self.element_to_exp(a)
+        exp_b = self.element_to_exp(b)
         exp_product = exp_a + exp_b  # multiplication = adding the exponents
-        product = self.elementFromExp(exp_product)
+        product = self.element_from_exp(exp_product)
         return int(product)
 
-    def divElements(self, a, b):
+    def div_elements(self, a, b):
         """Divide two elements of the GF (a / b).
         Raises ZeroDivisionError if b is zero.
         """
         if self.element(b) == 0:
             raise ZeroDivisionError("Division by zero in a finite field")
-        exp_a = self.elementToExp(a)
-        exp_b = self.elementToExp(b)
+        exp_a = self.element_to_exp(a)
+        exp_b = self.element_to_exp(b)
         exp_q = exp_a - exp_b  # division = subtracting the exponents
-        q = self.elementFromExp(exp_q)
+        q = self.element_from_exp(exp_q)
         return int(q)
 
-    def powElement(self, a, exponent):
+    def pow_element(self, a, exponent):
         """Return a^exponent, with a^0 = 1 (including 0^0).
         Raises ZeroDivisionError for negative powers of zero.
         """
         if exponent == 0:
             return 1
-        exp_a = self.elementToExp(a)
+        exp_a = self.element_to_exp(a)
         if exp_a == -INF:
             if exponent < 0:
                 raise ZeroDivisionError("Zero cannot have a negative power")
             return 0
         exp_power = exp_a * exponent
-        power = self.elementFromExp(exp_power)
+        power = self.element_from_exp(exp_power)
         return int(power)
 
-    def addPoly(self, a, b):
+    def add_poly(self, a, b):
         """Add two polynomials in the GF."""
         if type(a) is int:
             a = np.array([a])
@@ -284,10 +284,10 @@ class GaloisField:
             elif i > b.size - 1:
                 summ[i] = a[i]
             else:
-                summ[i] = self.addElements(a[i], b[i])
+                summ[i] = self.add_elements(a[i], b[i])
         return summ.astype(int)
 
-    def multPoly(self, a, b):
+    def mult_poly(self, a, b):
         """Multiply two polynomials in the GF."""
         if type(a) is int:
             a = np.array([a])
@@ -297,14 +297,14 @@ class GaloisField:
         product = np.zeros(product_max_degree + 1)
         for i in range(0, degree(a) + 1):
             for j in range(0, degree(b) + 1):
-                product_tmp = self.multElements(a[i], b[j])
-                product[i + j] = self.addElements(product[i + j], product_tmp)
+                product_tmp = self.mult_elements(a[i], b[j])
+                product[i + j] = self.add_elements(product[i + j], product_tmp)
         product = product[: degree(product) + 1]  # remove dangling zeros
         return product.astype(int)
 
-    def divmodPoly(self, a, b, verbose=False):
+    def divmod_poly(self, a, b, verbose=False):
         """Divide two polynomials in the GF (a/b) and return quotient and
-        remainder in python array. See divPoly() and modPoly() for only quotient
+        remainder in python array. See div_poly() and mod_poly() for only quotient
         and remainder respectively.
         Raises ZeroDivisionError for a zero divisor, including scalar zero.
         """
@@ -317,7 +317,7 @@ class GaloisField:
         if verbose:
             print()
             print("Division:")
-            print(self.polyToString(a) + " / " + self.polyToString(a) + " :")
+            print(self.poly_to_string(a) + " / " + self.poly_to_string(a) + " :")
             print()
         q = np.zeros(1, dtype=int)
         while np.count_nonzero(a) > 0 and degree(a) >= degree(b):
@@ -326,32 +326,32 @@ class GaloisField:
             coeff_element_a = a[exp_a]
             coeff_element_b = b[exp_b]
             multiplier = np.zeros(degree(a) - degree(b) + 1)
-            multiplier[exp_a - exp_b] = self.divElements(coeff_element_a, coeff_element_b)
-            subtrahend = self.multPoly(b, multiplier)
+            multiplier[exp_a - exp_b] = self.div_elements(coeff_element_a, coeff_element_b)
+            subtrahend = self.mult_poly(b, multiplier)
             if verbose:
-                print(self.polyToString(a, "X", True))
-                print(self.polyToString(subtrahend, "X", True))
+                print(self.poly_to_string(a, "X", True))
+                print(self.poly_to_string(subtrahend, "X", True))
                 print("--------------------------------")
-            a = self.addPoly(a, subtrahend)  # addition = subtraction
-            q = self.addPoly(q, multiplier)
+            a = self.add_poly(a, subtrahend)  # addition = subtraction
+            q = self.add_poly(q, multiplier)
         remainder = a
         if verbose:
-            print(self.polyToString(a, "X", True))
+            print(self.poly_to_string(a, "X", True))
             print()
-            print("q = " + self.polyToString(q))
-            print("remainder = " + self.polyToString(remainder))
+            print("q = " + self.poly_to_string(q))
+            print("remainder = " + self.poly_to_string(remainder))
             print()
         return [q, remainder]
 
-    def divPoly(self, a, b):
+    def div_poly(self, a, b):
         """Divide two polynomials in the GF (a/b) and return quotient."""
-        return self.divmodPoly(a, b)[0]
+        return self.divmod_poly(a, b)[0]
 
-    def modPoly(self, a, b):
+    def mod_poly(self, a, b):
         """Divide two polynomials in the GF (a/b) and return remainder."""
-        return self.divmodPoly(a, b)[1]
+        return self.divmod_poly(a, b)[1]
 
-    def derivePoly(self, p):
+    def derive_poly(self, p):
         """Formal derivative in characteristic two.
         Odd-degree terms retain their coefficients; even-degree terms vanish.
         """
@@ -360,41 +360,41 @@ class GaloisField:
             derivative[i - 1] = p[i]
         return derivative
 
-    def isFactor(self, p, factorPoly):
+    def is_factor(self, p, factorPoly):
         """Check if polynomial factorPoly is a factor of polynomial p.
         (remainder == [0])
         """
-        remainder = self.modPoly(p, factorPoly)
+        remainder = self.mod_poly(p, factorPoly)
         return np.count_nonzero(remainder) == 0
 
-    def substituteElementIntoPoly(self, p, a):
+    def substitute_element_into_poly(self, p, a):
         """Subsitute element a into polynomial p and return resulting
         element.
         """
         result = 0
         for i in range(0, p.size):
-            tmp = self.powElement(a, i)
-            tmp = self.multElements(tmp, p[i])
-            result = self.addElements(result, tmp)
+            tmp = self.pow_element(a, i)
+            tmp = self.mult_elements(tmp, p[i])
+            result = self.add_elements(result, tmp)
         return int(result)
 
-    def monicMultiplier(self, p):
+    def monic_multiplier(self, p):
         """Returns multiplier element that is needed to make polynomial p
         a monic polynomial. Raises ZeroDivisionError for the zero polynomial.
         """
         coeff = p[degree(p)]  # highest-degree nonzero coefficient
-        return self.divElements(1, coeff)
+        return self.div_elements(1, coeff)
 
-    def elementToString(self, a):
+    def element_to_string(self, a):
         """Returns element as string (e.g. 'a^5')"""
         if a == 0:
             return "0"
         elif a == 1:
             return "1"
         else:
-            return "\u03b1^" + str(self.elementToExp(a))
+            return "\u03b1^" + str(self.element_to_exp(a))
 
-    def polyToString(self, p, variable="X", reverse=False):
+    def poly_to_string(self, p, variable="X", reverse=False):
         """Returns polynomial in string representation.
         E.g. [0,1,0,3] -> "X + a^2*X^3"
             or
@@ -422,7 +422,7 @@ class GaloisField:
                 if s != "":
                     s += " + "
                 if coeff_element > 1:
-                    s += self.elementToString(coeff_element)
+                    s += self.element_to_string(coeff_element)
                     if i > 0:
                         s += "*"
                 if i > 0:
@@ -447,12 +447,12 @@ class GaloisField:
         """
         roots = []
         for element in range(1, self.q()):
-            result = self.substituteElementIntoPoly(p, element)
+            result = self.substitute_element_into_poly(p, element)
             if result == 0:
                 roots.append(element)
         return roots
 
-    def conjugateRoots(self, root, verbose=False):
+    def conjugate_roots(self, root, verbose=False):
         """
         Conjugate a known root (alpha^i = beta) to all other
         roots (beta^(2^l)) of this conjugate root group and
@@ -471,9 +471,9 @@ class GaloisField:
         conjugation_count = 0
         while True:
             conjugation_count += 1
-            new_root = self.powElement(root, 2**conjugation_count)
+            new_root = self.pow_element(root, 2**conjugation_count)
             if verbose:
-                print("l = " + str(conjugation_count) + ":\t(" + self.elementToString(root) + ")^" + str(2**conjugation_count) + " = " + self.elementToString(new_root))
+                print("l = " + str(conjugation_count) + ":\t(" + self.element_to_string(root) + ")^" + str(2**conjugation_count) + " = " + self.element_to_string(new_root))
             roots.append(new_root)
             if new_root == root:
                 break
@@ -481,28 +481,28 @@ class GaloisField:
             print()
         return sorted(roots)
 
-    def removeConjugateRoots(self, roots):
+    def remove_conjugate_roots(self, roots):
         """Return the lowest supplied root per orbit, preserving the input list."""
         result = []
         covered = set()
         for root in sorted(set(roots)):
             if root not in covered:
                 result.append(root)
-                covered.update(self.conjugateRoots(root))
+                covered.update(self.conjugate_roots(root))
         return result
 
-    def conjugateRootGroups(self):
+    def conjugate_root_groups(self):
         """Partition every field element, including zero, into Frobenius orbits."""
         groups = []
         covered = set()
         for root in range(self.q()):
             if root not in covered:
-                group = self.conjugateRoots(root)
+                group = self.conjugate_roots(root)
                 groups.append(group)
                 covered.update(group)
         return groups
 
-    def minimalPolynomial(self, roots):
+    def minimal_polynomial(self, roots):
         """Return the monic binary minimal polynomial of a complete Frobenius orbit.
         Args:
             roots: Distinct canonical element labels, as a list or array.
@@ -510,23 +510,23 @@ class GaloisField:
         result = np.ones(1)
         for root in roots:
             root_poly = np.array([root, 1])  # (root + X)
-            result = self.multPoly(result, root_poly)
+            result = self.mult_poly(result, root_poly)
         return result.astype(int)
 
-    def printMinimalPolynomials(self):
+    def print_minimal_polynomials(self):
         """Print all conjugate root groups and their corresponding
         minimal polynomial.
         """
         print()
         print("Conjugate roots  ->  Minimal polynomials")
         print("----------------------------------------")
-        for roots in self.conjugateRootGroups():
+        for roots in self.conjugate_root_groups():
             rootStr = ""
             for root in roots:
-                rootStr += self.elementToString(root) + ", "
+                rootStr += self.element_to_string(root) + ", "
             rootStr = rootStr[:-2]  # remove last comma
-            minPoly = self.minimalPolynomial(roots)
-            print(rootStr, "\t", GF2.polyToString(minPoly))
+            minPoly = self.minimal_polynomial(roots)
+            print(rootStr, "\t", GF2.poly_to_string(minPoly))
         print()
 
     def irreducible(self, p, verbose=False):
@@ -543,12 +543,12 @@ class GaloisField:
         for factor_degree in range(1, m // 2 + 1):
             for lower_coefficients in range(2**factor_degree):
                 factor = np.array([(lower_coefficients >> i) & 1 for i in range(factor_degree)] + [1])
-                if GF2.isFactor(p, factor):
+                if GF2.is_factor(p, factor):
                     if verbose:
-                        print("The polynomial", self.polyToString(p), "is NOT irreducible over GF(2); it has factor", self.polyToString(factor))
+                        print("The polynomial", self.poly_to_string(p), "is NOT irreducible over GF(2); it has factor", self.poly_to_string(factor))
                     return False
         if verbose:
-            print("The polynomial", self.polyToString(p), "is irreducible over GF(2); it has no nonconstant proper factor.")
+            print("The polynomial", self.poly_to_string(p), "is irreducible over GF(2); it has no nonconstant proper factor.")
         return True
 
     def primitive(self, p, verbose=False):
@@ -569,11 +569,11 @@ class GaloisField:
         residue = np.array([1])
         for exponent in range(1, maximum_order + 1):
             # Multiplication by X shifts coefficients; reduction stays in GF(2).
-            residue = GF2.modPoly(np.concatenate(([0], residue)), p)
+            residue = GF2.mod_poly(np.concatenate(([0], residue)), p)
             if degree(residue) == 0 and residue[0] == 1:
                 primitive = exponent == maximum_order
                 if verbose:
-                    print("X modulo", self.polyToString(p), "has order", exponent, "; required order is", maximum_order, "; primitive =", primitive)
+                    print("X modulo", self.poly_to_string(p), "has order", exponent, "; required order is", maximum_order, "; primitive =", primitive)
                 return primitive
         if verbose:
             print("X does not have the required multiplicative order; the polynomial is not primitive.")
@@ -596,7 +596,7 @@ class GaloisField:
         previous_t, t = np.zeros(1, dtype=int), np.ones(1, dtype=int)
 
         def print_row(i, remainder, quotient, coefficient):
-            print(i, "||", "\t", self.polyToString(remainder), "||", "\t", self.polyToString(quotient), "||", "\t", self.polyToString(coefficient))
+            print(i, "||", "\t", self.poly_to_string(remainder), "||", "\t", self.poly_to_string(quotient), "||", "\t", self.poly_to_string(coefficient))
 
         if verbose:
             print()
@@ -607,9 +607,9 @@ class GaloisField:
 
         i = 0
         while np.count_nonzero(r) != 0 and degree(r) >= degree(t):
-            quotient = self.divPoly(previous_r, r)
-            next_r = self.addPoly(previous_r, self.multPoly(quotient, r))
-            next_t = self.addPoly(previous_t, self.multPoly(quotient, t))
+            quotient = self.div_poly(previous_r, r)
+            next_r = self.add_poly(previous_r, self.mult_poly(quotient, r))
+            next_t = self.add_poly(previous_t, self.mult_poly(quotient, t))
             previous_r, r = r, next_r
             previous_t, t = t, next_t
             i += 1
@@ -621,8 +621,8 @@ class GaloisField:
             print("When the remainder is zero or its degree is lower than the")
             print("degree of the polynomial in column t_i(X), the recursion is halted.")
             print("In this case:")
-            print("  r_" + str(i) + "(X) = " + self.polyToString(r))
-            print("  t_" + str(i) + "(X) = " + self.polyToString(t))
+            print("  r_" + str(i) + "(X) = " + self.poly_to_string(r))
+            print("  t_" + str(i) + "(X) = " + self.poly_to_string(t))
             print()
         return r.astype(int), t.astype(int)
 

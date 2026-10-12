@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 import numpy as np
 from .bch_code import BCHCode
-from .cyclic_code import padEnd
+from .cyclic_code import pad_end
 from .galois_field import GaloisField, X, degree
 from .validation import coefficients, integer
 
@@ -25,14 +25,14 @@ def g(GF, t, verbose=True):
 
     g = np.ones(1)
     for i in range(1, 2 * t + 1):  # n - k = 2*t
-        root = GF.elementFromExp(i)
+        root = GF.element_from_exp(i)
         phi = np.array([root, 1])
-        g = GF.multPoly(g, phi)
+        g = GF.mult_poly(g, phi)
         if verbose:
-            print("\u03a6_" + str(i) + "(X) = " + GF.polyToString(phi))
+            print("\u03a6_" + str(i) + "(X) = " + GF.poly_to_string(phi))
 
     if verbose:
-        print("g(X) = " + GF.polyToString(g))
+        print("g(X) = " + GF.poly_to_string(g))
         print()
 
     return g
@@ -76,12 +76,12 @@ class RSCode(BCHCode):
         m = coefficients(m, "m", alphabet=self._alphabet, maximum_length=self.k())
         GF = self.GF()
         if systematic:
-            shifted = GF.multPoly(X(degree(self.g())), m)
-            remainder = GF.modPoly(shifted, self.g())
-            codeword = GF.addPoly(shifted, remainder)
+            shifted = GF.mult_poly(X(degree(self.g())), m)
+            remainder = GF.mod_poly(shifted, self.g())
+            codeword = GF.add_poly(shifted, remainder)
         else:
-            codeword = GF.multPoly(m, self.g())
-        return padEnd(codeword.astype(int), self.n())
+            codeword = GF.mult_poly(m, self.g())
+        return pad_end(codeword.astype(int), self.n())
 
     def dmin(self, verbose=False):
         """Minimum symbol distance of a primitive RS code with valid parameters."""
@@ -99,21 +99,21 @@ class RSCode(BCHCode):
 
     G = H = P = s = M = C = _binary_only
     Ai = A = PU = Pe = _binary_only
-    shift = shiftSyndrome = _binary_only
-    correctableErrorPatterns = decodingTable = syndromeDecode = _binary_only
-    printMessageCodewordTable = printParityCheckEquations = printSyndromeVectorEquations = _binary_only
-    printErrorsThatHaveSyndrome = printStandardArray = printDecodingTable = verboseSyndromeDecode = _binary_only
+    shift = shift_syndrome = _binary_only
+    correctable_error_patterns = decoding_table = syndrome_decode = _binary_only
+    print_message_codeword_table = print_parity_check_equations = print_syndrome_vector_equations = _binary_only
+    print_errors_that_have_syndrome = print_standard_array = print_decoding_table = verbose_syndrome_decode = _binary_only
 
-    def printg(self):
-        print(self.GF().polyToString(self.g()))
+    def print_g(self):
+        print(self.GF().poly_to_string(self.g()))
 
-    def printInfo(self):
+    def print_info(self):
         """Print the generator's actual roots and parameters measured in symbols."""
         GF = self.GF()
         t = self._t
         print()
-        print("Generator Polynomial:        g(X) = " + GF.polyToString(self.g()))
-        rootStr = ", ".join(GF.elementToString(root) for root in GF.roots(self.g()))
+        print("Generator Polynomial:        g(X) = " + GF.poly_to_string(self.g()))
+        rootStr = ", ".join(GF.element_to_string(root) for root in GF.roots(self.g()))
         print("Roots of g(X) in GF(2^" + str(GF.m()) + "):    " + rootStr)
         print("Code length (symbols):       n = q - 1 = " + str(self.n()))
         print("Message length (symbols):    k = " + str(self.k()))

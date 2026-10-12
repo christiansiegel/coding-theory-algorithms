@@ -93,7 +93,7 @@ def test_efficiency_known_formula(x, p, capsys):
     assert channel.HY() == pytest.approx(binary_entropy(output_zero_probability))
     assert channel.HYX() == pytest.approx(binary_entropy(p))
     before = channel.PX().copy()
-    assert channel.ChannelEfficiency(False) == pytest.approx(expected, abs=1e-12)
+    assert channel.channel_efficiency(False) == pytest.approx(expected, abs=1e-12)
     np.testing.assert_array_equal(channel.PX(), before)
     assert capsys.readouterr().out == ""
 
@@ -103,7 +103,7 @@ def test_efficiency_uses_its_own_instance(monkeypatch):
     monkeypatch.setattr(channel_module, "bsc", make_channel(0.5, 0.1), raising=False)
     channel = make_channel(0.2, 0.1)
     expected = (binary_entropy(0.26) - binary_entropy(0.1)) / (1 - binary_entropy(0.1))
-    assert channel.ChannelEfficiency(False) == pytest.approx(expected)
+    assert channel.channel_efficiency(False) == pytest.approx(expected)
 
 
 def test_capacity_failure_does_not_change_source(monkeypatch):
@@ -122,12 +122,12 @@ def test_capacity_failure_does_not_change_source(monkeypatch):
 def test_efficiency_at_zero_capacity_raises():
     channel = make_channel(0.2, 0.5)
     with pytest.raises(ZeroDivisionError):
-        channel.ChannelEfficiency(False)
+        channel.channel_efficiency(False)
 
 
 def test_verbose_efficiency_includes_the_result(capsys):
     channel = make_channel(0.5, 0.25)
-    assert channel.ChannelEfficiency(True) == pytest.approx(1)
+    assert channel.channel_efficiency(True) == pytest.approx(1)
     assert "η = I(X,Y) / Cs =" in capsys.readouterr().out
 
 
@@ -153,7 +153,7 @@ def test_asymmetric_channel_efficiency_at_optimal_source(capsys):
     # For the p=1/2 Z channel, the maximizing source is [3/5,2/5].
     channel = BSC([0.6, 0.4], [[1, 0], [0.5, 0.5]])
     assert channel.HY() - channel.HYX() == pytest.approx(math.log2(1.25))
-    assert channel.ChannelEfficiency(False) == pytest.approx(1, abs=1e-10)
+    assert channel.channel_efficiency(False) == pytest.approx(1, abs=1e-10)
     np.testing.assert_array_equal(channel.PX(), [0.6, 0.4])
     assert capsys.readouterr().out == ""
 

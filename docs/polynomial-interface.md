@@ -15,7 +15,7 @@ zero results can be represented as `[0]`, a padded zero vector, or
 an empty integer array for compatibility with the existing API. Tests compare
 values independently of zero padding.
 
-`addPoly`, `multPoly`, and `divmodPoly` also accept Python integer labels as
+`add_poly`, `mult_poly`, and `divmod_poly` also accept Python integer labels as
 constant polynomials in either operand. Input arrays must not be mutated.
 Validation of noninteger coefficients and out-of-range labels is not yet
 established. Malformed or empty inputs have no established validation behavior.
@@ -24,14 +24,14 @@ established. Malformed or empty inputs have no established validation behavior.
 
 | Method | Contract |
 | --- | --- |
-| `addPoly(a, b)` | Coefficient-wise field addition; subtraction is identical in characteristic two. |
-| `multPoly(a, b)` | Polynomial convolution with field multiplication and addition. |
-| `divmodPoly(a, b, verbose=False)` | Return `[quotient, remainder]` with a = b*quotient + remainder, and remainder zero or degree less than b. Must terminate for any nonzero divisor, including a constant. A zero divisor raises `ZeroDivisionError`. |
-| `divPoly(a, b)`, `modPoly(a, b)` | Return the quotient or remainder of the same division. |
-| `isFactor(p, factorPoly)` | Return whether the remainder is zero; a zero factor raises `ZeroDivisionError`. |
-| `derivePoly(p)` | Formal derivative: coefficient i contributes i*a_i at position i-1. In characteristic two this is a_i for odd i, zero for even i. Constants differentiate to zero. |
-| `substituteElementIntoPoly(p, a)` | Evaluate p at field label a and return the resulting integer label; evaluation at zero returns the constant coefficient. |
-| `monicMultiplier(p)` | Return the inverse of the highest-degree nonzero coefficient, ignoring trailing zeros. Multiplying every coefficient by it makes the polynomial monic. A zero polynomial raises `ZeroDivisionError`. |
+| `add_poly(a, b)` | Coefficient-wise field addition; subtraction is identical in characteristic two. |
+| `mult_poly(a, b)` | Polynomial convolution with field multiplication and addition. |
+| `divmod_poly(a, b, verbose=False)` | Return `[quotient, remainder]` with a = b*quotient + remainder, and remainder zero or degree less than b. Must terminate for any nonzero divisor, including a constant. A zero divisor raises `ZeroDivisionError`. |
+| `div_poly(a, b)`, `mod_poly(a, b)` | Return the quotient or remainder of the same division. |
+| `is_factor(p, factorPoly)` | Return whether the remainder is zero; a zero factor raises `ZeroDivisionError`. |
+| `derive_poly(p)` | Formal derivative: coefficient i contributes i*a_i at position i-1. In characteristic two this is a_i for odd i, zero for even i. Constants differentiate to zero. |
+| `substitute_element_into_poly(p, a)` | Evaluate p at field label a and return the resulting integer label; evaluation at zero returns the constant coefficient. |
+| `monic_multiplier(p)` | Return the inverse of the highest-degree nonzero coefficient, ignoring trailing zeros. Multiplying every coefficient by it makes the polynomial monic. A zero polynomial raises `ZeroDivisionError`. |
 
 The formal derivative multiplies coefficients by integer degree; it does
 **not** raise them to that degree.

@@ -62,7 +62,7 @@ def HtoP(H):
     return P.astype(int)
 
 
-def matrixMultiplicationEquations(M, aSymbol, bSymbol):
+def matrix_multiplication_equations(M, aSymbol, bSymbol):
     """Symbolic matrix multiplication.
 
         a = b * M
@@ -118,7 +118,7 @@ def d(v1, v2):
     return w((v1 + v2) % 2)
 
 
-def intToArray(i, length=0):
+def int_to_array(i, length=0):
     """Convert an unsigned integer to a least-significant-bit-first array.
     Args:
         i: unsigned integer
@@ -135,7 +135,7 @@ def intToArray(i, length=0):
     return m
 
 
-def arrayToString(a):
+def array_to_string(a):
     """Convert an array of integer numbers to a string.
     Args:
         a: array of integer numbers
@@ -181,7 +181,7 @@ class LinearBlockCode:
         """Generator Matrix of the Linear Block Code."""
         return self.__G
 
-    def setG(self, G):
+    def set_g(self, G):
         """Set Generator Matrix of the Linear Block Code.
         Args:
             G: Generator Matrix
@@ -198,7 +198,7 @@ class LinearBlockCode:
         H = GtoH(self.G())
         return H.astype(int)
 
-    def setH(self, H):
+    def set_h(self, H):
         """Set Parity Check Matrix of the Linear Block Code.
         Args:
             H: Parity Check Matrix
@@ -234,7 +234,7 @@ class LinearBlockCode:
         k = self.k()
         M = np.empty([2**k, k])
         for i in range(0, 2**k):
-            M[i] = intToArray(i, k)
+            M[i] = int_to_array(i, k)
         return M.astype(int)
 
     def C(self):
@@ -243,25 +243,25 @@ class LinearBlockCode:
         k = self.k()
         C = np.empty([2**k, n])
         for i in range(0, 2**k):
-            m = intToArray(i, k)
+            m = int_to_array(i, k)
             c = self.c(m)
             C[i] = c
         return C.astype(int)
 
-    def dmin(self, Verbose=False):
+    def dmin(self, verbose=False):
         """
         Minimum distance of a linear block code (slide 55)
         """
         dmin = self.n()
         M = self.M()
-        if Verbose:
+        if verbose:
             print("We start by selecting dmin = n")
             print("dmin = ", dmin)
             print("Iterate through the code table and compare the weight of each code vectors")
         for m in M:
             c = self.c(m)
             if w(c) != 0 and w(c) < dmin:
-                if Verbose:
+                if verbose:
                     print(
                         "the weight of ",
                         c,
@@ -274,7 +274,7 @@ class LinearBlockCode:
                     )
                 dmin = w(c)
             else:
-                if Verbose:
+                if verbose:
                     print(
                         "Vector ",
                         c,
@@ -285,10 +285,10 @@ class LinearBlockCode:
 
         return dmin
 
-    def dminVerbose(self):
+    def dmin_verbose(self):
         self.dmin(True)
 
-    def errorDetectionCapability(self):
+    def error_detection_capability(self):
         """Error Detection Capability of the Block Code (slide 60)."""
         return self.dmin() - 1
 
@@ -348,7 +348,7 @@ class LinearBlockCode:
             A[i] = self.Ai(i + 1)
         return A.astype(int)
 
-    def printMessageCodewordTable(self):
+    def print_message_codeword_table(self):
         """Print all messages and their corresponding codewords."""
         M = self.M()
         print("Messages -> Codewords (c = m \u25e6 G)")
@@ -356,19 +356,19 @@ class LinearBlockCode:
             c = self.c(m)
             print(m, c)
 
-    def printParityCheckEquations(self):
+    def print_parity_check_equations(self):
         """Print the parity check equations for the linear block (slide 39)"""
         G = self.G()
-        equations = matrixMultiplicationEquations(G, "c", "m")
+        equations = matrix_multiplication_equations(G, "c", "m")
         print(equations)
 
-    def printSyndromeVectorEquations(self):
+    def print_syndrome_vector_equations(self):
         """Print the syndrome vector equations."""
         HT = np.transpose(self.H())
-        equations = matrixMultiplicationEquations(HT, "s", "r")
+        equations = matrix_multiplication_equations(HT, "s", "r")
         print(equations)
 
-    def printErrorsThatHaveSyndrome(self, s):
+    def print_errors_that_have_syndrome(self, s):
         """Print all error vectors that have the syndrome s.
         Args:
             s: Syndrome vector
@@ -377,12 +377,12 @@ class LinearBlockCode:
         n = self.n()
         print("e0 e1 e2 ... -> weight")
         for i in range(0, 2**n):
-            e = intToArray(i, n)
+            e = int_to_array(i, n)
             actual_syndrome = self.s(e)
             if np.array_equal(actual_syndrome, requested_syndrome):
                 print(e, "->", w(e))
 
-    def printStandardArray(self):
+    def print_standard_array(self):
         """Print every coset once, with a minimum-weight leader in its first column."""
         k = self.k()
         n = self.n()
@@ -396,21 +396,21 @@ class LinearBlockCode:
                 if syndrome in seen_syndromes:
                     continue
                 seen_syndromes.add(syndrome)
-                row = [arrayToString((codeword + leader) % 2) for codeword in codewords]
+                row = [array_to_string((codeword + leader) % 2) for codeword in codewords]
                 print(row[0] + " | " + " ".join(row[1:]))
                 if len(seen_syndromes) == 1:
                     print("-" * ((2**k) * (n + 1) + 1))
                 if len(seen_syndromes) == 2 ** (n - k):
                     return
 
-    def correctableErrorPatterns(self):
+    def correctable_error_patterns(self):
         """Array of all correctable error patterns."""
         E = np.empty([2 ** np.shape(self.H())[0], self.n()])
         n = self.n()
         t = self.t()
         count = 0
         for i in range(0, 2**n):
-            e = intToArray(i, n)
+            e = int_to_array(i, n)
             if w(e) <= t and count < E.shape[0]:
                 self.s(e)
                 E[count] = e
@@ -418,18 +418,18 @@ class LinearBlockCode:
         E = E[:count]
         return E.astype(int)
 
-    def printDecodingTable(self):
+    def print_decoding_table(self):
         """Print Decoding Table, which is all correctable error
         patterns and their corresponding unique syndrome vectors.
         (slide 74)
         """
-        errors = self.correctableErrorPatterns()
+        errors = self.correctable_error_patterns()
         print("Correctable Error Patterns -> Syndromes")
         for e in errors:
             s = self.s(e)
             print(e, s)
 
-    def decodingTable(self):
+    def decoding_table(self):
         """Decoding table, consisting of a dictionary with all
         correctable error patterns indexed with their unique syndrome
         vector formatted as string.
@@ -438,26 +438,26 @@ class LinearBlockCode:
         "011" -> [0,0,1,0,1,0]
         """
         table = {}
-        errors = self.correctableErrorPatterns()
+        errors = self.correctable_error_patterns()
         for e in errors:
             s = self.s(e)
-            table[arrayToString(s)] = e
+            table[array_to_string(s)] = e
         return table
 
-    def syndromeDecode(self, r):
+    def syndrome_decode(self, r):
         """Decodes received vector r using syndrome decoding.
         Args:
             r: received vector
         Returns:
             codeword c
         """
-        table = self.decodingTable()
+        table = self.decoding_table()
         s = self.s(r)
-        e = table[arrayToString(s)]
+        e = table[array_to_string(s)]
         c = (r + e) % 2
         return c
 
-    def verboseSyndromeDecode(self, r):
+    def verbose_syndrome_decode(self, r):
         """Decodes received vector r using syndrome decoding.
         Prints all steps of the decoding incl. the whole decoding table.
         Args:
@@ -470,23 +470,23 @@ class LinearBlockCode:
         print("s = r * H' =", s)
         print("Look up the decoding table:")
         print()
-        self.printDecodingTable()
+        self.print_decoding_table()
         print()
-        table = self.decodingTable()
-        e = table[arrayToString(s)]
+        table = self.decoding_table()
+        e = table[array_to_string(s)]
         print("-> find error pattern e =", e)
         c = (r + e) % 2
         print("c = r + e =", c)
         return c
 
-    def printInfo(self):
+    def print_info(self):
         """Prints complete Block Code Info"""
         print("-> Linear Block Code Cb(", self.n(), ",", self.k(), ")")
         print("-> Message length (k):             ", self.k())
         print("-> Codeword length (n):            ", self.n())
         print("-> Coding rate (R = k/n):          ", self.R())
         print("-> Minimum Distance (dmin):        ", self.dmin())
-        print("-> Error Detection Capability:     ", self.errorDetectionCapability())
+        print("-> Error Detection Capability:     ", self.error_detection_capability())
         print("-> Error Correction Capability (t):", self.t())
         print("-> Weight Distribution (A):        ", self.A())
         print("-> Generator Matrix (G):")
@@ -499,18 +499,18 @@ class LinearBlockCode:
         print("")
         print("-> Message Codeword Table:")
         print("")
-        self.printMessageCodewordTable()
+        self.print_message_codeword_table()
         print("")
         print("-> Parity Check Equations:")
-        self.printParityCheckEquations()
+        self.print_parity_check_equations()
         print("")
         print("-> Syndrome Vector Equations:")
-        self.printSyndromeVectorEquations()
+        self.print_syndrome_vector_equations()
         print("")
         print("-> Standard Array:")
         print("")
-        self.printStandardArray()
+        self.print_standard_array()
         print("")
         print("-> Decoding Table:")
         print("")
-        self.printDecodingTable()
+        self.print_decoding_table()

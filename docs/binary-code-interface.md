@@ -14,7 +14,7 @@ Conversions do not perform general Gaussian elimination on arbitrary matrices.
 
 ## LinearBlockCode
 
-Create `LinearBlockCode()` then call `setG(G)` or `setH(H)` with a full-rank
+Create `LinearBlockCode()` then call `set_g(G)` or `set_h(H)` with a full-rank
 systematic matrix. Using an uninitialized code, a rank-deficient matrix,
 nonbinary data, or wrong input lengths has no established validation contract.
 
@@ -27,15 +27,15 @@ nonbinary data, or wrong input lengths has no established validation contract.
 | `M()`, `C()` | Enumerate all 2^k messages or codewords. Row i uses least-significant-bit-first representation of i for the message. |
 | `dmin()` | Return the minimum weight of a nonzero codeword. |
 | `t()` | Return floor((dmin-1)/2). |
-| `errorDetectionCapability()` | Return dmin-1. |
+| `error_detection_capability()` | Return dmin-1. |
 | `Ai(i)` | Return the number of codewords of weight i, including the zero codeword for i=0. |
 | `A()` | Preserve the README's existing n-entry layout: entry j counts weight j+1. It omits weight zero. |
 | `PU(p)` | Return the probability of a nonzero error with zero syndrome under independent bit flips of probability p. |
 | `Pe(p)` | Return the probability of more than t bit errors under independent bit flips of probability p. |
-| `correctableErrorPatterns()` | Enumerate every length-n error of weight at most t. |
-| `syndromeDecode(r)` | Return a corrected length-n codeword for errors of weight at most t. Raise `KeyError` if the syndrome has no entry in the table. |
-| `printErrorsThatHaveSyndrome(s)` | Print every length-n binary error vector e satisfying eH.T = s, with its Hamming weight. Return `None` and preserve s. Accept a list or array of n-k bits. |
-| `printStandardArray()` | Print all 2^(n-k) cosets with 2^k vectors per row, covering every length-n vector exactly once. The first column contains minimum-weight coset leaders; the first row is `C()` in message order. Return `None` and preserve G. |
+| `correctable_error_patterns()` | Enumerate every length-n error of weight at most t. |
+| `syndrome_decode(r)` | Return a corrected length-n codeword for errors of weight at most t. Raise `KeyError` if the syndrome has no entry in the table. |
+| `print_errors_that_have_syndrome(s)` | Print every length-n binary error vector e satisfying eH.T = s, with its Hamming weight. Return `None` and preserve s. Accept a list or array of n-k bits. |
+| `print_standard_array()` | Print all 2^(n-k) cosets with 2^k vectors per row, covering every length-n vector exactly once. The first column contains minimum-weight coset leaders; the first row is `C()` in message order. Return `None` and preserve G. |
 
 The `A()` layout preserves the existing implementation and README example.
 
@@ -52,7 +52,7 @@ Beyond t errors, decoding may silently return a different codeword or raise
 recovered. Enumeration is exponential and intended for small textbook examples.
 
 The standard array includes cosets whose leaders exceed the correction radius.
-It is a complete diagnostic; `correctableErrorPatterns()` and `decodingTable()`
+It is a complete diagnostic; `correctable_error_patterns()` and `decoding_table()`
 remain restricted to errors of weight at most t. Each row is its leader plus
 every codeword modulo 2, in the same column order as the first row. Ties between
 minimum-weight leaders, coset row order, and output spacing are not contracts.
@@ -81,8 +81,8 @@ Constructor checks are currently incomplete; callers must supply valid codes.
 | `G(systematic=True)` | Return a matrix giving the same encoding as `c()` with the corresponding flag. |
 | `S(r)` | Return the polynomial remainder r(X) mod g(X). Trailing zero padding may vary; this is distinct from the matrix syndrome `s(r)`. |
 | `shift(c, i=1)` | For nonnegative integer i, return length-n coefficients of X^i c(X) mod (X^n+1); shifting n positions returns the original vector. |
-| `shiftSyndrome(S, i=1)` | For nonnegative integer i, return X^i S(X) mod g(X). |
-| `dmin()`, `t()`, `errorDetectionCapability()` | Follow the same mathematical definitions as linear codes; generator weight is only an upper bound on minimum distance. |
+| `shift_syndrome(S, i=1)` | For nonnegative integer i, return X^i S(X) mod g(X). |
+| `dmin()`, `t()`, `error_detection_capability()` | Follow the same mathematical definitions as linear codes; generator weight is only an upper bound on minimum distance. |
 
 Tests use fixed repetition/Hamming matrices and independent integer polynomial
 arithmetic. They enumerate all messages and correctable errors in the selected

@@ -223,7 +223,7 @@ class BSC:
             print("")
         return capacity
 
-    def ChannelEfficiency(self, verbose=True):
+    def channel_efficiency(self, verbose=True):
         """Return I(X;Y) / Cs for this source and a finite discrete channel.
         Raises ZeroDivisionError when channel capacity is zero.
         """
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     print('I(X,Y) = H(Y) - H(Y|X) = ' + str(bsc.HY() - bsc.HYX()))
 
     bsc.Cs(True)
-    bsc.ChannelEfficiency()"""
+    bsc.channel_efficiency()"""
 
     # Exam 2015 - 1.4
     PX = [1 / 3, 1 / 3, 1 / 3]

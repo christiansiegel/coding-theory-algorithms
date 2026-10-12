@@ -51,23 +51,23 @@ def test_invalid_design_radius(code_type, radius):
 @pytest.mark.parametrize("matrix", [[], [[1]], [[0, 0, 0]], [[1, 1, 0]], [[1, 2, 1]], [[1, 0.5, 1]]])
 def test_invalid_generator_does_not_change_existing_code(matrix):
     code = LinearBlockCode()
-    code.setG([[1, 1, 1]])
+    code.set_g([[1, 1, 1]])
     with pytest.raises(ValueError):
-        code.setG(matrix)
+        code.set_g(matrix)
     np.testing.assert_array_equal(code.G(), [[1, 1, 1]])
 
 
 @pytest.mark.parametrize("matrix", [[], [[1]], [[0, 1, 1]], [[1, 2, 1]], [[0.5, 1, 1]]])
 def test_invalid_parity_checks(matrix):
     with pytest.raises(ValueError):
-        LinearBlockCode().setH(matrix)
+        LinearBlockCode().set_h(matrix)
 
 
 @pytest.mark.parametrize("p", [-0.01, 1.01, np.nan, np.inf, "0.5"])
 @pytest.mark.parametrize("method", ["PU", "Pe"])
 def test_invalid_error_probabilities(method, p):
     code = LinearBlockCode()
-    code.setG([[1, 1, 1]])
+    code.set_g([[1, 1, 1]])
     with pytest.raises(ValueError):
         getattr(code, method)(p)
 
@@ -75,7 +75,7 @@ def test_invalid_error_probabilities(method, p):
 @pytest.mark.parametrize("message", [[], [[0]], [0.5], [2], [0, 0]])
 def test_invalid_binary_messages(message):
     code = LinearBlockCode()
-    code.setG([[1, 1, 1]])
+    code.set_g([[1, 1, 1]])
     with pytest.raises(ValueError):
         code.c(message)
 
@@ -98,4 +98,4 @@ def test_valid_lists_and_constructor_copies():
     code = CyclicCode([1, 1], 3)
     np.testing.assert_array_equal(code.c([1]), [1, 1, 0])
     with pytest.raises(NotImplementedError):
-        code.setG([[1, 1, 1]])
+        code.set_g([[1, 1, 1]])
