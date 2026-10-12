@@ -1,7 +1,8 @@
 # -*- coding: UTF-8 -*-
 import numpy as np
 from .cyclic_code import CyclicCode
-from .galois_field import X
+from .galois_field import GaloisField, X, degree
+from .validation import coefficients, integer
 
 
 def g(GF, t, verbose=True):
@@ -94,6 +95,7 @@ class BCHCode(CyclicCode):
     """
 
     _GF = None
+    _alphabet = 2
 
     def __init__(self, GF, t, verbose=False):
         """
@@ -102,10 +104,17 @@ class BCHCode(CyclicCode):
             t: Number of errors to correct.
             verbose: Print how the generator polynomial is constructed.
         """
+        if not isinstance(GF, GaloisField):
+            raise ValueError("GF must be a GaloisField instance")
+        t = integer(t, "t", minimum=1)
+        if 2 * t >= GF.q() - 1:
+            raise ValueError("BCH parameters require 2t < n=q-1")
         m = GF.m()
         self._GF = GF
         self._g = g(GF, t, verbose)
         self._n = 2**m - 1  # slide 5
+        if degree(self._g) >= self._n:
+            raise ValueError("BCH generator must leave a positive message dimension")
 
     def GF(self):
         """Return Galois Field."""
@@ -148,6 +157,7 @@ class BCHCode(CyclicCode):
         Returns:
             Syndrome polynomial
         """
+        r = coefficients(r, "r", alphabet=self._alphabet, length=self.n())
         if verbose:
             print()
             print("The syndrome vector components are:")
@@ -183,6 +193,7 @@ class BCHCode(CyclicCode):
             r: received polynomial
             verbose: print the algorithm steps.
         """
+        r = coefficients(r, "r", alphabet=self._alphabet, length=self.n())
         GF = self.GF()
 
         if verbose:

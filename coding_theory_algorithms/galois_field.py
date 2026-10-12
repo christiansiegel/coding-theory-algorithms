@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 import numpy as np
+from .validation import primitive_polynomial
 
 """
 If not specified differently, all functions use
@@ -135,7 +136,7 @@ class GaloisField:
             p: Primitive polynomial pi(X) the GF is based on.
                (default: 1+X -> GF(2))
         """
-        self._p = p
+        self._p = primitive_polynomial(p)
         self._cachedPolyElements = constructGF(self.p(), False)
 
     def p(self):

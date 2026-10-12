@@ -26,8 +26,16 @@ class BSC:
     __PX = np.zeros(2, float)
 
     def __init__(self, PX, P):
-        self.__P = np.array(P).astype(float)
-        self.__PX = np.array(PX).astype(float)
+        source = np.asarray(PX, dtype=float)
+        transition = np.asarray(P, dtype=float)
+        if source.ndim != 1 or source.size == 0 or transition.ndim != 2 or transition.shape[0] != source.size or transition.shape[1] == 0:
+            raise ValueError("PX and P must have compatible nonempty source/transition shapes")
+        if not np.all(np.isfinite(source)) or not np.all(np.isfinite(transition)) or np.any(source < 0) or np.any(transition < 0):
+            raise ValueError("Channel probabilities must be finite and nonnegative")
+        if not np.isclose(source.sum(), 1, atol=1e-12, rtol=0) or not np.allclose(transition.sum(axis=1), 1, atol=1e-12, rtol=0):
+            raise ValueError("Source probabilities and each transition row must sum to one")
+        self.__P = transition.copy()
+        self.__PX = source.copy()
 
     def PX(self, verbose=False):
         PX = self.__PX

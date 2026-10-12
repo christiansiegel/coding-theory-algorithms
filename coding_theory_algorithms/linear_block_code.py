@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from itertools import combinations
+from .validation import binary_matrix, coefficients, probability
 
 
 def HtoG(H):
@@ -185,7 +186,7 @@ class LinearBlockCode:
         Args:
             G: Generator Matrix
         """
-        self.__G = G.astype(int)
+        self.__G = binary_matrix(G, "G", generator=True)
 
     def P(self):
         """Submatrix P of the generator matrix in systematic form."""
@@ -202,7 +203,7 @@ class LinearBlockCode:
         Args:
             H: Parity Check Matrix
         """
-        G = HtoG(H)
+        G = HtoG(binary_matrix(H, "H", generator=False))
         self.__G = G.astype(int)
 
     def c(self, m):
@@ -212,6 +213,7 @@ class LinearBlockCode:
         Returns:
             codeword
         """
+        m = coefficients(m, "m", length=self.k())
         c = m.dot(self.G()) % 2
         return c.astype(int)
 
@@ -222,6 +224,7 @@ class LinearBlockCode:
         Returns:
             Syndrome vector
         """
+        r = coefficients(r, "r", length=self.n())
         HT = np.transpose(self.H())
         s = r.dot(HT) % 2
         return s.astype(int)
@@ -298,6 +301,7 @@ class LinearBlockCode:
         Args:
             p: bit-flip probability in [0, 1].
         """
+        p = probability(p)
         PU = 0
         n = self.n()
         for i in range(1, n + 1):
@@ -312,6 +316,7 @@ class LinearBlockCode:
         Args:
             p: bit-flip probability in [0, 1].
         """
+        p = probability(p)
         Pe = 0
         n = self.n()
         t = self.t()

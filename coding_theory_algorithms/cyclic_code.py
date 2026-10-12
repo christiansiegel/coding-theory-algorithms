@@ -1,6 +1,7 @@
 import numpy as np
 from .galois_field import GF2, X, degree
 from .linear_block_code import LinearBlockCode
+from .validation import binary_remainder, coefficients, integer
 
 """
 IMPORTANT:
@@ -157,9 +158,13 @@ class CyclicCode(LinearBlockCode):
     _n = 0
 
     def __init__(self, g, n):
-        assert g[0] == 1, "g0 must equal to 1"
-        assert n >= degree(g), "n=%i must be >= degree(g)=%i" % (n, degree(g))
-        self._g = g[:n]  # auto remove too much dangling zeros
+        n = integer(n, "n", minimum=2)
+        g = coefficients(g, "g")
+        g = g[: degree(g) + 1]
+        mask = sum(int(bit) << i for i, bit in enumerate(g))
+        if g[0] != 1 or not 0 < degree(g) < n or binary_remainder((1 << n) | 1, mask):
+            raise ValueError("g must be a nonconstant binary divisor of X^n+1 with degree less than n")
+        self._g = g.copy()
         self._n = n
 
     def g(self):
@@ -182,7 +187,7 @@ class CyclicCode(LinearBlockCode):
         # Enumerate using matrix encoding rather than repeating polynomial
         # division for every message. Systematic form is unnecessary here.
         linear_code = LinearBlockCode()
-        linear_code.setG(self.G(systematic=False))
+        linear_code.setG(self.G())
         return linear_code.dmin(verbose)
 
     def dminVerbose(self):
@@ -191,11 +196,11 @@ class CyclicCode(LinearBlockCode):
     def G(self, systematic=True, verbose=False):  # override
         return gToG(self.g(), self.n(), systematic, verbose)
 
-    def setG(self):  # override
-        assert False, "setG() not usable with cyclic codes."
+    def setG(self, *args):  # override
+        raise NotImplementedError("Set the generator through the cyclic-code constructor")
 
-    def setH(self):  # override
-        assert False, "setH() not usable with cyclic codes."
+    def setH(self, *args):  # override
+        raise NotImplementedError("Set the generator through the cyclic-code constructor")
 
     def shift(self, c, i=1):
         """Cyclic right shift of c using division (slide 11)"""
@@ -214,6 +219,7 @@ class CyclicCode(LinearBlockCode):
         Returns:
             codeword
         """
+        m = coefficients(m, "m", maximum_length=self.k())
         c = encode(m, self.g(), systematic)
         return padEnd(c, self.n())
 

@@ -2,7 +2,8 @@
 import numpy as np
 from .bch_code import BCHCode
 from .cyclic_code import padEnd
-from .galois_field import X, degree
+from .galois_field import GaloisField, X, degree
+from .validation import coefficients, integer
 
 
 def g(GF, t, verbose=True):
@@ -54,7 +55,13 @@ class RSCode(BCHCode):
             t: Number of errors to correct.
             verbose: Print how the generator polynomial is constructed.
         """
+        if not isinstance(GF, GaloisField):
+            raise ValueError("GF must be a GaloisField instance")
+        t = integer(t, "t", minimum=1)
+        if 2 * t >= GF.q() - 1:
+            raise ValueError("RS parameters require 2t < n=q-1")
         m = GF.m()
+        self._alphabet = GF.q()
         self._GF = GF
         self._g = g(GF, t, verbose)
         self._n = 2**m - 1  # slide 5
@@ -66,6 +73,7 @@ class RSCode(BCHCode):
 
     def c(self, m, systematic=True):
         """Encode a message polynomial over the supplied field, padded to n symbols."""
+        m = coefficients(m, "m", alphabet=self._alphabet, maximum_length=self.k())
         GF = self.GF()
         if systematic:
             shifted = GF.multPoly(X(degree(self.g())), m)
