@@ -54,9 +54,9 @@ RS generator roots need not form complete Frobenius conjugate groups. The
 diagnostic lists actual roots rather than implying that their conjugates are
 also roots. Output spacing is not an interface contract.
 
-No binary-only matrix or probability methods are promised for RS in this step.
-The implementation currently inherits several such methods; they need separate
-review before use with field-valued symbols.
+Binary-only matrix, enumeration, probability, binary shift, and table-decoder
+methods raise `NotImplementedError` on RS codes. Use `c()`, `S()`, and `decode()`
+for field-valued symbols. `printg()` uses the supplied field's notation.
 
 ## Verification
 

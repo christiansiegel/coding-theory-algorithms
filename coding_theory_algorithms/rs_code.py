@@ -86,6 +86,19 @@ class RSCode(BCHCode):
         """Return the designed symbol-error correction radius."""
         return self._t
 
+    def _binary_only(self, *args, **kwargs):
+        raise NotImplementedError("This binary-code method is unsupported for Reed-Solomon symbols; use c(), S(), and decode().")
+
+    G = H = P = s = M = C = _binary_only
+    Ai = A = PU = Pe = _binary_only
+    shift = shiftSyndrome = _binary_only
+    correctableErrorPatterns = decodingTable = syndromeDecode = _binary_only
+    printMessageCodewordTable = printParityCheckEquations = printSyndromeVectorEquations = _binary_only
+    printErrorsThatHaveSyndrome = printStandardArray = printDecodingTable = verboseSyndromeDecode = _binary_only
+
+    def printg(self):
+        print(self.GF().polyToString(self.g()))
+
     def printInfo(self):
         """Print the generator's actual roots and parameters measured in symbols."""
         GF = self.GF()

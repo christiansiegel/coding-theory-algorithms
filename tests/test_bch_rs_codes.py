@@ -77,6 +77,40 @@ def padded_bits(decoded, bits, n):
     return [bits[int(label)] for label in decoded] + [0] * (n - len(decoded))
 
 
+@pytest.mark.parametrize(
+    "method",
+    [
+        "G",
+        "H",
+        "P",
+        "s",
+        "M",
+        "C",
+        "Ai",
+        "A",
+        "PU",
+        "Pe",
+        "shift",
+        "shiftSyndrome",
+        "correctableErrorPatterns",
+        "decodingTable",
+        "syndromeDecode",
+        "printMessageCodewordTable",
+        "printParityCheckEquations",
+        "printSyndromeVectorEquations",
+        "printErrorsThatHaveSyndrome",
+        "printStandardArray",
+        "printDecodingTable",
+        "verboseSyndromeDecode",
+    ],
+)
+def test_rs_rejects_binary_only_inherited_methods(method):
+    field, _, _ = field_reference(0b111)
+    code = RSCode(field, 1)
+    with pytest.raises(NotImplementedError, match="unsupported for Reed-Solomon"):
+        getattr(code, method)()
+
+
 @pytest.mark.parametrize("modulus, t", [(0b1011, 1), (0b10011, 2)])
 def test_bch_generator_and_all_encodings(modulus, t, capsys):
     field, bits, _ = field_reference(modulus)
