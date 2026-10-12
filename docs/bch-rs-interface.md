@@ -1,7 +1,6 @@
 # BCH and Reed–Solomon interfaces
 
-These contracts describe intended behavior for small primitive narrow-sense
-codes. Independent tests check their arithmetic and decoding behavior.
+These interfaces support small primitive narrow-sense codes.
 Invalid construction parameters and received-vector shapes raise `ValueError`;
 see [input validation](input-validation.md). Shortened codes and decoding
 guarantees beyond the correction radius remain outside this contract.
@@ -52,29 +51,8 @@ See the [field representation contract](finite-field-interface.md).
 | `print_info()` | Print the generator polynomial and every actual generator root in the supplied field. Report lengths, parity count, distance, and correction radius in symbols. Return `None` and preserve the generator. |
 
 RS generator roots need not form complete Frobenius conjugate groups. The
-diagnostic lists actual roots rather than implying that their conjugates are
-also roots. Output spacing is not an interface contract.
+diagnostic lists actual generator roots. Output spacing is not an interface contract.
 
 Binary-only matrix, enumeration, probability, binary shift, and table-decoder
 methods raise `NotImplementedError` on RS codes. Use `c()`, `S()`, and `decode()`
 for field-valued symbols. `print_g()` uses the supplied field's notation.
-
-## Verification
-
-Tests share the independent field-polynomial reference with the arithmetic
-tests. BCH generators are constructed from the union of Frobenius conjugate
-roots, and RS generators from distinct consecutive roots. Expected encodings
-use independent polynomial division; expected syndromes use Horner evaluation.
-
-Passing cases cover BCH(7,4) and BCH(15,7) encodings, every binary received
-vector's BCH(7,4) syndromes, selected single-error BCH decodings and two-error
-BCH(15,7) patterns, RS generators
-over GF(4)/GF(8), every GF(4) received vector's RS(3,1) syndromes, and its
-single-symbol-error corrections at every position and for every nonzero error
-value. Regression tests also cover error-free decoding, canceled highest terms,
-BCH factor deduplication, and expanded parity checks over GF(8) and GF(16).
-RS encoding is checked for every message in RS(3,1) over GF(4) and RS(7,3)
-over GF(8), in both forms. Independent enumeration verifies their minimum
-symbol distance. Selected RS(7,5) encodings and GF(8) syndrome/decoding cases
-cover nonbinary symbols and one- and two-error patterns. All regression tests
-now pass without expected-failure markers.

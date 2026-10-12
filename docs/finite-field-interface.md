@@ -3,7 +3,6 @@
 This contract covers construction, element conversion, and element arithmetic
 in `coding_theory_algorithms.galois_field`. See the separate [polynomial contract](polynomial-interface.md)
 for polynomial arithmetic.
-Regression tests cover negative exponents, division by zero, and powers of zero.
 
 ## Construction and representations
 
@@ -34,7 +33,7 @@ For example, in GF(16) defined by 1 + X + X^4, label 5 represents alpha^4 =
 | `p()` | Return the defining polynomial as an integer array. |
 | `element(a)` | Keep label 0 as zero; normalize any other integer label to `1 + ((a - 1) % (q - 1))`. This is label normalization, not exponent conversion. |
 | `element_to_exp(a)` | Return the normalized label's exponent; zero maps to negative infinity. |
-| `element_from_exp(e)` | Return the label of alpha^e for any integer e, including negative integers. Either infinity maps to zero for compatibility with the existing API. |
+| `element_from_exp(e)` | Return the label of alpha^e for any integer e, including negative integers. Either infinity maps to zero. |
 | `element_to_poly(a, size_m=False)` | Return the normalized element as an integer coefficient vector in ascending order. Current output has m coefficients, including zero padding. `size_m=True` also guarantees that width. |
 | `element_from_poly(v)` | Return the label of a binary coefficient vector of degree less than m. Trailing zeros are allowed. This method does not promise reduction of higher-degree polynomials. |
 | `add_elements(a, b)` | Return the integer label of a + b in the field. |
@@ -42,9 +41,9 @@ For example, in GF(16) defined by 1 + X + X^4, label 5 represents alpha^4 =
 | `div_elements(a, b)` | Return the integer label of a / b for nonzero b; raise `ZeroDivisionError` when b is zero. |
 | `pow_element(a, e)` | Return the integer label of a^e for integer e. Nonzero a allows negative e. Define a^0 = 1, including 0^0; zero to a negative power raises `ZeroDivisionError`. |
 
-Arithmetic tests use canonical labels in `[0, q)`. Inputs such as floats,
-out-of-range polynomial coefficients, and empty vectors have no established
-validation contract yet. These functions should not mutate caller-owned inputs.
+Arithmetic uses canonical labels in `[0, q)`. Low-level arithmetic assumes
+valid integer labels and coefficient vectors; malformed operands have no
+validation guarantee. These functions preserve caller-owned inputs.
 
 ## Root helpers
 
@@ -80,27 +79,5 @@ and X+1 is both. Quiet calls print nothing; verbose calls explain the same
 boolean result. Inputs are preserved. Nonbinary or malformed inputs have no
 established validation contract.
 
-## Independent verification
-
-Tests construct small fields GF(2), GF(4), GF(8), and GF(16). A reference uses
-binary integer polynomials: XOR for addition, carryless multiplication, and
-reduction by the defining polynomial. It does not call production arithmetic
-or conversion methods to generate expected answers.
-
-Every element conversion and every pair for addition, multiplication, and
-division by nonzero elements is checked against that reference. Negative powers
-and zero-handling are checked separately. This verifies the covered small fields,
-not every possible primitive polynomial or the polynomial/code algorithms.
-Root tests check every monic linear and quadratic polynomial in these fields,
-using independent evaluation. Orbit and minimal-polynomial tests use reference
-squaring and polynomial products. All root-helper regressions now pass,
-including complete GF(2) coverage and conjugate reduction that preserves inputs
-and supplied representatives.
-
-Binary classification tests enumerate all 64 polynomials of degree at most
-five, using independent bit-mask factorization and multiplicative-order checks.
-They exercise every receiver field, trailing-zero padding, and quiet/verbose
-calls. The classification regressions now pass independently of receiver degree,
-including zero/constants and the distinction between X and X+1.
-The implementation enumerates possible small factors and measures modular
-multiplicative order; these checks are intended for textbook-sized polynomials.
+Classification enumerates factors and measures modular multiplicative order;
+these checks are intended for textbook-sized polynomials.

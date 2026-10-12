@@ -20,9 +20,10 @@ Please refer to the code comments for a detailed function description.
 
 Implementations live in `coding_theory_algorithms/`, for example
 `from coding_theory_algorithms import GaloisField, CyclicCode`.
-Use package imports; the former root modules have been removed. Descriptive
-methods use snake_case, while lecture notation such as `c()`, `s()`, `G()`,
-`H()`, and `PU()` remains. See the [API migration guide](docs/api-migration.md).
+The package exports `BSC`, `GaloisField`, `GF2`, `LinearBlockCode`, `CyclicCode`,
+`BCHCode`, and `RSCode`. Utility functions are available in their submodules.
+Descriptive methods use snake_case; lecture notation includes `c()`, `s()`,
+`G()`, `H()`, and `PU()`.
 
 ## Development
 
@@ -40,8 +41,22 @@ Use `make test`, `make lint`, or `make format-check` to run individual checks.
 `make format` applies formatting changes. `make compatibility` checks the local
 Python matrix; see [compatibility instructions](docs/local-checks.md) for setup.
 
-Dependencies are recorded in `uv.lock`. See [PROJECT.md](PROJECT.md) for the
-quality-improvement plan, known issues, and validation status.
+Python 3.10 or newer is required. Dependencies are recorded in `uv.lock`;
+`uv sync --locked` installs them into the repository's `.venv`. Run commands
+from the repository root; the project is not installed as a distribution.
+
+## API reference
+
+- [Finite fields](docs/finite-field-interface.md)
+- [Polynomial arithmetic](docs/polynomial-interface.md)
+- [Linear and cyclic codes](docs/binary-code-interface.md)
+- [BCH and Reed–Solomon codes](docs/bch-rs-interface.md)
+- [Channels](docs/channel-interface.md)
+- [Euclidean helpers](docs/euclidean-interface.md)
+- [Input validation](docs/input-validation.md)
+
+Representations and limits are documented in these references. Exact distance
+calculations and exhaustive tables are intended for small textbook examples.
 
 ## Example 1
 

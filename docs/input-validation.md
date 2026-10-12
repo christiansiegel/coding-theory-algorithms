@@ -5,8 +5,8 @@ Array inputs are copied; finite integral numeric coefficients (including 0.0
 and 1.0) are accepted, then stored as integers.
 
 - Channels require a nonempty source and matching nonempty transition matrix.
-  Values must be real numeric, finite, and nonnegative; the source and each row sum to one
-  within absolute tolerance 1e-12. Inputs are not silently normalized.
+  Values must be real numeric, finite, and nonnegative; the source and each row
+  sum to one within absolute tolerance 1e-12. Inputs are not silently normalized.
 - Fields require a positive-degree primitive binary polynomial. Trailing zeros
   are trimmed. Nonprimitive and reducible polynomials are rejected.
 - Linear-code setters require binary systematic matrices, with 0 < rows < n:
