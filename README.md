@@ -19,7 +19,7 @@ Run with `python3 playground.py`.
 Please refer to the code comments for a detailed function description.
 
 Implementations live in `coding_theory_algorithms/`, for example
-`from coding_theory_algorithms.galois_field import GaloisField`.
+`from coding_theory_algorithms import GaloisField, CyclicCode`.
 Use package imports; the former root modules have been removed. Descriptive
 methods use snake_case, while lecture notation such as `c()`, `s()`, `G()`,
 `H()`, and `PU()` remains. See the [API migration guide](docs/api-migration.md).

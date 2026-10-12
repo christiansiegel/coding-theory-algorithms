@@ -15,7 +15,7 @@ descriptive method names. No deprecated aliases are provided for those names.
 Class names remain unchanged. For example:
 
 ```python
-from coding_theory_algorithms.linear_block_code import LinearBlockCode
+from coding_theory_algorithms import LinearBlockCode
 
 code = LinearBlockCode()
 code.set_g([[1, 1, 1]])
@@ -23,6 +23,9 @@ codeword = code.c([1])
 syndrome = code.s(codeword)
 code.print_standard_array()
 ```
+
+The main classes and `GF2` are also exported directly from the package.
+Explicit submodule imports remain supported for classes and utility functions.
 
 Lecture/book notation is retained: c, s, G, H, P, M, C, R, S, A, Ai, PU, Pe,
 Cs, PX, PY, PXY, PYX, HX, HY, HXY, HYX, GF, GF2, X, HCF, nCr, and matrix

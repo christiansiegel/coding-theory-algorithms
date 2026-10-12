@@ -1,11 +1,15 @@
 # Project layout
 
-Implementations live in `coding_theory_algorithms/`. Import explicit submodules:
+Implementations live in `coding_theory_algorithms/`. Import the main classes and
+shared binary field directly from the package:
 
 ```python
-from coding_theory_algorithms.galois_field import GaloisField, GF2
-from coding_theory_algorithms.cyclic_code import CyclicCode
+from coding_theory_algorithms import GaloisField, GF2, CyclicCode
 ```
+
+The package exports `BSC`, `GaloisField`, `GF2`, `LinearBlockCode`, `CyclicCode`,
+`BCHCode`, and `RSCode`. Explicit submodule imports remain supported; utility
+functions stay in those submodules.
 
 Root import shims have been removed. See the [migration guide](api-migration.md)
 for the intentional import and descriptive-name API breaks. Classes and lecture
