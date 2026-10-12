@@ -52,6 +52,7 @@ def test_readme_script_runs_both_examples():
     expected_results = {
         # alpha^5 = 1 + alpha^2 follows from the defining polynomial.
         "α^5 [1 0 1 0 0] 1 + α^2",
+        "-> The elements of GF(2^5) are all roots of X + X^32.",
         # The generator has degree 4, so the (7, 3) code has rate 3/7.
         "-> Message length (k): 3",
         "-> Codeword length (n): 7",

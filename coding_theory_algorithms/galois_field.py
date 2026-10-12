@@ -170,7 +170,7 @@ class GaloisField:
         tmp = self.add_poly(X(0), X(2**m - 1))  # x^(2^m - 1) + 1
         print("-> The non-zero elements of GF(2^" + str(self.m()) + ") are all roots of " + self.poly_to_string(tmp) + ".")
 
-        tmp = self.add_poly(X(0), X(2**m))
+        tmp = self.add_poly(X(1), X(2**m))
         print("-> The elements of GF(2^" + str(self.m()) + ") are all roots of " + self.poly_to_string(tmp) + ".")
         print()
 

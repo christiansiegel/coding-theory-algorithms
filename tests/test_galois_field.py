@@ -171,6 +171,16 @@ def test_minimal_polynomials_for_complete_conjugate_groups(field_case):
                 assert reference_evaluate(actual, bits[root], modulus) == 0
 
 
+def test_printed_all_element_polynomial_vanishes_on_the_whole_field(field_case, capsys):
+    field, modulus, bits, _ = field_case
+    q = len(bits)
+    coefficients = [0, 1] + [0] * (q - 2) + [1]
+    assert all(reference_evaluate(coefficients, value, modulus) == 0 for value in bits)
+    field.print_info()
+    expected = f"-> The elements of GF(2^{modulus.bit_length() - 1}) are all roots of X + X^{q}."
+    assert expected in capsys.readouterr().out.splitlines()
+
+
 def test_dimensions_and_defining_polynomial(field_case):
     field, modulus, bits, _ = field_case
     m = modulus.bit_length() - 1

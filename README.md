@@ -116,7 +116,7 @@ Exp. rep.	 vector rep.	 poly. rep.
 α^30 		 [0 1 0 0 1] 	 α + α^4
 
 -> The non-zero elements of GF(2^5) are all roots of 1 + X^31.
--> The elements of GF(2^5) are all roots of 1 + X^32.
+-> The elements of GF(2^5) are all roots of X + X^32.
 ```
 ## Example 2
 
