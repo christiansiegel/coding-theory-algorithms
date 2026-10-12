@@ -15,6 +15,27 @@ def binary_entropy(p):
     return -p * math.log2(p) - (1 - p) * math.log2(1 - p)
 
 
+@pytest.mark.parametrize("p", [1e-200, 1e-320, np.nextafter(0.0, 1.0)])
+@pytest.mark.parametrize("method", ["HX", "HY", "HXY", "HYX", "channel_efficiency"])
+def test_entropy_with_rare_positive_probabilities(p, method, capsys):
+    if method == "HXY":
+        source, transition = [p, 1.0], [[1.0], [1.0]]
+    elif method == "HYX":
+        source, transition = [1.0], [[p, 1.0]]
+    else:
+        source, transition = [p, 1.0], [[1, 0], [0, 1]]
+    channel = BSC(source, transition)
+    expected = -p * math.log2(p)
+    for verbose in [False, True]:
+        with np.errstate(over="raise", divide="raise", invalid="raise"):
+            actual = getattr(channel, method)(verbose)
+        assert math.isfinite(actual) and actual > 0
+        assert actual == pytest.approx(expected, rel=1e-12, abs=0)
+        assert bool(capsys.readouterr().out) == verbose
+        np.testing.assert_array_equal(channel.PX(), source)
+        np.testing.assert_array_equal(channel.PYX(), np.asarray(transition).T)
+
+
 def make_channel(source_zero_probability, crossover_probability):
     x = source_zero_probability
     p = crossover_probability

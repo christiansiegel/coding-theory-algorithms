@@ -113,7 +113,7 @@ class BSC:
             if PX[i] == 0:
                 continue  # zero-probability terms contribute zero
             printStr = printStr + str(PX[i]) + " * log2(1/" + str(PX[i]) + ") + "
-            H = H + PX[i] * np.log2(1 / PX[i])
+            H = H - PX[i] * np.log2(PX[i])
         printStr = printStr[:-2]
         printStr = printStr + "= " + str(H)
 
@@ -132,7 +132,7 @@ class BSC:
             if PY[j] == 0:
                 continue  # zero-probability terms contribute zero
             printStr = printStr + str(PY[j]) + " * log2(1/" + str(PY[j]) + ") + "
-            H = H + PY[j] * np.log2(1 / PY[j])
+            H = H - PY[j] * np.log2(PY[j])
         printStr = printStr[:-2]
         printStr = printStr + "= " + str(H)
 
@@ -153,7 +153,7 @@ class BSC:
             for i in range(0, PXY.shape[0]):
                 if PXY[i, j] == 0:
                     continue
-                HXY = HXY + PXY[i, j] * PY[j] * np.log2(1 / PXY[i, j])
+                HXY = HXY - PXY[i, j] * PY[j] * np.log2(PXY[i, j])
 
         if verbose:
             print("H(X|Y) = \u2211i P(xi|yj) * P(yj) * log2[1/P(xi|yj)] = " + str(HXY))
@@ -169,7 +169,7 @@ class BSC:
             for i in range(0, PYX.shape[1]):
                 if PYX[j, i] == 0:
                     continue
-                HYX = HYX + PYX[j, i] * PX[i] * np.log2(1 / PYX[j, i])
+                HYX = HYX - PYX[j, i] * PX[i] * np.log2(PYX[j, i])
 
         if verbose:
             print("H(Y|X) = \u2211i P(yj|xi) * P(xi) * log2[1/P(yj|xi)] = " + str(HYX))
