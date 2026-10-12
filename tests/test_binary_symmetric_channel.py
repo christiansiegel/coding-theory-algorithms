@@ -1,6 +1,7 @@
 """Check channel calculations against independent closed-form answers."""
 
 import math
+from decimal import Decimal, localcontext
 
 import numpy as np
 import pytest
@@ -34,6 +35,19 @@ def test_entropy_with_rare_positive_probabilities(p, method, capsys):
         assert bool(capsys.readouterr().out) == verbose
         np.testing.assert_array_equal(channel.PX(), source)
         np.testing.assert_array_equal(channel.PYX(), np.asarray(transition).T)
+
+
+@pytest.mark.parametrize("source_exponent,transition_exponent", [(155, 170), (170, 155)])
+def test_conditional_entropy_preserves_a_representable_subnormal_contribution(source_exponent, transition_exponent):
+    with localcontext() as context:
+        context.prec = 80
+        source = Decimal(10) ** -source_exponent
+        transition = Decimal(10) ** -transition_exponent
+        expected = float(-source * transition * transition.ln() / Decimal(2).ln())
+    channel = BSC([float(source), 1.0], [[float(transition), 1.0], [0.0, 1.0]])
+    actual = channel.HYX()
+    assert expected > 0 and actual > 0
+    assert actual == expected
 
 
 def make_channel(source_zero_probability, crossover_probability):

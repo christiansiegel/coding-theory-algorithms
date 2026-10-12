@@ -153,7 +153,7 @@ class BSC:
             for i in range(0, PXY.shape[0]):
                 if PXY[i, j] == 0:
                     continue
-                HXY = HXY - PXY[i, j] * PY[j] * np.log2(PXY[i, j])
+                HXY = HXY - (PXY[i, j] * np.log2(PXY[i, j])) * PY[j]
 
         if verbose:
             print("H(X|Y) = \u2211i P(xi|yj) * P(yj) * log2[1/P(xi|yj)] = " + str(HXY))
@@ -169,7 +169,7 @@ class BSC:
             for i in range(0, PYX.shape[1]):
                 if PYX[j, i] == 0:
                     continue
-                HYX = HYX - PYX[j, i] * PX[i] * np.log2(PYX[j, i])
+                HYX = HYX - (PYX[j, i] * np.log2(PYX[j, i])) * PX[i]
 
         if verbose:
             print("H(Y|X) = \u2211i P(yj|xi) * P(xi) * log2[1/P(yj|xi)] = " + str(HYX))
