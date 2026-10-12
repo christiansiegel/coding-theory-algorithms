@@ -18,9 +18,9 @@ def linear_case(request):
         check = np.column_stack([np.eye(3, dtype=int), parity.T])
         minimum_distance = 3
     elif request.param == "readme7":
-        generator = np.array([[1, 0, 1, 1, 1, 0, 0], [1, 1, 1, 0, 0, 1, 0], [1, 1, 1, 1, 0, 0, 1]])
+        generator = np.array([[1, 0, 1, 1, 1, 0, 0], [1, 1, 1, 0, 0, 1, 0], [0, 1, 1, 1, 0, 0, 1]])
         check = np.column_stack([np.eye(4, dtype=int), generator[:, :4].T])
-        minimum_distance = 3
+        minimum_distance = 4
     else:
         n = 3 if request.param == "repetition3" else 5
         generator = np.ones((1, n), dtype=int)
@@ -100,7 +100,7 @@ def test_all_correctable_errors_and_decoding(linear_case):
 
 def test_decoder_rejects_a_syndrome_missing_from_the_table():
     code = LinearBlockCode()
-    # The README (7,3) code covers only 8 of its 16 syndromes.
+    # This nonperfect (7,3) code covers only 8 of its 16 syndromes.
     code.set_g(np.array([[1, 0, 1, 1, 1, 0, 0], [1, 1, 1, 0, 0, 1, 0], [0, 1, 1, 1, 0, 0, 1]]))
     received = np.array([1, 1, 0, 0, 0, 0, 0])
     with pytest.raises(KeyError):
