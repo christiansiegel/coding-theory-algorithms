@@ -72,26 +72,28 @@ def gToG(g, n, systematic=True, verbose=False):
 
 
 def makeSystematic(G, verbose=True):
+    G = np.asarray(G)
+    if G.ndim != 2 or not 0 < G.shape[0] < G.shape[1]:
+        raise ValueError("G must have shape (k,n) with 0 < k < n")
+    G = coefficients(G.reshape(-1), "G").reshape(G.shape)
     k, n = G.shape
     if verbose:
         print("unsystematic:")
         print(G.astype(int))
         print()
 
-    # start with bottom row
-    for i in range(k - 1, 0, -1):
+    for i in range(k):
+        column = n - k + i
+        pivots = np.flatnonzero(G[i:, column])
+        if not pivots.size:
+            raise ValueError("The rightmost k columns must be invertible; column permutations are not performed")
+        pivot = i + int(pivots[0])
+        G[[i, pivot]] = G[[pivot, i]]
+        for row in range(k):
+            if row != i and G[row, column]:
+                G[row] ^= G[i]
         if verbose:
-            s = ""
-        # start with most right hand bit
-        for j in range(n - 1, n - k - 1, -1):
-            # eleminate bit if it does not belong to identity matrix
-            if G[i, j] == 1 and i != j - (n - k):
-                if verbose:
-                    s += " + g" + str(k - n + j)
-                G[i, :] = (G[i, :] + G[k - n + j, :]) % 2
-
-        if verbose and s != "":
-            print("g" + str(i) + " = g" + str(i) + s)
+            print("Pivot in column", column)
             print(G.astype(int))
             print()
     return G.astype(int)
@@ -120,7 +122,6 @@ def printAllCyclicCodes(factorPolynomials):
     print("There are", numberCodes, "different cyclic codes of length", n, "as")
     print("we can find", numberCodes, "different generator polynomials that are")
     print("the factors of", GF2.polyToString(product))
-    print(np.bitwise_and(1, 3))
 
     print("Code <- Generator polynomial")
     for i in range(0, numberCodes):
@@ -134,7 +135,7 @@ def printAllCyclicCodes(factorPolynomials):
                     gp = GF2.multPoly(gp, factorPolynomials[j])
                 s += "(" + GF2.polyToString(factorPolynomials[j]) + ")"
 
-        print("Ccyc(" + str(n) + ", " + str(degree(gp)) + ") <- g" + str(i + 1) + " = " + s + " = " + GF2.polyToString(gp))
+        print("Ccyc(" + str(n) + ", " + str(n - degree(gp)) + ") <- g" + str(i + 1) + " = " + s + " = " + GF2.polyToString(gp))
 
 
 def padEnd(p, length):
