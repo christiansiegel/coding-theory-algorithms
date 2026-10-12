@@ -317,12 +317,21 @@ class LinearBlockCode:
             p: bit-flip probability in [0, 1].
         """
         p = probability(p)
-        Pe = 0
+        if p == 0 or p == 1:
+            return p
         n = self.n()
         t = self.t()
-        for i in range(t + 1, n + 1):
-            Pe += nCr(n, i) * p**i * (1 - p) ** (n - i)
-        return Pe
+        # Scale the binomial mass at a mode to one, then recur outward.
+        # Relative masses never exceed one, avoiding huge coefficients and
+        # underflow of the initial mass. Normalize only after summation.
+        mode = min(n, math.floor((n + 1) * p))
+        weights = [0.0] * (n + 1)
+        weights[mode] = 1.0
+        for i in range(mode, 0, -1):
+            weights[i - 1] = weights[i] * (i / (n - i + 1)) * (1 - p) / p
+        for i in range(mode, n):
+            weights[i + 1] = weights[i] * ((n - i) / (i + 1)) * p / (1 - p)
+        return math.fsum(weights[t + 1 :]) / math.fsum(weights)
 
     def Ai(self, i):
         """Weight distribution = number of codewords of weight i (slide 61)

@@ -177,6 +177,34 @@ def test_repetition_probability_without_factorial_overflow(p, expected):
     assert code.Pe(p) == pytest.approx(expected, abs=1e-14)
 
 
+@pytest.mark.parametrize("length", [1100, 1101])
+@pytest.mark.parametrize("numerator", [0, 1, 2, 3, 4])
+def test_long_repetition_probability_against_exact_integer_weights(length, numerator, capsys):
+    code = LinearBlockCode()
+    generator = np.ones((1, length), dtype=int)
+    code.set_g(generator)
+    radius = (length - 1) // 2
+    # For p=a/4, sum integer event weights first, then divide once. No
+    # intermediate coefficient is converted to float, and no recurrence is used.
+    total = sum(math.comb(length, i) * numerator**i * (4 - numerator) ** (length - i) for i in range(radius + 1, length + 1))
+    expected = total / 4**length
+    actual = code.Pe(numerator / 4)
+    assert math.isfinite(actual) and 0 <= actual <= 1
+    assert actual == pytest.approx(expected, rel=1e-12, abs=0)
+    np.testing.assert_array_equal(code.G(), generator)
+    assert capsys.readouterr().out == ""
+
+
+def test_repetition_probability_preserves_a_tiny_representable_tail():
+    code = LinearBlockCode()
+    code.set_g([[1, 1, 1]])
+    p = 1e-160
+    expected = 3 * p * p * (1 - p) + p**3
+    actual = code.Pe(p)
+    assert actual > 0
+    assert actual == pytest.approx(expected, rel=1e-12, abs=0)
+
+
 def printed_error_records(output):
     lines = output.splitlines()
     assert lines and "weight" in lines[0]
