@@ -26,8 +26,12 @@ class BSC:
     __PX = np.zeros(2, float)
 
     def __init__(self, PX, P):
-        source = np.asarray(PX, dtype=float)
-        transition = np.asarray(P, dtype=float)
+        source = np.asarray(PX)
+        transition = np.asarray(P)
+        if source.dtype.kind not in "biuf" or transition.dtype.kind not in "biuf":
+            raise ValueError("Channel probabilities must be real numeric values")
+        source = source.astype(float)
+        transition = transition.astype(float)
         if source.ndim != 1 or source.size == 0 or transition.ndim != 2 or transition.shape[0] != source.size or transition.shape[1] == 0:
             raise ValueError("PX and P must have compatible nonempty source/transition shapes")
         if not np.all(np.isfinite(source)) or not np.all(np.isfinite(transition)) or np.any(source < 0) or np.any(transition < 0):

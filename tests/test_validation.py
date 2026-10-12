@@ -88,6 +88,15 @@ def test_invalid_rs_vectors(method, argument):
         getattr(code, method)(argument)
 
 
+@pytest.mark.parametrize(
+    "source, transition",
+    [([0.5 + 1j, 0.5], [[1, 0], [0, 1]]), ([0.5, 0.5], [[1 + 1j, 0], [0, 1]]), (["0.5", "0.5"], [[1, 0], [0, 1]])],
+)
+def test_channel_rejects_nonreal_or_text_probabilities(source, transition):
+    with pytest.raises(ValueError):
+        BSC(source, transition)
+
+
 def test_valid_lists_and_constructor_copies():
     source, transition = [0.25, 0.75], [[1, 0], [0, 1]]
     channel = BSC(source, transition)
