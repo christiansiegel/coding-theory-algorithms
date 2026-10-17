@@ -12,6 +12,21 @@ These interfaces expect the systematic arrangement `G = [P | I_k]` and
 `H = [I_(n-k) | P.T]`. Thus information bits occupy the **last k positions**.
 Conversions do not perform general Gaussian elimination on arbitrary matrices.
 
+The common textbook arrangement `G = [I_k | P]`, `H = [P.T | I_(n-k)]`
+is equally valid over GF(2). Both arrangements satisfy `G @ H.T = 0` modulo 2:
+for this library's arrangement the product is `P + P = 0`. The vertical bar
+denotes horizontal concatenation of column blocks.
+
+Moving the information block from the front to the back in **both** matrices
+converts the textbook arrangement to this library's arrangement. Apply the same
+column permutation to codewords, received vectors, and error vectors. The result
+is an equivalent code with reordered coordinates and the same distances.
+
+`GtoH`, `HtoG`, `GtoP`, and `HtoP` in
+`coding_theory_algorithms.linear_block_code` assume the library's layout; they
+do not detect or convert the alternative layout automatically. `GtoP` takes the
+left k-by-(n-k) block, while `HtoP` transposes the right (n-k)-by-k block.
+
 ## LinearBlockCode
 
 Create `LinearBlockCode()` then call `set_g(G)` or `set_h(H)` with a full-rank
