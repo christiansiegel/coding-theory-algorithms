@@ -5,9 +5,13 @@ from .validation import binary_matrix, coefficients, probability
 
 
 def HtoG(H):
-    """Convert a Parity Check Matrix in systematic form to a Generator Matrix.
+    """Convert binary H = [I_(n-k) | P.T] to G = [P | I_k].
+
+    Information bits occupy the last k coordinates. The returned matrices
+    satisfy G @ H.T = 0 modulo 2. Input must already use this systematic layout;
+    this helper does not reorder columns or perform Gaussian elimination.
     Args:
-        H: Parity Check Matrix in systematic form
+        H: Parity check matrix of shape (n-k, n), with identity on the left.
     Returns:
         Generator Matrix G
     """
@@ -20,9 +24,13 @@ def HtoG(H):
 
 
 def GtoH(G):
-    """Convert a Generator Matrix in systematic form to a Parity Check Matrix.
+    """Convert binary G = [P | I_k] to H = [I_(n-k) | P.T].
+
+    Information bits occupy the last k coordinates. The returned matrices
+    satisfy G @ H.T = 0 modulo 2. Input must already use this systematic layout;
+    this helper does not reorder columns or perform Gaussian elimination.
     Args:
-        G: Generator Matrix in systematic form
+        G: Generator matrix of shape (k, n), with identity on the right.
     Returns:
         Parity Check Matrix H
     """
@@ -36,9 +44,9 @@ def GtoH(G):
 
 
 def GtoP(G):
-    """Extract the submatrix P from a Generator Matrix in systematic form.
+    """Extract the left parity block P from binary G = [P | I_k].
     Args:
-        G: Generator Matrix in systematic form
+        G: Generator matrix of shape (k, n), with identity on the right.
     Returns:
         Submatrix P of G.
     """
@@ -49,9 +57,9 @@ def GtoP(G):
 
 
 def HtoP(H):
-    """Extract the submatrix P from a Parity Check Matrix in systematic form.
+    """Transpose the right block of binary H = [I_(n-k) | P.T] to obtain P.
     Args:
-        H: Parity Check Matrix in systematic form
+        H: Parity check matrix of shape (n-k, n), with identity on the left.
     Returns:
         Submatrix P of G.
     """
